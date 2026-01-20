@@ -24,19 +24,15 @@ class SegmentManager {
     /**
      * 新增子段落
      */
-    addSubSegment(parentId) {
+    addSubSegment(parentId, segmentData) {
         const parent = this.segments.find(s => s.id === parentId);
         if (!parent) return null;
 
-        // 找出此父段落的所有子段落
-        const subSegments = this.segments.filter(s => s.id.startsWith(`${parentId}-`));
-        const nextSubNum = subSegments.length + 1;
-
         const subSegment = {
-            id: `${parentId}-${nextSubNum}`,
-            name: `段落 ${parentId}-${nextSubNum}`,
-            startMs: parent.startMs,
-            endMs: Math.min(parent.startMs + 10000, parent.endMs)
+            id: segmentData.id,
+            name: segmentData.name,
+            startMs: segmentData.startMs,
+            endMs: segmentData.endMs
         };
 
         // 插入到父段落後面
@@ -79,9 +75,10 @@ class SegmentManager {
     deleteSegment(id) {
         const index = this.segments.findIndex(s => s.id === id);
         if (index >= 0) {
-            // 如果是主段落，也刪除所有子段落
+            // 如果是主段落 (不含 "-")，也要刪除所有子段落
             if (!id.includes('-')) {
-                this.segments = this.segments.filter(s => !s.id.startsWith(`${id}-`) && s.id !== id);
+                const prefix = `${id}-`;
+                this.segments = this.segments.filter(s => !s.id.startsWith(prefix) && s.id !== id);
             } else {
                 this.segments.splice(index, 1);
             }

@@ -269,14 +269,19 @@ class UIController {
             if (action === 'split-at-position') {
                 const currentPos = audioPlayer.currentTime * 1000;
                 if (currentPos >= parentSegment.startMs && currentPos <= parentSegment.endMs) {
-                    // 從播放位置切分
+                    // 找出下一個子段編號
+                    const subSegments = this.segmentManager.getSegments().filter(s => s.id.startsWith(`${parentSegment.id}-`));
+                    const nextNum = subSegments.length + 1;
+
                     this.segmentManager.addSubSegment(parentSegment.id, {
-                        name: `${parentSegment.id}-A`,
+                        id: `${parentSegment.id}-${nextNum}`,
+                        name: `${parentSegment.name}-A`,
                         startMs: parentSegment.startMs,
                         endMs: Math.floor(currentPos)
                     });
                     this.segmentManager.addSubSegment(parentSegment.id, {
-                        name: `${parentSegment.id}-B`,
+                        id: `${parentSegment.id}-${nextNum + 1}`,
+                        name: `${parentSegment.name}-B`,
                         startMs: Math.floor(currentPos),
                         endMs: parentSegment.endMs
                     });
@@ -288,14 +293,17 @@ class UIController {
                 if (unitMs) {
                     const unitValue = parseFloat(unitMs) * 1000;
                     if (unitValue > 0 && unitValue < parentDuration) {
-                        let count = 1;
+                        const subSegments = this.segmentManager.getSegments().filter(s => s.id.startsWith(`${parentSegment.id}-`));
+                        let nextNum = subSegments.length + 1;
+
                         for (let t = parentSegment.startMs; t < parentSegment.endMs; t += unitValue) {
                             this.segmentManager.addSubSegment(parentSegment.id, {
-                                name: `${parentSegment.id}-${count}`,
-                                startMs: t,
-                                endMs: Math.min(t + unitValue, parentSegment.endMs)
+                                id: `${parentSegment.id}-${nextNum}`,
+                                name: `${parentSegment.name}-${nextNum}`,
+                                startMs: Math.floor(t),
+                                endMs: Math.floor(Math.min(t + unitValue, parentSegment.endMs))
                             });
-                            count++;
+                            nextNum++;
                         }
                     } else {
                         alert('時長需大於 0 且小於段落總長');
@@ -307,12 +315,17 @@ class UIController {
                     const n = parseInt(num);
                     if (n >= 2 && n <= 20) {
                         const segDuration = parentDuration / n;
+                        const subSegments = this.segmentManager.getSegments().filter(s => s.id.startsWith(`${parentSegment.id}-`));
+                        let nextNum = subSegments.length + 1;
+
                         for (let i = 0; i < n; i++) {
                             this.segmentManager.addSubSegment(parentSegment.id, {
-                                name: `${parentSegment.id}-${i + 1}`,
+                                id: `${parentSegment.id}-${nextNum}`,
+                                name: `${parentSegment.name}-${nextNum}`,
                                 startMs: Math.floor(parentSegment.startMs + i * segDuration),
                                 endMs: Math.floor(parentSegment.startMs + (i + 1) * segDuration)
                             });
+                            nextNum++;
                         }
                     } else {
                         alert('請輸入 2-20 之間的數字');

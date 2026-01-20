@@ -43,8 +43,13 @@ class AudioProcessor {
     /**
      * 播放音訊片段
      */
-    playSegment(startMs, endMs) {
+    async playSegment(startMs, endMs) {
         if (!this.audioBuffer) return;
+
+        // 確保 AudioContext 已啟動 (解決瀏覽器自動暫停問題)
+        if (this.audioContext.state === 'suspended') {
+            await this.audioContext.resume();
+        }
 
         this.stop();
 
