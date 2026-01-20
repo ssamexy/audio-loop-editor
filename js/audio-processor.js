@@ -48,7 +48,11 @@ class AudioProcessor {
 
         // 確保 AudioContext 已啟動 (解決瀏覽器自動暫停問題)
         if (this.audioContext.state === 'suspended') {
-            await this.audioContext.resume();
+            try {
+                await this.audioContext.resume();
+            } catch (e) {
+                console.warn('AudioContext resume failed:', e);
+            }
         }
 
         this.stop();

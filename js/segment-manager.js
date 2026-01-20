@@ -73,12 +73,13 @@ class SegmentManager {
      * 刪除段落
      */
     deleteSegment(id) {
-        const index = this.segments.findIndex(s => s.id === id);
+        const targetId = String(id);
+        const index = this.segments.findIndex(s => String(s.id) === targetId);
         if (index >= 0) {
             // 如果是主段落 (不含 "-")，也要刪除所有子段落
-            if (!id.includes('-')) {
-                const prefix = `${id}-`;
-                this.segments = this.segments.filter(s => !s.id.startsWith(prefix) && s.id !== id);
+            if (!targetId.includes('-')) {
+                const prefix = `${targetId}-`;
+                this.segments = this.segments.filter(s => !String(s.id).startsWith(prefix) && String(s.id) !== targetId);
             } else {
                 this.segments.splice(index, 1);
             }
@@ -183,7 +184,7 @@ class SegmentManager {
      * 檢查是否為子段落
      */
     isSubSegment(id) {
-        return id.includes('-');
+        return String(id).includes('-');
     }
 
     /**

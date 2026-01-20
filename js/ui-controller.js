@@ -20,10 +20,15 @@ class UIController {
 
         const segments = this.segmentManager.getSegments();
 
-        segments.forEach((segment, index) => {
-            const row = this.createSegmentRow(segment, index);
-            container.appendChild(row);
-        });
+        try {
+            segments.forEach((segment, index) => {
+                const row = this.createSegmentRow(segment, index);
+                container.appendChild(row);
+            });
+        } catch (e) {
+            console.error('Render error:', e);
+            alert(`渲染列表時發生錯誤: ${e.message}`);
+        }
 
         // 更新段落數量顯示
         const count = segments.length;
