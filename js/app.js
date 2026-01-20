@@ -8,6 +8,10 @@ let audioProcessor;
 let uiController;
 let currentFile = null;
 
+// 播放器狀態
+let isLooping = false;
+let isSeeking = false;
+
 // 初始化應用程式
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
@@ -26,6 +30,78 @@ function initializeApp() {
     segmentManager.onChange = () => {
         uiController.renderSegments();
     };
+}
+
+/**
+ * 設定主播放器控制
+ */
+function setupPlayerControls() {
+    const audioPlayer = document.getElementById('audioPlayer');
+    const btnPlayPause = document.getElementById('btnPlayPause');
+    const btnLoop = document.getElementById('btnLoop');
+    const seekBar = document.getElementById('seekBar');
+    const playbackSpeed = document.getElementById('playbackSpeed');
+    const currentTimeEl = document.getElementById('currentTime');
+    const totalTimeEl = document.getElementById('totalTime');
+
+    // Play/Pause 按鈕
+    btnPlayPause.addEventListener('click', () => {
+        if (audioPlayer.paused) {
+            audioPlayer.play();
+            btnPlayPause.textContent = '⏸';
+        } else {
+            audioPlayer.pause();
+            btnPlayPause.textContent = '▶';
+        }
+    });
+
+    // Loop 按鈕
+    btnLoop.addEventListener('click', () => {
+        isLooping = !isLooping;
+        audioPlayer.loop = isLooping;
+        btnLoop.classList.toggle('active', isLooping);
+        btnLoop.style.background = isLooping ? '#667eea' : '';
+        btnLoop.style.color = isLooping ? 'white' : '';
+    });
+
+    // 倍速控制
+    playbackSpeed.addEventListener('change', () => {
+        audioPlayer.playbackRate = parseFloat(playbackSpeed.value);
+    });
+
+    // Seekbar 拖曳
+    seekBar.addEventListener('input', () => {
+        isSeeking = true;
+        const seekTime = (seekBar.value / 100) * audioPlayer.duration;
+        currentTimeEl.textContent = TimeUtils.formatTime(seekTime * 1000);
+    });
+
+    seekBar.addEventListener('change', () => {
+        const seekTime = (seekBar.value / 100) * audioPlayer.duration;
+        audioPlayer.currentTime = seekTime;
+        isSeeking = false;
+    });
+
+    // 更新進度條
+    audioPlayer.addEventListener('timeupdate', () => {
+        if (!isSeeking && audioPlayer.duration) {
+            const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            seekBar.value = progress;
+            currentTimeEl.textContent = TimeUtils.formatTime(audioPlayer.currentTime * 1000);
+        }
+    });
+
+    // 載入後顯示總時長
+    audioPlayer.addEventListener('loadedmetadata', () => {
+        totalTimeEl.textContent = TimeUtils.formatTime(audioPlayer.duration * 1000);
+    });
+
+    // 播放結束
+    audioPlayer.addEventListener('ended', () => {
+        if (!isLooping) {
+            btnPlayPause.textContent = '▶';
+        }
+    });
 }
 
 /**
@@ -58,6 +134,9 @@ function setupEventListeners() {
         const file = e.target.files[0];
         if (file) handleFileSelect(file);
     });
+
+    // 主播放器控制
+    setupPlayerControls();
 
     // 微調刻度設定
     document.querySelectorAll('.btn-preset').forEach(btn => {

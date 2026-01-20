@@ -44,7 +44,32 @@
             <section class="section audio-preview-section" id="audioPreviewSection" style="display: none;">
                 <h2>🎧 音訊預覽</h2>
                 <div class="audio-player">
-                    <audio id="audioPlayer" controls></audio>
+                    <!-- Hidden native audio for playback -->
+                    <audio id="audioPlayer" style="display: none;"></audio>
+
+                    <!-- Custom Player Controls -->
+                    <div class="player-controls">
+                        <button id="btnPlayPause" class="btn-player" title="播放/暫停">▶</button>
+                        <button id="btnLoop" class="btn-player" title="循環播放">🔁</button>
+
+                        <!-- Seek Bar -->
+                        <div class="seek-bar-container">
+                            <input type="range" id="seekBar" class="seek-bar" min="0" max="100" value="0">
+                            <span id="currentTime">00:00.000</span> / <span id="totalTime">00:00.000</span>
+                        </div>
+
+                        <!-- Speed Control -->
+                        <select id="playbackSpeed" class="speed-select" title="播放速度">
+                            <option value="0.5">x0.5</option>
+                            <option value="0.75">x0.75</option>
+                            <option value="1" selected>x1</option>
+                            <option value="1.25">x1.25</option>
+                            <option value="1.5">x1.5</option>
+                            <option value="2">x2</option>
+                        </select>
+                    </div>
+
+                    <!-- Waveform -->
                     <div class="waveform-container" id="waveformContainer">
                         <canvas id="waveformCanvas"></canvas>
                     </div>

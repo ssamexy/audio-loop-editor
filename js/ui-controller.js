@@ -89,8 +89,8 @@ class UIController {
             addSubBtn.className = 'btn-icon add-sub';
             addSubBtn.textContent = '+子';
             addSubBtn.title = '新增子段落';
-            addSubBtn.addEventListener('click', () => {
-                this.segmentManager.addSubSegment(segment.id);
+            addSubBtn.addEventListener('click', (e) => {
+                this.showSubSegmentMenu(segment, e.target);
             });
             actions.appendChild(addSubBtn);
         }
@@ -229,5 +229,108 @@ class UIController {
     setStepSize(ms) {
         this.stepSize = ms;
         document.getElementById('stepSize').value = ms;
+    }
+
+    /**
+     * 顯示子段落選單
+     */
+    showSubSegmentMenu(parentSegment, button) {
+        // 移除舊選單
+        const existingMenu = document.querySelector('.sub-segment-menu');
+        if (existingMenu) existingMenu.remove();
+
+        const menu = document.createElement('div');
+        menu.className = 'sub-segment-menu';
+        menu.innerHTML = `
+            <div class="menu-title">新增子段落方式</div>
+            <button class="menu-item" data-action="split-at-position">📍 從當前播放位置二分</button>
+            <button class="menu-item" data-action="split-by-unit">⏱️ 依時間單位切分...</button>
+            <button class="menu-item" data-action="split-evenly">🔢 平均分為 N 段...</button>
+            <button class="menu-item menu-cancel">✕ 取消</button>
+        `;
+
+        // 定位選單
+        const rect = button.getBoundingClientRect();
+        menu.style.cssText = `
+            position: fixed;
+            top: ${rect.bottom + 5}px;
+            left: ${rect.left}px;
+            z-index: 10000;
+        `;
+
+        document.body.appendChild(menu);
+
+        // 選單事件
+        menu.addEventListener('click', (e) => {
+            const action = e.target.dataset.action;
+            const audioPlayer = document.getElementById('audioPlayer');
+            const parentDuration = parentSegment.endMs - parentSegment.startMs;
+
+            if (action === 'split-at-position') {
+                const currentPos = audioPlayer.currentTime * 1000;
+                if (currentPos >= parentSegment.startMs && currentPos <= parentSegment.endMs) {
+                    // 從播放位置切分
+                    this.segmentManager.addSubSegment(parentSegment.id, {
+                        name: `${parentSegment.id}-A`,
+                        startMs: parentSegment.startMs,
+                        endMs: Math.floor(currentPos)
+                    });
+                    this.segmentManager.addSubSegment(parentSegment.id, {
+                        name: `${parentSegment.id}-B`,
+                        startMs: Math.floor(currentPos),
+                        endMs: parentSegment.endMs
+                    });
+                } else {
+                    alert('請先將播放位置移動到此段落範圍內');
+                }
+            } else if (action === 'split-by-unit') {
+                const unitMs = prompt('請輸入每段時長 (秒):', '10');
+                if (unitMs) {
+                    const unitValue = parseFloat(unitMs) * 1000;
+                    if (unitValue > 0 && unitValue < parentDuration) {
+                        let count = 1;
+                        for (let t = parentSegment.startMs; t < parentSegment.endMs; t += unitValue) {
+                            this.segmentManager.addSubSegment(parentSegment.id, {
+                                name: `${parentSegment.id}-${count}`,
+                                startMs: t,
+                                endMs: Math.min(t + unitValue, parentSegment.endMs)
+                            });
+                            count++;
+                        }
+                    } else {
+                        alert('時長需大於 0 且小於段落總長');
+                    }
+                }
+            } else if (action === 'split-evenly') {
+                const num = prompt('請輸入要平分的段落數量 (2-20):', '2');
+                if (num) {
+                    const n = parseInt(num);
+                    if (n >= 2 && n <= 20) {
+                        const segDuration = parentDuration / n;
+                        for (let i = 0; i < n; i++) {
+                            this.segmentManager.addSubSegment(parentSegment.id, {
+                                name: `${parentSegment.id}-${i + 1}`,
+                                startMs: Math.floor(parentSegment.startMs + i * segDuration),
+                                endMs: Math.floor(parentSegment.startMs + (i + 1) * segDuration)
+                            });
+                        }
+                    } else {
+                        alert('請輸入 2-20 之間的數字');
+                    }
+                }
+            }
+
+            menu.remove();
+        });
+
+        // 點擊外部關閉
+        setTimeout(() => {
+            document.addEventListener('click', function closeMenu(e) {
+                if (!menu.contains(e.target) && e.target !== button) {
+                    menu.remove();
+                    document.removeEventListener('click', closeMenu);
+                }
+            });
+        }, 100);
     }
 }
