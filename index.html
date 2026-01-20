@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Audio Loop Editor - 免費線上音訊分段剪輯與循環練習工具，支援毫秒精度、多段剪輯、試播放功能">
+    <meta name="keywords" content="audio editor, loop practice, music practice, audio trimmer, segment editor">
+    <title>Audio Loop Editor | 音訊分段剪輯與循環練習工具</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🎵 Audio Loop Editor</h1>
+            <p class="subtitle">音訊分段剪輯與循環練習工具 - 支援毫秒精度、多段剪輯、試播放</p>
+            <div class="version">v1.0.0</div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- File Upload Section -->
+            <section class="section file-upload-section">
+                <h2>📁 選擇音訊檔案</h2>
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="fileInput" accept="audio/*" hidden>
+                    <div class="upload-prompt">
+                        <svg class="upload-icon" viewBox="0 0 24 24" width="48" height="48">
+                            <path fill="currentColor" d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" />
+                        </svg>
+                        <p>點擊或拖曳音訊檔案到此處</p>
+                        <p class="upload-hint">支援 MP3, WAV, OGG, M4A 等格式</p>
+                    </div>
+                    <div class="file-info" id="fileInfo" style="display: none;">
+                        <div class="file-name" id="fileName"></div>
+                        <div class="file-details" id="fileDetails"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Audio Preview Section -->
+            <section class="section audio-preview-section" id="audioPreviewSection" style="display: none;">
+                <h2>🎧 音訊預覽</h2>
+                <div class="audio-player">
+                    <audio id="audioPlayer" controls></audio>
+                    <div class="waveform-container" id="waveformContainer">
+                        <canvas id="waveformCanvas"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section class="section settings-section" id="settingsSection" style="display: none;">
+                <h2>⚙️ 設定</h2>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label for="stepSize">時間微調刻度 (毫秒):</label>
+                        <input type="number" id="stepSize" value="100" min="1" max="10000">
+                        <div class="preset-buttons">
+                            <button class="btn-preset" data-step="50">50ms</button>
+                            <button class="btn-preset" data-step="100">100ms</button>
+                            <button class="btn-preset" data-step="500">500ms</button>
+                            <button class="btn-preset" data-step="1000">1000ms</button>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <label>自動切分:</label>
+                        <div class="auto-split-buttons">
+                            <button class="btn-split" data-segments="2">2 段</button>
+                            <button class="btn-split" data-segments="3">3 段</button>
+                            <button class="btn-split" data-segments="4">4 段</button>
+                            <button class="btn-split" data-segments="5">5 段</button>
+                            <button class="btn-split" data-segments="6">6 段</button>
+                            <button class="btn-split" id="btnCustomSplit">其他...</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Segments Section -->
+            <section class="section segments-section" id="segmentsSection" style="display: none;">
+                <h2>📋 分段列表</h2>
+                <div class="segments-header">
+                    <div class="segment-col-id">編號</div>
+                    <div class="segment-col-name">段落名稱</div>
+                    <div class="segment-col-time">開始時間</div>
+                    <div class="segment-col-time">結束時間</div>
+                    <div class="segment-col-actions">操作</div>
+                </div>
+                <div class="segments-list" id="segmentsList">
+                    <!-- Segments will be added here dynamically -->
+                </div>
+                <div class="segments-controls">
+                    <button class="btn btn-primary" id="btnAddSegment">➕ 新增段落</button>
+                    <button class="btn btn-secondary" id="btnImportJSON">📥 匯入 JSON</button>
+                    <button class="btn btn-secondary" id="btnExportJSON">📤 匯出 JSON</button>
+                    <button class="btn btn-danger" id="btnClearAll">🗑 清除全部</button>
+                </div>
+            </section>
+
+            <!-- Export Section -->
+            <section class="section export-section" id="exportSection" style="display: none;">
+                <h2>💾 匯出設定</h2>
+                <div class="export-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="keepOriginal" checked>
+                        <span>同時保留完整版本</span>
+                    </label>
+                </div>
+                <div class="export-controls">
+                    <button class="btn btn-success btn-large" id="btnProcess">
+                        🎵 開始剪輯
+                    </button>
+                </div>
+                <div class="progress-container" id="progressContainer" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">準備中...</div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>
+                🎵 <strong>Audio Loop Editor</strong> - 專為音樂練習設計的分段剪輯工具
+            </p>
+            <p>
+                <a href="https://github.com/ssamexy/audio-loop-editor" target="_blank">GitHub</a> |
+                所有處理都在您的瀏覽器中完成，不會上傳任何檔案
+            </p>
+            <p>&copy; 2026 ssamexy | MIT License</p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/time-utils.js"></script>
+    <script src="js/audio-processor.js"></script>
+    <script src="js/segment-manager.js"></script>
+    <script src="js/ui-controller.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
