@@ -19,9 +19,27 @@ let currentSegmentRange = null; // 當前播放的段落範圍 {startMs, endMs}
 function playFullAudio() {
     const audioPlayer = document.getElementById('audioPlayer');
     const btnPlayPause = document.getElementById('btnPlayPause');
+    const btnPlayMain = document.getElementById('btnPlayMain');
+    const totalTimeEl = document.getElementById('totalTime');
 
+    // 清除段落範圍
     currentSegmentRange = null;
-    document.getElementById('floatingPlayerInfo').textContent = '主音訊';
+    document.getElementById('floatingPlayerInfo').textContent = i18n ? i18n.t('main_audio') : '主音訊';
+
+    // 重置所有段落播放按鈕為播放狀態
+    document.querySelectorAll('.btn-icon.playing').forEach(btn => {
+        btn.textContent = '▶';
+        btn.classList.remove('playing');
+        btn.classList.add('play');
+    });
+
+    // 重置總時間為完整音訊長度
+    totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
+
+    // 更新主播放按鈕樣式
+    if (btnPlayMain) {
+        btnPlayMain.innerHTML = '⏸ ' + (i18n ? i18n.t('play_main').replace('▶ ', '') : '暫停');
+    }
 
     audioPlayer.currentTime = 0;
     audioPlayer.play();
@@ -142,10 +160,10 @@ function setupPlayerControls() {
         }
     });
 
-    // Loop 按鈕
+    // Loop 按鈕 (只控制 isLooping 狀態，不設置 audioPlayer.loop)
     btnLoop.addEventListener('click', () => {
         isLooping = !isLooping;
-        audioPlayer.loop = isLooping;
+        // 不設置 audioPlayer.loop，由 timeupdate 事件手動處理循環
         btnLoop.classList.toggle('active', isLooping);
         btnLoop.style.background = isLooping ? '#667eea' : '';
         btnLoop.style.color = isLooping ? 'white' : '';

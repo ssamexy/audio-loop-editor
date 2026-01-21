@@ -52,6 +52,12 @@ const i18n = {
             'segment_prefix': '段落: ',
             'segment_only': '僅段落',
 
+            // Buttons
+            'add_sub': '+子',
+            'add_sub_title': '新增子段落',
+            'delete_title': '刪除',
+            'disclaimer': '免責聲明',
+
             // Footer
             'footer_desc': '專為音樂練習設計的分段剪輯工具',
             'footer_privacy': '所有處理都在您的瀏覽器中完成，不會上傳任何檔案',
@@ -123,6 +129,12 @@ const i18n = {
             'main_audio': 'Main Audio',
             'segment_prefix': 'Segment: ',
             'segment_only': 'Segment Only',
+
+            // Buttons
+            'add_sub': '+Sub',
+            'add_sub_title': 'Add Sub-segment',
+            'delete_title': 'Delete',
+            'disclaimer': 'Disclaimer',
 
             // Footer
             'footer_desc': 'Audio segment editor designed for music practice',

@@ -137,8 +137,8 @@ class UIController {
         // 新增子段落按鈕 (所有段落都可以分割)
         const addSubBtn = document.createElement('button');
         addSubBtn.className = 'btn-icon add-sub';
-        addSubBtn.textContent = '+子';
-        addSubBtn.title = '新增子段落';
+        addSubBtn.textContent = typeof i18n !== 'undefined' ? i18n.t('add_sub') : '+子';
+        addSubBtn.title = typeof i18n !== 'undefined' ? i18n.t('add_sub_title') : '新增子段落';
         addSubBtn.addEventListener('click', (e) => {
             this.showSubSegmentMenu(segment, e.target);
         });
@@ -148,9 +148,9 @@ class UIController {
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'btn-icon delete';
         deleteBtn.textContent = '✕';
-        deleteBtn.title = '刪除';
+        deleteBtn.title = typeof i18n !== 'undefined' ? i18n.t('delete_title') : '刪除';
         deleteBtn.addEventListener('click', () => {
-            if (confirm(`確定要刪除段落 ${segment.id} 嗎？`)) {
+            if (confirm(typeof i18n !== 'undefined' ? i18n.t('confirm_delete', { id: segment.id }) : `確定要刪除段落 ${segment.id} 嗎？`)) {
                 this.segmentManager.deleteSegment(segment.id);
             }
         });
@@ -216,12 +216,35 @@ class UIController {
      * 播放段落 (使用浮動播放器)
      */
     playSegment(segment, playBtn) {
+        const audioPlayer = document.getElementById('audioPlayer');
+
+        // 檢查是否點擊同一個正在播放的段落的按鈕
+        if (playBtn && playBtn.classList.contains('playing')) {
+            // 切換暫停/播放
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                playBtn.textContent = '⏸';
+                document.getElementById('btnPlayPause').textContent = '⏸';
+            } else {
+                audioPlayer.pause();
+                playBtn.textContent = '▶';
+                document.getElementById('btnPlayPause').textContent = '▶';
+            }
+            return;
+        }
+
         // 重置所有其他播放按鈕為播放狀態
         document.querySelectorAll('.btn-icon.play, .btn-icon.playing').forEach(btn => {
             btn.textContent = '▶';
             btn.classList.remove('playing');
             btn.classList.add('play');
         });
+
+        // 重置主播放按鈕樣式
+        const btnPlayMain = document.getElementById('btnPlayMain');
+        if (btnPlayMain) {
+            btnPlayMain.innerHTML = '▶ ' + (typeof i18n !== 'undefined' ? i18n.t('play_main').replace('▶ ', '') : '播放');
+        }
 
         // 使用全域的 playSegmentInPlayer 函數
         if (typeof playSegmentInPlayer === 'function') {
