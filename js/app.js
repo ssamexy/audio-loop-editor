@@ -589,7 +589,7 @@ async function processAudio() {
 
     const segments = segmentManager.getSegments();
     if (segments.length === 0) {
-        alert('請新增至少一個段落');
+        alert(i18n ? i18n.t('no_segments') : '請新增至少一個段落');
         return;
     }
 
@@ -597,18 +597,22 @@ async function processAudio() {
     const info = audioProcessor.getInfo();
     const validation = segmentManager.validateAll(info.durationMs);
     if (!validation.valid) {
-        alert('段落設定有誤:\n' + validation.errors.join('\n'));
+        const errorPrefix = i18n ? i18n.t('segment_error') : '段落設定有誤:\n';
+        alert(errorPrefix + validation.errors.join('\n'));
         return;
     }
 
     // 確認
     const keepOriginal = document.getElementById('keepOriginal').checked;
-    let message = `將剪輯 ${segments.length} 個段落`;
+    let message = i18n
+        ? i18n.t('confirm_process', { count: segments.length })
+        : `將剪輯 ${segments.length} 個段落`;
     if (keepOriginal) {
-        message += '\n同時保留完整版本';
+        message += i18n ? i18n.t('keep_full_version') : '\n同時保留完整版本';
     }
 
-    if (!confirm(message + '\n\n是否繼續？')) {
+    const continuePrompt = i18n ? i18n.t('continue_prompt') : '\n\n是否繼續？';
+    if (!confirm(message + continuePrompt)) {
         return;
     }
 

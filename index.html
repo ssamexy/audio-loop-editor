@@ -16,7 +16,7 @@
         <header class="header">
             <h1 data-i18n="app_title">🎵 Audio Loop Editor</h1>
             <p class="subtitle" data-i18n="app_subtitle">音訊分段剪輯與循環練習工具 - 支援毫秒精度、多段剪輯、試播放</p>
-            <div class="version">v1.4.6</div>
+            <div class="version">v1.4.7</div>
         </header>
 
         <!-- Main Content -->
@@ -42,6 +42,7 @@
                         </svg>
                         <p data-i18n="upload_prompt">點擊或拖曳音訊檔案到此處</p>
                         <p class="upload-hint" data-i18n="upload_hint">支援 MP3, WAV, OGG, M4A 等格式</p>
+                        <p class="upload-warning" data-i18n="memory_warning">⚠️ 提醒：音訊檔案越大，記憶體佔用越多</p>
                     </div>
                     <div class="file-info" id="fileInfo" style="display: none;">
                         <div class="file-name" id="fileName"></div>
@@ -109,6 +110,7 @@
                         <input type="checkbox" id="exportMp3" checked>
                         <span data-i18n="export_mp3">輸出為 MP3 (取消勾選則為 WAV)</span>
                     </label>
+                    <p class="export-note" data-i18n="mp3_slow_note">💡 MP3 編碼需要較長時間，這是正常的</p>
                     <label class="checkbox-label">
                         <input type="checkbox" id="downloadZip" checked>
                         <span data-i18n="download_zip">打包成 ZIP (取消勾選則個別下載)</span>
