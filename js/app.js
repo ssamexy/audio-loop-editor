@@ -34,7 +34,7 @@ function playFullAudio() {
 function playSegmentInPlayer(segment) {
     const audioPlayer = document.getElementById('audioPlayer');
     const btnPlayPause = document.getElementById('btnPlayPause');
-    const playbackMode = document.getElementById('playbackMode')?.value || 'full';
+    const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
     const seekBar = document.getElementById('seekBar');
     const totalTimeEl = document.getElementById('totalTime');
 
@@ -46,7 +46,7 @@ function playSegmentInPlayer(segment) {
     document.getElementById('floatingPlayerInfo').textContent = '段落: ' + segment.name;
 
     // 根據播放模式更新 seekbar 範圍
-    if (playbackMode === 'segment') {
+    if (segmentOnlyMode) {
         // 僅段落模式：seekbar 僅顯示段落範圍
         seekBar.min = 0;
         seekBar.max = 100;
@@ -137,10 +137,10 @@ function setupPlayerControls() {
     // 更新進度條
     audioPlayer.addEventListener('timeupdate', () => {
         if (!isSeeking && audioPlayer.duration) {
-            const playbackMode = document.getElementById('playbackMode')?.value || 'full';
+            const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
 
             // 根據播放模式計算進度
-            if (currentSegmentRange && playbackMode === 'segment') {
+            if (currentSegmentRange && segmentOnlyMode) {
                 // 僅段落模式：進度相對於段落
                 const segmentDuration = currentSegmentRange.endMs - currentSegmentRange.startMs;
                 const currentPosInSegment = (audioPlayer.currentTime * 1000) - currentSegmentRange.startMs;
@@ -483,11 +483,11 @@ async function processAudio() {
             uiController.updateProgress(current, total, status);
         });
 
-        // 取得下載模式
-        const downloadMode = document.getElementById('downloadMode')?.value || 'individual';
+        // 取得下載模式 (使用 checkbox)
+        const useZip = document.getElementById('downloadZip')?.checked || false;
         const baseFilename = currentFile.name.replace(/\.[^/.]+$/, '');
 
-        if (downloadMode === 'zip') {
+        if (useZip) {
             // ZIP 打包模式
             const zip = new JSZip();
 

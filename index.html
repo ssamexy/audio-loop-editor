@@ -16,14 +16,23 @@
         <header class="header">
             <h1>🎵 Audio Loop Editor</h1>
             <p class="subtitle">音訊分段剪輯與循環練習工具 - 支援毫秒精度、多段剪輯、試播放</p>
-            <div class="version">v1.4.0</div>
+            <div class="version">v1.4.1</div>
         </header>
 
         <!-- Main Content -->
         <main class="main-content">
             <!-- File Upload Section -->
             <section class="section file-upload-section">
-                <h2>📁 選擇音訊檔案</h2>
+                <div class="section-header-row">
+                    <h2 data-i18n="select_audio">📁 選擇音訊檔案</h2>
+                    <button id="btnPlayMain" class="btn btn-primary btn-play-main" title="播放主音訊" style="display: none;">
+                        ▶ 播放
+                    </button>
+                    <div class="lang-switcher">
+                        <button class="lang-btn" onclick="i18n.setLang('zh-TW')">中文</button>
+                        <button class="lang-btn" onclick="i18n.setLang('en')">EN</button>
+                    </div>
+                </div>
                 <div class="upload-area" id="uploadArea">
                     <input type="file" id="fileInput" accept="audio/*" hidden>
                     <div class="upload-prompt">
@@ -34,13 +43,7 @@
                         <p class="upload-hint">支援 MP3, WAV, OGG, M4A 等格式</p>
                     </div>
                     <div class="file-info" id="fileInfo" style="display: none;">
-                        <div class="file-info-row">
-                            <div class="file-name" id="fileName"></div>
-                            <button id="btnPlayMain" class="btn btn-primary btn-play-main" title="播放主音訊"
-                                style="display: none;">
-                                ▶ 播放
-                            </button>
-                        </div>
+                        <div class="file-name" id="fileName"></div>
                         <div class="file-details" id="fileDetails"></div>
                     </div>
                 </div>
@@ -90,10 +93,10 @@
                     <!-- Segments will be added here dynamically -->
                 </div>
                 <div class="segments-controls">
-                    <button class="btn btn-primary" id="btnAddSegment">➕ 新增段落</button>
-                    <button class="btn btn-secondary" id="btnImportJSON">📥 匯入 JSON</button>
-                    <button class="btn btn-secondary" id="btnExportJSON">📤 匯出 JSON</button>
-                    <button class="btn btn-danger" id="btnClearAll">🗑 清除全部</button>
+                    <button class="btn btn-primary" id="btnAddSegment" data-i18n="add_segment">➕ 新增段落</button>
+                    <button class="btn btn-secondary" id="btnImportJSON" data-i18n="import_settings">📥 匯入段落設定</button>
+                    <button class="btn btn-secondary" id="btnExportJSON" data-i18n="export_settings">📤 匯出段落設定</button>
+                    <button class="btn btn-danger" id="btnClearAll" data-i18n="clear_all">🗑 清除全部</button>
                 </div>
             </section>
 
@@ -101,23 +104,17 @@
             <section class="section export-section" id="exportSection" style="display: none;">
                 <h2>💾 匯出設定</h2>
                 <div class="export-options">
-                    <div class="export-option-group">
-                        <label>輸出格式:</label>
-                        <select id="exportFormat" class="export-select">
-                            <option value="wav">WAV (無損)</option>
-                            <option value="mp3">MP3 (壓縮)</option>
-                        </select>
-                    </div>
-                    <div class="export-option-group">
-                        <label>下載方式:</label>
-                        <select id="downloadMode" class="export-select">
-                            <option value="individual">個別下載</option>
-                            <option value="zip">ZIP 打包</option>
-                        </select>
-                    </div>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="exportMp3">
+                        <span data-i18n="output_format">輸出為 MP3 (預設 WAV)</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="downloadZip">
+                        <span data-i18n="download_mode">打包成 ZIP (預設個別下載)</span>
+                    </label>
                     <label class="checkbox-label">
                         <input type="checkbox" id="keepOriginal" checked>
-                        <span>同時保留完整版本</span>
+                        <span data-i18n="keep_original">同時保留完整版本</span>
                     </label>
                 </div>
                 <div class="export-controls">
@@ -171,10 +168,10 @@
             </select>
         </div>
         <div class="floating-player-mode">
-            <select id="playbackMode" class="mode-select" title="播放模式">
-                <option value="full">全檔案</option>
-                <option value="segment">僅段落</option>
-            </select>
+            <label class="floating-checkbox-label">
+                <input type="checkbox" id="segmentOnlyMode" checked>
+                <span data-i18n="segment_only">僅段落</span>
+            </label>
         </div>
         <div class="floating-player-info" id="floatingPlayerInfo">
             主音訊
@@ -186,6 +183,7 @@
 
     <!-- Scripts -->
     <script src="js/time-utils.js"></script>
+    <script src="js/i18n.js"></script>
     <script src="js/audio-processor.js"></script>
     <script src="js/segment-manager.js"></script>
     <script src="js/ui-controller.js"></script>
