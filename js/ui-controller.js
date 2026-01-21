@@ -45,17 +45,62 @@ class UIController {
         const row = document.createElement('div');
         row.className = 'segment-row';
         row.dataset.segmentId = segment.id;
+        row.dataset.index = index;
+
+        // 拖曳排序功能
+        row.draggable = true;
+        row.addEventListener('dragstart', (e) => {
+            row.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', index);
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        row.addEventListener('dragend', () => {
+            row.classList.remove('dragging');
+        });
+        row.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            row.classList.add('drag-over');
+        });
+        row.addEventListener('dragleave', () => {
+            row.classList.remove('drag-over');
+        });
+        row.addEventListener('drop', (e) => {
+            e.preventDefault();
+            row.classList.remove('drag-over');
+            const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+            const toIndex = parseInt(row.dataset.index);
+            if (fromIndex !== toIndex) {
+                this.segmentManager.reorderSegment(fromIndex, toIndex);
+            }
+        });
 
         if (this.segmentManager.isSubSegment(segment.id)) {
             row.classList.add('sub-segment');
         }
 
-        // ID 輸入
+        // ID 輸入 (可編輯)
         const idInput = document.createElement('input');
         idInput.type = 'text';
         idInput.value = segment.id;
-        idInput.disabled = true;
-        idInput.style.background = '#f0f0f0';
+        idInput.className = 'segment-id-input';
+        idInput.addEventListener('change', () => {
+            const newId = idInput.value.trim();
+            if (!newId) {
+                alert('編號不能為空');
+                idInput.value = segment.id;
+                return;
+            }
+            // 檢查是否重複
+            const existingIds = this.segmentManager.getSegments().map(s => String(s.id));
+            if (existingIds.includes(newId) && newId !== segment.id) {
+                alert('此編號已存在，請使用其他編號');
+                idInput.value = segment.id;
+                return;
+            }
+            this.segmentManager.updateSegment(segment.id, { id: newId });
+            row.dataset.segmentId = newId;
+        });
 
         // 名稱輸入
         const nameInput = document.createElement('input');

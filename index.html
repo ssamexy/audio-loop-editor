@@ -16,7 +16,7 @@
         <header class="header">
             <h1>🎵 Audio Loop Editor</h1>
             <p class="subtitle">音訊分段剪輯與循環練習工具 - 支援毫秒精度、多段剪輯、試播放</p>
-            <div class="version">v1.3.0</div>
+            <div class="version">v1.4.0</div>
         </header>
 
         <!-- Main Content -->
@@ -34,29 +34,18 @@
                         <p class="upload-hint">支援 MP3, WAV, OGG, M4A 等格式</p>
                     </div>
                     <div class="file-info" id="fileInfo" style="display: none;">
-                        <div class="file-name" id="fileName"></div>
+                        <div class="file-info-row">
+                            <div class="file-name" id="fileName"></div>
+                            <button id="btnPlayMain" class="btn btn-primary btn-play-main" title="播放主音訊"
+                                style="display: none;">
+                                ▶ 播放
+                            </button>
+                        </div>
                         <div class="file-details" id="fileDetails"></div>
                     </div>
                 </div>
-            </section>
-
-            <!-- Audio Preview Section -->
-            <section class="section audio-preview-section" id="audioPreviewSection" style="display: none;">
-                <h2>🎧 音訊預覽</h2>
-                <div class="audio-player">
-                    <!-- Hidden native audio for playback -->
-                    <audio id="audioPlayer" style="display: none;"></audio>
-
-                    <!-- Main Play Button (for this file) -->
-                    <button id="btnPlayMain" class="btn btn-primary btn-play-main" title="播放主音訊">
-                        ▶ 播放主音訊
-                    </button>
-
-                    <!-- Waveform -->
-                    <div class="waveform-container" id="waveformContainer">
-                        <canvas id="waveformCanvas"></canvas>
-                    </div>
-                </div>
+                <!-- Hidden audio element for playback -->
+                <audio id="audioPlayer" style="display: none;"></audio>
             </section>
 
             <!-- Settings Section -->
@@ -112,6 +101,20 @@
             <section class="section export-section" id="exportSection" style="display: none;">
                 <h2>💾 匯出設定</h2>
                 <div class="export-options">
+                    <div class="export-option-group">
+                        <label>輸出格式:</label>
+                        <select id="exportFormat" class="export-select">
+                            <option value="wav">WAV (無損)</option>
+                            <option value="mp3">MP3 (壓縮)</option>
+                        </select>
+                    </div>
+                    <div class="export-option-group">
+                        <label>下載方式:</label>
+                        <select id="downloadMode" class="export-select">
+                            <option value="individual">個別下載</option>
+                            <option value="zip">ZIP 打包</option>
+                        </select>
+                    </div>
                     <label class="checkbox-label">
                         <input type="checkbox" id="keepOriginal" checked>
                         <span>同時保留完整版本</span>
@@ -167,10 +170,19 @@
                 <option value="2">x2</option>
             </select>
         </div>
+        <div class="floating-player-mode">
+            <select id="playbackMode" class="mode-select" title="播放模式">
+                <option value="full">全檔案</option>
+                <option value="segment">僅段落</option>
+            </select>
+        </div>
         <div class="floating-player-info" id="floatingPlayerInfo">
             主音訊
         </div>
     </div>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <!-- Scripts -->
     <script src="js/time-utils.js"></script>

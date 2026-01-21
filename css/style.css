@@ -767,3 +767,79 @@ body.player-active {
         display: none;
     }
 }
+
+/* ===== File Info Row ===== */
+.file-info-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 8px;
+}
+
+.file-info-row .file-name {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.file-info-row .btn-play-main {
+    padding: 6px 15px;
+    font-size: 0.9rem;
+}
+
+/* ===== Drag and Drop Styles ===== */
+.segment-row {
+    cursor: grab;
+}
+
+.segment-row.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.segment-row.drag-over {
+    border-top: 3px solid #667eea;
+    padding-top: 7px;
+}
+
+.segment-id-input {
+    width: 80px;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* ===== Export Options ===== */
+.export-option-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.export-option-group label {
+    min-width: 80px;
+}
+
+.export-select {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+/* ===== Playback Mode Selector ===== */
+.floating-player-mode .mode-select {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.floating-player-mode .mode-select option {
+    background: #1a1a2e;
+    color: white;
+}

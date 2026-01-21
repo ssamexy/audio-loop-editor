@@ -88,6 +88,18 @@ class SegmentManager {
     }
 
     /**
+     * 重新排序段落
+     */
+    reorderSegment(fromIndex, toIndex) {
+        if (fromIndex < 0 || fromIndex >= this.segments.length) return;
+        if (toIndex < 0 || toIndex >= this.segments.length) return;
+
+        const [removed] = this.segments.splice(fromIndex, 1);
+        this.segments.splice(toIndex, 0, removed);
+        this._notifyChange();
+    }
+
+    /**
      * 清除所有段落
      */
     clearAll() {

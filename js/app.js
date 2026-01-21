@@ -34,6 +34,9 @@ function playFullAudio() {
 function playSegmentInPlayer(segment) {
     const audioPlayer = document.getElementById('audioPlayer');
     const btnPlayPause = document.getElementById('btnPlayPause');
+    const playbackMode = document.getElementById('playbackMode')?.value || 'full';
+    const seekBar = document.getElementById('seekBar');
+    const totalTimeEl = document.getElementById('totalTime');
 
     currentSegmentRange = {
         startMs: segment.startMs,
@@ -41,6 +44,20 @@ function playSegmentInPlayer(segment) {
     };
 
     document.getElementById('floatingPlayerInfo').textContent = '段落: ' + segment.name;
+
+    // 根據播放模式更新 seekbar 範圍
+    if (playbackMode === 'segment') {
+        // 僅段落模式：seekbar 僅顯示段落範圍
+        seekBar.min = 0;
+        seekBar.max = 100;
+        const segmentDuration = segment.endMs - segment.startMs;
+        totalTimeEl.textContent = TimeUtils.formatTimeSeconds(segmentDuration);
+    } else {
+        // 全檔案模式：恢復原始 seekbar 範圍
+        seekBar.min = 0;
+        seekBar.max = 100;
+        totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
+    }
 
     audioPlayer.currentTime = segment.startMs / 1000;
     audioPlayer.play();
@@ -120,9 +137,22 @@ function setupPlayerControls() {
     // 更新進度條
     audioPlayer.addEventListener('timeupdate', () => {
         if (!isSeeking && audioPlayer.duration) {
-            const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-            seekBar.value = progress;
-            currentTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.currentTime * 1000);
+            const playbackMode = document.getElementById('playbackMode')?.value || 'full';
+
+            // 根據播放模式計算進度
+            if (currentSegmentRange && playbackMode === 'segment') {
+                // 僅段落模式：進度相對於段落
+                const segmentDuration = currentSegmentRange.endMs - currentSegmentRange.startMs;
+                const currentPosInSegment = (audioPlayer.currentTime * 1000) - currentSegmentRange.startMs;
+                const progress = Math.max(0, Math.min(100, (currentPosInSegment / segmentDuration) * 100));
+                seekBar.value = progress;
+                currentTimeEl.textContent = TimeUtils.formatTimeSeconds(Math.max(0, currentPosInSegment));
+            } else {
+                // 全檔案模式：進度相對於整個檔案
+                const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                seekBar.value = progress;
+                currentTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.currentTime * 1000);
+            }
 
             // 如果在播放段落且已超過段落結束時間，則停止或循環
             if (currentSegmentRange) {
@@ -134,6 +164,8 @@ function setupPlayerControls() {
                         audioPlayer.pause();
                         btnPlayPause.textContent = '▶';
                         currentSegmentRange = null;
+                        // 恢復全檔案模式顯示
+                        totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
                     }
                 }
             }
@@ -270,18 +302,15 @@ async function handleFileSelect(file) {
         document.body.classList.add('player-active');
         document.getElementById('floatingPlayerInfo').textContent = '主音訊: ' + file.name;
 
-        // 設定主播放按鈕
+        // 設定主播放按鈕 (現在在檔案資訊區域內)
         const btnPlayMain = document.getElementById('btnPlayMain');
+        btnPlayMain.style.display = 'inline-flex';
         btnPlayMain.onclick = () => {
             playFullAudio();
         };
 
-        // 顯示相關區塊
-        document.getElementById('audioPreviewSection').style.display = 'block';
+        // 顯示設定區塊
         document.getElementById('settingsSection').style.display = 'block';
-
-        // 繪製波形
-        uiController.drawWaveform();
 
         // 如果沒有段落，自動新增一個
         if (segmentManager.getCount() === 0) {
@@ -381,14 +410,18 @@ function exportJSON() {
         return;
     }
 
+    const sourceFileName = currentFile ? currentFile.name.replace(/\.[^/.]+$/, '') : 'segments';
     const data = segmentManager.exportJSON(currentFile ? currentFile.name : '');
     const json = JSON.stringify(data, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
+
+    // 使用 UTF-8 BOM 確保中文編碼正確
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + json], { type: 'application/json;charset=utf-8' });
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'segments.json';
+    a.download = `${sourceFileName}_segments.json`;
     a.click();
 
     URL.revokeObjectURL(url);
@@ -450,18 +483,45 @@ async function processAudio() {
             uiController.updateProgress(current, total, status);
         });
 
-        // 下載檔案
-        results.forEach(result => {
-            if (result.success) {
-                const filename = `${result.segment.id}_${result.segment.name}_${currentFile.name.replace(/\.[^/.]+$/, '')}.wav`;
-                downloadBlob(result.blob, filename);
-            }
-        });
+        // 取得下載模式
+        const downloadMode = document.getElementById('downloadMode')?.value || 'individual';
+        const baseFilename = currentFile.name.replace(/\.[^/.]+$/, '');
 
-        // 如果保留完整版本
-        if (keepOriginal) {
-            const fullBlob = audioProcessor.audioBufferToWav(audioProcessor.audioBuffer);
-            downloadBlob(fullBlob, `完整版_${currentFile.name.replace(/\.[^/.]+$/, '')}.wav`);
+        if (downloadMode === 'zip') {
+            // ZIP 打包模式
+            const zip = new JSZip();
+
+            results.forEach(result => {
+                if (result.success) {
+                    const filename = `${result.segment.id}_${result.segment.name}.wav`;
+                    zip.file(filename, result.blob);
+                }
+            });
+
+            // 如果保留完整版本
+            if (keepOriginal) {
+                const fullBlob = audioProcessor.audioBufferToWav(audioProcessor.audioBuffer);
+                zip.file(`完整版_${baseFilename}.wav`, fullBlob);
+            }
+
+            // 生成 ZIP 並下載
+            uiController.updateProgress(1, 1, '正在打包 ZIP...');
+            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            downloadBlob(zipBlob, `${baseFilename}_segments.zip`);
+        } else {
+            // 個別下載模式
+            results.forEach(result => {
+                if (result.success) {
+                    const filename = `${result.segment.id}_${result.segment.name}_${baseFilename}.wav`;
+                    downloadBlob(result.blob, filename);
+                }
+            });
+
+            // 如果保留完整版本
+            if (keepOriginal) {
+                const fullBlob = audioProcessor.audioBufferToWav(audioProcessor.audioBuffer);
+                downloadBlob(fullBlob, `完整版_${baseFilename}.wav`);
+            }
         }
 
         const successful = results.filter(r => r.success).length;
