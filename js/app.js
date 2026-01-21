@@ -81,6 +81,35 @@ function initializeApp() {
     // 設定段落變更回調
     segmentManager.onChange = () => {
         uiController.renderSegments();
+
+        // 如果正在播放段落，檢查並更新時間範圍
+        if (currentSegmentRange) {
+            const segments = segmentManager.getSegments();
+            const currentSegment = segments.find(s =>
+                s.startMs === currentSegmentRange.startMs && s.endMs === currentSegmentRange.endMs
+            );
+
+            // 如果找到對應段落但時間已變更，更新範圍
+            if (currentSegment) {
+                const totalTimeEl = document.getElementById('totalTime');
+                const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
+
+                if (segmentOnlyMode) {
+                    const segmentDuration = currentSegment.endMs - currentSegment.startMs;
+                    totalTimeEl.textContent = TimeUtils.formatTimeSeconds(segmentDuration);
+                }
+            }
+
+            // 檢查當前播放位置是否在範圍內
+            const audioPlayer = document.getElementById('audioPlayer');
+            const currentMs = audioPlayer.currentTime * 1000;
+
+            if (currentMs < currentSegmentRange.startMs) {
+                audioPlayer.currentTime = currentSegmentRange.startMs / 1000;
+            } else if (currentMs > currentSegmentRange.endMs) {
+                audioPlayer.currentTime = currentSegmentRange.startMs / 1000;
+            }
+        }
     };
 }
 
@@ -124,13 +153,34 @@ function setupPlayerControls() {
     // Seekbar 拖曳
     seekBar.addEventListener('input', () => {
         isSeeking = true;
-        const seekTime = (seekBar.value / 100) * audioPlayer.duration;
-        currentTimeEl.textContent = TimeUtils.formatTimeSeconds(seekTime * 1000);
+        const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
+
+        if (currentSegmentRange && segmentOnlyMode) {
+            // 僅段落模式：根據段落範圍計算時間
+            const segmentDuration = currentSegmentRange.endMs - currentSegmentRange.startMs;
+            const seekPosInSegment = (seekBar.value / 100) * segmentDuration;
+            currentTimeEl.textContent = TimeUtils.formatTimeSeconds(seekPosInSegment);
+        } else {
+            // 全檔案模式
+            const seekTime = (seekBar.value / 100) * audioPlayer.duration;
+            currentTimeEl.textContent = TimeUtils.formatTimeSeconds(seekTime * 1000);
+        }
     });
 
     seekBar.addEventListener('change', () => {
-        const seekTime = (seekBar.value / 100) * audioPlayer.duration;
-        audioPlayer.currentTime = seekTime;
+        const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
+
+        if (currentSegmentRange && segmentOnlyMode) {
+            // 僅段落模式：根據段落範圍計算實際播放時間
+            const segmentDuration = currentSegmentRange.endMs - currentSegmentRange.startMs;
+            const seekPosInSegment = (seekBar.value / 100) * segmentDuration;
+            const actualTimeMs = currentSegmentRange.startMs + seekPosInSegment;
+            audioPlayer.currentTime = actualTimeMs / 1000;
+        } else {
+            // 全檔案模式
+            const seekTime = (seekBar.value / 100) * audioPlayer.duration;
+            audioPlayer.currentTime = seekTime;
+        }
         isSeeking = false;
     });
 
@@ -183,6 +233,21 @@ function setupPlayerControls() {
             btnPlayPause.textContent = '▶';
         }
     });
+
+    // 播放模式切換 (僅段落 checkbox)
+    const segmentOnlyCheckbox = document.getElementById('segmentOnlyMode');
+    if (segmentOnlyCheckbox) {
+        segmentOnlyCheckbox.addEventListener('change', () => {
+            if (segmentOnlyCheckbox.checked && currentSegmentRange) {
+                // 切換到僅段落模式：顯示段落時長
+                const segmentDuration = currentSegmentRange.endMs - currentSegmentRange.startMs;
+                totalTimeEl.textContent = TimeUtils.formatTimeSeconds(segmentDuration);
+            } else {
+                // 切換到全檔案模式：顯示完整時長
+                totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
+            }
+        });
+    }
 }
 
 /**

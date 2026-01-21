@@ -40,10 +40,8 @@ const i18n = {
 
             // Export
             'export_title': '💾 匯出設定',
-            'output_format': '輸出格式:',
-            'download_mode': '下載方式:',
-            'individual': '個別下載',
-            'zip_bundle': 'ZIP 打包',
+            'export_mp3': '輸出為 MP3 (取消勾選則為 WAV)',
+            'download_zip': '打包成 ZIP (取消勾選則個別下載)',
             'keep_original': '同時保留完整版本',
             'start_process': '🎵 開始剪輯',
             'preparing': '準備中...',
@@ -114,10 +112,8 @@ const i18n = {
 
             // Export
             'export_title': '💾 Export Settings',
-            'output_format': 'Output Format:',
-            'download_mode': 'Download Mode:',
-            'individual': 'Individual',
-            'zip_bundle': 'ZIP Bundle',
+            'export_mp3': 'Export as MP3 (uncheck for WAV)',
+            'download_zip': 'Bundle as ZIP (uncheck for individual)',
             'keep_original': 'Also keep full version',
             'start_process': '🎵 Start Processing',
             'preparing': 'Preparing...',

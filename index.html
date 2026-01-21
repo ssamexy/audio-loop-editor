@@ -16,7 +16,7 @@
         <header class="header">
             <h1>🎵 Audio Loop Editor</h1>
             <p class="subtitle">音訊分段剪輯與循環練習工具 - 支援毫秒精度、多段剪輯、試播放</p>
-            <div class="version">v1.4.1</div>
+            <div class="version">v1.4.2</div>
         </header>
 
         <!-- Main Content -->
@@ -53,10 +53,10 @@
 
             <!-- Settings Section -->
             <section class="section settings-section" id="settingsSection" style="display: none;">
-                <h2>⚙️ 設定</h2>
+                <h2 data-i18n="settings">⚙️ 設定</h2>
                 <div class="settings-grid">
                     <div class="setting-item">
-                        <label for="stepSize">時間微調刻度 (毫秒):</label>
+                        <label for="stepSize" data-i18n="step_size">時間微調刻度 (毫秒):</label>
                         <input type="number" id="stepSize" value="100" min="1" max="10000">
                         <div class="preset-buttons">
                             <button class="btn-preset" data-step="50">50ms</button>
@@ -66,14 +66,14 @@
                         </div>
                     </div>
                     <div class="setting-item">
-                        <label>自動切分:</label>
+                        <label data-i18n="auto_split">自動切分:</label>
                         <div class="auto-split-buttons">
-                            <button class="btn-split" data-segments="2">2 段</button>
-                            <button class="btn-split" data-segments="3">3 段</button>
-                            <button class="btn-split" data-segments="4">4 段</button>
-                            <button class="btn-split" data-segments="5">5 段</button>
-                            <button class="btn-split" data-segments="6">6 段</button>
-                            <button class="btn-split" id="btnCustomSplit">其他...</button>
+                            <button class="btn-split" data-segments="2">2 <span data-i18n="segments">段</span></button>
+                            <button class="btn-split" data-segments="3">3 <span data-i18n="segments">段</span></button>
+                            <button class="btn-split" data-segments="4">4 <span data-i18n="segments">段</span></button>
+                            <button class="btn-split" data-segments="5">5 <span data-i18n="segments">段</span></button>
+                            <button class="btn-split" data-segments="6">6 <span data-i18n="segments">段</span></button>
+                            <button class="btn-split" id="btnCustomSplit" data-i18n="other">其他...</button>
                         </div>
                     </div>
                 </div>
@@ -81,13 +81,13 @@
 
             <!-- Segments Section -->
             <section class="section segments-section" id="segmentsSection" style="display: none;">
-                <h2>📋 分段列表</h2>
+                <h2 data-i18n="segment_list">📋 分段列表</h2>
                 <div class="segments-header">
-                    <div class="segment-col-id">編號</div>
-                    <div class="segment-col-name">段落名稱</div>
-                    <div class="segment-col-time">開始時間</div>
-                    <div class="segment-col-time">結束時間</div>
-                    <div class="segment-col-actions">操作</div>
+                    <div class="segment-col-id" data-i18n="id">編號</div>
+                    <div class="segment-col-name" data-i18n="segment_name">段落名稱</div>
+                    <div class="segment-col-time" data-i18n="start_time">開始時間</div>
+                    <div class="segment-col-time" data-i18n="end_time">結束時間</div>
+                    <div class="segment-col-actions" data-i18n="actions">操作</div>
                 </div>
                 <div class="segments-list" id="segmentsList">
                     <!-- Segments will be added here dynamically -->
@@ -102,15 +102,15 @@
 
             <!-- Export Section -->
             <section class="section export-section" id="exportSection" style="display: none;">
-                <h2>💾 匯出設定</h2>
+                <h2 data-i18n="export_title">💾 匯出設定</h2>
                 <div class="export-options">
                     <label class="checkbox-label">
-                        <input type="checkbox" id="exportMp3">
-                        <span data-i18n="output_format">輸出為 MP3 (預設 WAV)</span>
+                        <input type="checkbox" id="exportMp3" checked>
+                        <span data-i18n="export_mp3">輸出為 MP3 (取消勾選則為 WAV)</span>
                     </label>
                     <label class="checkbox-label">
-                        <input type="checkbox" id="downloadZip">
-                        <span data-i18n="download_mode">打包成 ZIP (預設個別下載)</span>
+                        <input type="checkbox" id="downloadZip" checked>
+                        <span data-i18n="download_zip">打包成 ZIP (取消勾選則個別下載)</span>
                     </label>
                     <label class="checkbox-label">
                         <input type="checkbox" id="keepOriginal" checked>
