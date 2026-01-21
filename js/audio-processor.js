@@ -201,9 +201,55 @@ class AudioProcessor {
     }
 
     /**
+     * 將 AudioBuffer 轉換為 MP3 Blob (使用 lamejs)
+     */
+    audioBufferToMp3(buffer) {
+        const channels = buffer.numberOfChannels;
+        const sampleRate = buffer.sampleRate;
+        const kbps = 128; // 位元率
+
+        // 準備 lamejs 編碼器
+        const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, kbps);
+        const mp3Data = [];
+
+        // 將 Float32 轉為 Int16
+        const convertToInt16 = (float32Array) => {
+            const int16Array = new Int16Array(float32Array.length);
+            for (let i = 0; i < float32Array.length; i++) {
+                const s = Math.max(-1, Math.min(1, float32Array[i]));
+                int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            }
+            return int16Array;
+        };
+
+        // 取得通道數據
+        const left = convertToInt16(buffer.getChannelData(0));
+        const right = channels > 1 ? convertToInt16(buffer.getChannelData(1)) : left;
+
+        // 分塊編碼
+        const blockSize = 1152;
+        for (let i = 0; i < left.length; i += blockSize) {
+            const leftChunk = left.subarray(i, i + blockSize);
+            const rightChunk = right.subarray(i, i + blockSize);
+            const mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
+            if (mp3buf.length > 0) {
+                mp3Data.push(mp3buf);
+            }
+        }
+
+        // 完成編碼
+        const mp3buf = mp3encoder.flush();
+        if (mp3buf.length > 0) {
+            mp3Data.push(mp3buf);
+        }
+
+        return new Blob(mp3Data, { type: 'audio/mp3' });
+    }
+
+    /**
      * 批次處理多個片段
      */
-    async processSegments(segments, onProgress) {
+    async processSegments(segments, onProgress, format = 'wav') {
         const results = [];
 
         for (let i = 0; i < segments.length; i++) {
@@ -215,12 +261,20 @@ class AudioProcessor {
 
             try {
                 const trimmedBuffer = await this.trimSegment(segment.startMs, segment.endMs);
-                const blob = this.audioBufferToWav(trimmedBuffer);
+
+                // 根據格式選擇編碼方式
+                let blob;
+                if (format === 'mp3' && typeof lamejs !== 'undefined') {
+                    blob = this.audioBufferToMp3(trimmedBuffer);
+                } else {
+                    blob = this.audioBufferToWav(trimmedBuffer);
+                }
 
                 results.push({
                     segment,
                     blob,
-                    success: true
+                    success: true,
+                    format: format === 'mp3' && typeof lamejs !== 'undefined' ? 'mp3' : 'wav'
                 });
             } catch (error) {
                 results.push({

@@ -130,7 +130,8 @@ class UIController {
         playBtn.className = 'btn-icon play';
         playBtn.textContent = '▶';
         playBtn.title = '試播放';
-        playBtn.addEventListener('click', () => this.playSegment(segment));
+        playBtn.dataset.segmentId = segment.id;
+        playBtn.addEventListener('click', () => this.playSegment(segment, playBtn));
         actions.appendChild(playBtn);
 
         // 新增子段落按鈕 (所有段落都可以分割)
@@ -214,10 +215,24 @@ class UIController {
     /**
      * 播放段落 (使用浮動播放器)
      */
-    playSegment(segment) {
+    playSegment(segment, playBtn) {
+        // 重置所有其他播放按鈕為播放狀態
+        document.querySelectorAll('.btn-icon.play, .btn-icon.playing').forEach(btn => {
+            btn.textContent = '▶';
+            btn.classList.remove('playing');
+            btn.classList.add('play');
+        });
+
         // 使用全域的 playSegmentInPlayer 函數
         if (typeof playSegmentInPlayer === 'function') {
             playSegmentInPlayer(segment);
+
+            // 將當前按鈕設為暫停狀態
+            if (playBtn) {
+                playBtn.textContent = '⏸';
+                playBtn.classList.remove('play');
+                playBtn.classList.add('playing');
+            }
         } else {
             // 後備方案: 使用 AudioProcessor
             if (this.currentPlayingSegment === segment.id) {
