@@ -30,6 +30,7 @@ const i18n = {
             'segment_list': '📋 分段列表',
             'id': '編號',
             'segment_name': '段落名稱',
+            'segment_label': '段落',
             'start_time': '開始時間',
             'end_time': '結束時間',
             'actions': '操作',
@@ -37,6 +38,7 @@ const i18n = {
             'import_settings': '📥 匯入段落設定',
             'export_settings': '📤 匯出段落設定',
             'clear_all': '🗑 清除全部',
+            'select_audio_file': '請選擇音訊檔案',
 
             // Export
             'export_title': '💾 匯出設定',
@@ -122,6 +124,7 @@ const i18n = {
             'segment_list': '📋 Segment List',
             'id': 'ID',
             'segment_name': 'Segment Name',
+            'segment_label': 'Segment',
             'start_time': 'Start Time',
             'end_time': 'End Time',
             'actions': 'Actions',
@@ -129,6 +132,7 @@ const i18n = {
             'import_settings': '📥 Import Settings',
             'export_settings': '📤 Export Settings',
             'clear_all': '🗑 Clear All',
+            'select_audio_file': 'Please select an audio file',
 
             // Export
             'export_title': '💾 Export Settings',

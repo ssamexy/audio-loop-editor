@@ -401,7 +401,7 @@ function setupEventListeners() {
  */
 async function handleFileSelect(file) {
     if (!file.type.startsWith('audio/')) {
-        alert('請選擇音訊檔案');
+        alert(i18n ? i18n.t('select_audio_file') : '請選擇音訊檔案');
         return;
     }
 
@@ -467,12 +467,15 @@ async function handleFileSelect(file) {
  */
 function autoSplit(numSegments) {
     if (!audioProcessor.audioBuffer) {
-        alert('請先載入音訊檔案');
+        alert(i18n ? i18n.t('no_audio') : '請先載入音訊檔案');
         return;
     }
 
     if (segmentManager.getCount() > 0) {
-        if (!confirm(`將清除現有 ${segmentManager.getCount()} 個段落並自動切分為 ${numSegments} 段。\n\n是否繼續？`)) {
+        const confirmMsg = i18n
+            ? i18n.t('confirm_split', { count: segmentManager.getCount(), num: numSegments })
+            : `將清除現有 ${segmentManager.getCount()} 個段落並自動切分為 ${numSegments} 段。\n\n是否繼續？`;
+        if (!confirm(confirmMsg)) {
             return;
         }
     }
@@ -486,7 +489,7 @@ function autoSplit(numSegments) {
  */
 function addSegment() {
     if (!audioProcessor.audioBuffer) {
-        alert('請先載入音訊檔案');
+        alert(i18n ? i18n.t('no_audio') : '請先載入音訊檔案');
         return;
     }
 
@@ -500,9 +503,10 @@ function addSegment() {
     }
 
     const endMs = Math.min(startMs + 10000, info.durationMs);
+    const segmentLabel = i18n ? i18n.t('segment_label') : '段落';
 
     segmentManager.addSegment({
-        name: `段落 ${segmentManager.getCount() + 1}`,
+        name: `${segmentLabel} ${segmentManager.getCount() + 1}`,
         startMs,
         endMs
     });

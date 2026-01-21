@@ -114,6 +114,7 @@ class SegmentManager {
     autoSplit(totalDurationMs, numSegments) {
         this.clearAll();
         const segmentLength = totalDurationMs / numSegments;
+        const segmentLabel = typeof i18n !== 'undefined' ? i18n.t('segment_label') : '段落';
 
         for (let i = 0; i < numSegments; i++) {
             const startMs = Math.floor(i * segmentLength);
@@ -121,7 +122,7 @@ class SegmentManager {
 
             this.addSegment({
                 id: String(i + 1),
-                name: `段落 ${i + 1}`,
+                name: `${segmentLabel} ${i + 1}`,
                 startMs,
                 endMs
             });
