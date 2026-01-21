@@ -11,6 +11,41 @@ let currentFile = null;
 // 播放器狀態
 let isLooping = false;
 let isSeeking = false;
+let currentSegmentRange = null; // 當前播放的段落範圍 {startMs, endMs}
+
+/**
+ * 播放完整音訊
+ */
+function playFullAudio() {
+    const audioPlayer = document.getElementById('audioPlayer');
+    const btnPlayPause = document.getElementById('btnPlayPause');
+
+    currentSegmentRange = null;
+    document.getElementById('floatingPlayerInfo').textContent = '主音訊';
+
+    audioPlayer.currentTime = 0;
+    audioPlayer.play();
+    btnPlayPause.textContent = '⏸';
+}
+
+/**
+ * 在浮動播放器中播放段落
+ */
+function playSegmentInPlayer(segment) {
+    const audioPlayer = document.getElementById('audioPlayer');
+    const btnPlayPause = document.getElementById('btnPlayPause');
+
+    currentSegmentRange = {
+        startMs: segment.startMs,
+        endMs: segment.endMs
+    };
+
+    document.getElementById('floatingPlayerInfo').textContent = '段落: ' + segment.name;
+
+    audioPlayer.currentTime = segment.startMs / 1000;
+    audioPlayer.play();
+    btnPlayPause.textContent = '⏸';
+}
 
 // 初始化應用程式
 document.addEventListener('DOMContentLoaded', () => {
@@ -73,7 +108,7 @@ function setupPlayerControls() {
     seekBar.addEventListener('input', () => {
         isSeeking = true;
         const seekTime = (seekBar.value / 100) * audioPlayer.duration;
-        currentTimeEl.textContent = TimeUtils.formatTime(seekTime * 1000);
+        currentTimeEl.textContent = TimeUtils.formatTimeSeconds(seekTime * 1000);
     });
 
     seekBar.addEventListener('change', () => {
@@ -87,13 +122,27 @@ function setupPlayerControls() {
         if (!isSeeking && audioPlayer.duration) {
             const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
             seekBar.value = progress;
-            currentTimeEl.textContent = TimeUtils.formatTime(audioPlayer.currentTime * 1000);
+            currentTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.currentTime * 1000);
+
+            // 如果在播放段落且已超過段落結束時間，則停止或循環
+            if (currentSegmentRange) {
+                const currentMs = audioPlayer.currentTime * 1000;
+                if (currentMs >= currentSegmentRange.endMs) {
+                    if (isLooping) {
+                        audioPlayer.currentTime = currentSegmentRange.startMs / 1000;
+                    } else {
+                        audioPlayer.pause();
+                        btnPlayPause.textContent = '▶';
+                        currentSegmentRange = null;
+                    }
+                }
+            }
         }
     });
 
     // 載入後顯示總時長
     audioPlayer.addEventListener('loadedmetadata', () => {
-        totalTimeEl.textContent = TimeUtils.formatTime(audioPlayer.duration * 1000);
+        totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
     });
 
     // 播放結束
@@ -215,6 +264,17 @@ async function handleFileSelect(file) {
         // 設定音訊播放器
         const audioPlayer = document.getElementById('audioPlayer');
         audioPlayer.src = URL.createObjectURL(file);
+
+        // 顯示浮動播放條
+        document.getElementById('floatingPlayerBar').style.display = 'flex';
+        document.body.classList.add('player-active');
+        document.getElementById('floatingPlayerInfo').textContent = '主音訊: ' + file.name;
+
+        // 設定主播放按鈕
+        const btnPlayMain = document.getElementById('btnPlayMain');
+        btnPlayMain.onclick = () => {
+            playFullAudio();
+        };
 
         // 顯示相關區塊
         document.getElementById('audioPreviewSection').style.display = 'block';

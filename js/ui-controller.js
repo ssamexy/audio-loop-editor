@@ -88,17 +88,15 @@ class UIController {
         playBtn.addEventListener('click', () => this.playSegment(segment));
         actions.appendChild(playBtn);
 
-        // 新增子段落按鈕 (僅主段落)
-        if (!this.segmentManager.isSubSegment(segment.id)) {
-            const addSubBtn = document.createElement('button');
-            addSubBtn.className = 'btn-icon add-sub';
-            addSubBtn.textContent = '+子';
-            addSubBtn.title = '新增子段落';
-            addSubBtn.addEventListener('click', (e) => {
-                this.showSubSegmentMenu(segment, e.target);
-            });
-            actions.appendChild(addSubBtn);
-        }
+        // 新增子段落按鈕 (所有段落都可以分割)
+        const addSubBtn = document.createElement('button');
+        addSubBtn.className = 'btn-icon add-sub';
+        addSubBtn.textContent = '+子';
+        addSubBtn.title = '新增子段落';
+        addSubBtn.addEventListener('click', (e) => {
+            this.showSubSegmentMenu(segment, e.target);
+        });
+        actions.appendChild(addSubBtn);
 
         // 刪除按鈕
         const deleteBtn = document.createElement('button');
@@ -169,15 +167,21 @@ class UIController {
     }
 
     /**
-     * 播放段落
+     * 播放段落 (使用浮動播放器)
      */
     playSegment(segment) {
-        if (this.currentPlayingSegment === segment.id) {
-            this.audioProcessor.stop();
-            this.currentPlayingSegment = null;
+        // 使用全域的 playSegmentInPlayer 函數
+        if (typeof playSegmentInPlayer === 'function') {
+            playSegmentInPlayer(segment);
         } else {
-            this.audioProcessor.playSegment(segment.startMs, segment.endMs);
-            this.currentPlayingSegment = segment.id;
+            // 後備方案: 使用 AudioProcessor
+            if (this.currentPlayingSegment === segment.id) {
+                this.audioProcessor.stop();
+                this.currentPlayingSegment = null;
+            } else {
+                this.audioProcessor.playSegment(segment.startMs, segment.endMs);
+                this.currentPlayingSegment = segment.id;
+            }
         }
     }
 

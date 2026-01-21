@@ -16,7 +16,7 @@
         <header class="header">
             <h1>🎵 Audio Loop Editor</h1>
             <p class="subtitle">音訊分段剪輯與循環練習工具 - 支援毫秒精度、多段剪輯、試播放</p>
-            <div class="version">v1.2.2</div>
+            <div class="version">v1.3.0</div>
         </header>
 
         <!-- Main Content -->
@@ -47,27 +47,10 @@
                     <!-- Hidden native audio for playback -->
                     <audio id="audioPlayer" style="display: none;"></audio>
 
-                    <!-- Custom Player Controls -->
-                    <div class="player-controls">
-                        <button id="btnPlayPause" class="btn-player" title="播放/暫停">▶</button>
-                        <button id="btnLoop" class="btn-player" title="循環播放">🔁</button>
-
-                        <!-- Seek Bar -->
-                        <div class="seek-bar-container">
-                            <input type="range" id="seekBar" class="seek-bar" min="0" max="100" value="0">
-                            <span id="currentTime">00:00.000</span> / <span id="totalTime">00:00.000</span>
-                        </div>
-
-                        <!-- Speed Control -->
-                        <select id="playbackSpeed" class="speed-select" title="播放速度">
-                            <option value="0.5">x0.5</option>
-                            <option value="0.75">x0.75</option>
-                            <option value="1" selected>x1</option>
-                            <option value="1.25">x1.25</option>
-                            <option value="1.5">x1.5</option>
-                            <option value="2">x2</option>
-                        </select>
-                    </div>
+                    <!-- Main Play Button (for this file) -->
+                    <button id="btnPlayMain" class="btn btn-primary btn-play-main" title="播放主音訊">
+                        ▶ 播放主音訊
+                    </button>
 
                     <!-- Waveform -->
                     <div class="waveform-container" id="waveformContainer">
@@ -160,6 +143,33 @@
             </p>
             <p>&copy; 2026 ssamexy | MIT License</p>
         </footer>
+    </div>
+
+    <!-- Floating Player Bar -->
+    <div class="floating-player-bar" id="floatingPlayerBar" style="display: none;">
+        <div class="floating-player-controls">
+            <button id="btnPlayPause" class="btn-player" title="播放/暫停">▶</button>
+            <button id="btnLoop" class="btn-player" title="循環播放">🔁</button>
+        </div>
+        <div class="floating-player-seekbar">
+            <input type="range" id="seekBar" class="seek-bar" min="0" max="100" value="0">
+            <div class="floating-player-time">
+                <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
+            </div>
+        </div>
+        <div class="floating-player-speed">
+            <select id="playbackSpeed" class="speed-select" title="播放速度">
+                <option value="0.5">x0.5</option>
+                <option value="0.75">x0.75</option>
+                <option value="1" selected>x1</option>
+                <option value="1.25">x1.25</option>
+                <option value="1.5">x1.5</option>
+                <option value="2">x2</option>
+            </select>
+        </div>
+        <div class="floating-player-info" id="floatingPlayerInfo">
+            主音訊
+        </div>
     </div>
 
     <!-- Scripts -->
