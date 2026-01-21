@@ -333,12 +333,18 @@ class UIController {
 
         const menu = document.createElement('div');
         menu.className = 'sub-segment-menu';
+
+        const menuTitle = typeof i18n !== 'undefined' ? i18n.t('sub_menu_title') : '新增子段落方式';
+        const splitPosition = typeof i18n !== 'undefined' ? i18n.t('split_position') : '📍 從當前播放位置二分';
+        const splitUnit = typeof i18n !== 'undefined' ? i18n.t('split_unit') : '⏱️ 依時間單位切分...';
+        const splitEvenly = typeof i18n !== 'undefined' ? i18n.t('split_evenly') : '🔢 平均分為 N 段...';
+
         menu.innerHTML = `
-            <div class="menu-title">新增子段落方式</div>
-            <button class="menu-item" data-action="split-at-position">📍 從當前播放位置二分</button>
-            <button class="menu-item" data-action="split-by-unit">⏱️ 依時間單位切分...</button>
-            <button class="menu-item" data-action="split-evenly">🔢 平均分為 N 段...</button>
-            <button class="menu-item menu-cancel">✕ 取消</button>
+            <div class="menu-title">${menuTitle}</div>
+            <button class="menu-item" data-action="split-at-position">${splitPosition}</button>
+            <button class="menu-item" data-action="split-by-unit">${splitUnit}</button>
+            <button class="menu-item" data-action="split-evenly">${splitEvenly}</button>
+            <button class="menu-item menu-cancel">✕ ${typeof i18n !== 'undefined' ? i18n.t('cancel') : '取消'}</button>
         `;
 
         // 定位選單

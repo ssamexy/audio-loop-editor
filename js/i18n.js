@@ -51,12 +51,26 @@ const i18n = {
             'main_audio': '主音訊',
             'segment_prefix': '段落: ',
             'segment_only': '僅段落',
+            'pause': '暫停',
+
+            // File Details
+            'duration': '長度',
+            'sample_rate': '取樣率',
+            'channels': '聲道',
+            'memory_warning': '⚠️ 提醒：音訊檔案越大，記憶體佔用越多',
 
             // Buttons
             'add_sub': '+子',
             'add_sub_title': '新增子段落',
             'delete_title': '刪除',
             'disclaimer': '免責聲明',
+            'cancel': '取消',
+
+            // Sub-segment Menu
+            'sub_menu_title': '新增子段落方式',
+            'split_position': '📍 從當前播放位置二分',
+            'split_unit': '⏱️ 依時間單位切分...',
+            'split_evenly': '🔢 平均分為 N 段...',
 
             // Footer
             'footer_desc': '專為音樂練習設計的分段剪輯工具',
@@ -129,12 +143,26 @@ const i18n = {
             'main_audio': 'Main Audio',
             'segment_prefix': 'Segment: ',
             'segment_only': 'Segment Only',
+            'pause': 'Pause',
+
+            // File Details
+            'duration': 'Duration',
+            'sample_rate': 'Sample Rate',
+            'channels': 'Channels',
+            'memory_warning': '⚠️ Note: Larger audio files use more memory',
 
             // Buttons
             'add_sub': '+Sub',
             'add_sub_title': 'Add Sub-segment',
             'delete_title': 'Delete',
             'disclaimer': 'Disclaimer',
+            'cancel': 'Cancel',
+
+            // Sub-segment Menu
+            'sub_menu_title': 'Add Sub-segment Options',
+            'split_position': '📍 Split at current position',
+            'split_unit': '⏱️ Split by time unit...',
+            'split_evenly': '🔢 Split into N parts...',
 
             // Footer
             'footer_desc': 'Audio segment editor designed for music practice',

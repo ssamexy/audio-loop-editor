@@ -47,6 +47,47 @@ function playFullAudio() {
 }
 
 /**
+ * 切換主音訊播放/暫停
+ */
+function toggleMainAudio() {
+    const audioPlayer = document.getElementById('audioPlayer');
+    const btnPlayPause = document.getElementById('btnPlayPause');
+    const btnPlayMain = document.getElementById('btnPlayMain');
+    const totalTimeEl = document.getElementById('totalTime');
+    const playText = i18n ? i18n.t('play_main').replace('▶ ', '') : '播放';
+    const pauseText = i18n ? i18n.t('pause') : '暫停';
+
+    // 重置所有段落播放按鈕為播放狀態
+    document.querySelectorAll('.btn-icon.playing').forEach(btn => {
+        btn.textContent = '▶';
+        btn.classList.remove('playing');
+        btn.classList.add('play');
+    });
+
+    // 如果當前正在播放段落，切換到主音訊
+    if (currentSegmentRange !== null) {
+        currentSegmentRange = null;
+        document.getElementById('floatingPlayerInfo').textContent = i18n ? i18n.t('main_audio') : '主音訊';
+        totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
+    }
+
+    // 切換播放/暫停
+    if (audioPlayer.paused) {
+        audioPlayer.play();
+        btnPlayPause.textContent = '⏸';
+        if (btnPlayMain) {
+            btnPlayMain.innerHTML = '⏸ ' + pauseText;
+        }
+    } else {
+        audioPlayer.pause();
+        btnPlayPause.textContent = '▶';
+        if (btnPlayMain) {
+            btnPlayMain.innerHTML = '▶ ' + playText;
+        }
+    }
+}
+
+/**
  * 在浮動播放器中播放段落
  */
 function playSegmentInPlayer(segment) {
@@ -63,7 +104,7 @@ function playSegmentInPlayer(segment) {
         endMs: segment.endMs
     };
 
-    document.getElementById('floatingPlayerInfo').textContent = '段落: ' + segment.name;
+    document.getElementById('floatingPlayerInfo').textContent = (i18n ? i18n.t('segment_prefix') : '段落: ') + segment.name;
 
     // 根據播放模式更新 seekbar 範圍
     if (segmentOnlyMode) {
@@ -370,17 +411,23 @@ async function handleFileSelect(file) {
     document.querySelector('.upload-prompt').style.display = 'none';
     document.getElementById('fileInfo').style.display = 'block';
     document.getElementById('fileName').textContent = file.name;
-    document.getElementById('fileDetails').textContent = '載入中...';
+    document.getElementById('fileDetails').textContent = i18n ? i18n.t('loading') : '載入中...';
 
     // 載入音訊
     const result = await audioProcessor.loadFile(file);
 
     if (result.success) {
         const info = audioProcessor.getInfo();
+
+        // 使用 i18n 顯示檔案資訊
+        const durationLabel = i18n ? i18n.t('duration') : '長度';
+        const sampleRateLabel = i18n ? i18n.t('sample_rate') : '取樣率';
+        const channelsLabel = i18n ? i18n.t('channels') : '聲道';
+
         document.getElementById('fileDetails').textContent =
-            `長度: ${TimeUtils.formatDuration(info.durationMs)} | ` +
-            `取樣率: ${info.sampleRate} Hz | ` +
-            `聲道: ${info.channels}`;
+            `${durationLabel}: ${TimeUtils.formatDuration(info.durationMs)} | ` +
+            `${sampleRateLabel}: ${info.sampleRate} Hz | ` +
+            `${channelsLabel}: ${info.channels}`;
 
         // 設定音訊播放器
         const audioPlayer = document.getElementById('audioPlayer');
@@ -389,13 +436,13 @@ async function handleFileSelect(file) {
         // 顯示浮動播放條
         document.getElementById('floatingPlayerBar').style.display = 'flex';
         document.body.classList.add('player-active');
-        document.getElementById('floatingPlayerInfo').textContent = '主音訊: ' + file.name;
+        document.getElementById('floatingPlayerInfo').textContent = (i18n ? i18n.t('main_audio') : '主音訊') + ': ' + file.name;
 
         // 設定主播放按鈕 (現在在檔案資訊區域內)
         const btnPlayMain = document.getElementById('btnPlayMain');
         btnPlayMain.style.display = 'inline-flex';
         btnPlayMain.onclick = () => {
-            playFullAudio();
+            toggleMainAudio();
         };
 
         // 顯示設定區塊
