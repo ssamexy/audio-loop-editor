@@ -57,19 +57,40 @@ body {
 }
 
 .version {
-    font-size: 0.9rem;
     opacity: 0.8;
+}
+
+.main-tools-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 5px;
 }
 
 /* Remove spinner from step size input */
 #stepSize::-webkit-inner-spin-button,
 #stepSize::-webkit-outer-spin-button {
     -webkit-appearance: none;
+    appearance: none;
     margin: 0;
 }
 
 #stepSize {
     -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.seek-marker {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 18px;
+    width: 3px;
+    background-color: #ff4757;
+    z-index: 5;
+    pointer-events: none;
+    box-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
+    border-radius: 1px;
 }
 
 /* ===== Sections ===== */

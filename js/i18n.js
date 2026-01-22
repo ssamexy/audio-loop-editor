@@ -30,6 +30,14 @@ const i18n = {
             'confirm_import': '是否匯入設定檔？這將覆蓋現有段落。',
             'import_failed': '匯入失敗: {error}',
             'processing_wait': '⏳ 剪輯中請稍等...',
+            'main_tools': '主音樂工具:',
+            'split_main_cursor': '📍 主音樂二分',
+            'mark_start': '🚩 標註開始',
+            'mark_end': '🏁 標註結束',
+            'overwrite_warning': '這將會清除所有現有段落並重新切分，確定嗎？',
+            'marking_start_time': '已標註開始: {time}',
+            'sub_menu_split_child': '↳ 二分為子段落 (保留此層)',
+            'sub_menu_split_sibling': '✂️ 同層切分 (取代此層)',
 
             // Segments
             'segment_list': '📋 分段列表',
@@ -179,6 +187,14 @@ const i18n = {
             'split_position': '📍 Split at current position',
             'split_unit': '⏱️ Split by time unit...',
             'split_evenly': '🔢 Split into N parts...',
+            'main_tools': 'Main Audio Tools:',
+            'split_main_cursor': '📍 Split Main Audio Here',
+            'mark_start': '🚩 Mark Start',
+            'mark_end': '🏁 Mark End',
+            'overwrite_warning': 'This will clear all segments and split. Confirm?',
+            'marking_start_time': 'Marked Start: {time}',
+            'sub_menu_split_child': '↳ Split into Sub-segments (Keep Parent)',
+            'sub_menu_split_sibling': '✂️ Split Here (Replace Parent)',
 
             // Footer
             'footer_desc': 'Audio segment editor designed for music practice',

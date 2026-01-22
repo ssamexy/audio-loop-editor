@@ -2,6 +2,21 @@
 
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
+## [v1.5.0] - 2026-01-22
+
+### Added
+- **主音樂工具 (Main Audio Tools)**:
+  - 新增「主音樂二分」按鈕，可從當前位置將主音樂切分為兩段 (重置現有段落)。
+  - 新增「標註開始/結束」按鈕，可透過兩次點擊手動標註段落範圍，並在進度條上顯示標記線。
+- **子段落切分 (Sub-segment Split)**:
+  - 新增「同層切分 (Sibling Split)」選項，將當前段落切分為兩個同級段落 (取代原段落)。
+- **Visual Improvements**:
+  - 新增 `.seek-marker` 樣式，用於顯示標註起始點。
+
+### Fixed
+- **UI UX**: Remove number input spinners from step size setting.
+- **Mobile Layout**: Force 2-row layout for floating player bar on mobile devices.
+
 ## [v1.4.9] - 2026-01-22
 
 ### Changed

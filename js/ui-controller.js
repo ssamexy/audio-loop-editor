@@ -339,10 +339,13 @@ class UIController {
         const splitPosition = typeof i18n !== 'undefined' ? i18n.t('split_position') : '📍 從當前播放位置二分';
         const splitUnit = typeof i18n !== 'undefined' ? i18n.t('split_unit') : '⏱️ 依時間單位切分...';
         const splitEvenly = typeof i18n !== 'undefined' ? i18n.t('split_evenly') : '🔢 平均分為 N 段...';
+        const splitChild = typeof i18n !== 'undefined' ? i18n.t('sub_menu_split_child') : '↳ 二分為子段落';
+        const splitSibling = typeof i18n !== 'undefined' ? i18n.t('sub_menu_split_sibling') : '✂️ 同層切分';
 
         menu.innerHTML = `
             <div class="menu-title">${menuTitle}</div>
-            <button class="menu-item" data-action="split-at-position">${splitPosition}</button>
+            <button class="menu-item" data-action="split-at-position">${splitPosition}<br><small>(${splitChild})</small></button>
+            <button class="menu-item" data-action="split-sibling">${splitSibling}</button>
             <button class="menu-item" data-action="split-by-unit">${splitUnit}</button>
             <button class="menu-item" data-action="split-evenly">${splitEvenly}</button>
             <button class="menu-item menu-cancel">✕ ${typeof i18n !== 'undefined' ? i18n.t('cancel') : '取消'}</button>
@@ -432,6 +435,23 @@ class UIController {
                         alert('請輸入 2-20 之間的數字');
                     }
                 }
+            } else if (action === 'split-sibling') {
+                const currentPos = audioPlayer.currentTime * 1000;
+                if (currentPos > parentSegment.startMs && currentPos < parentSegment.endMs) {
+                    const seg1 = {
+                        name: parentSegment.name + '-1',
+                        startMs: parentSegment.startMs,
+                        endMs: Math.floor(currentPos)
+                    };
+                    const seg2 = {
+                        name: parentSegment.name + '-2',
+                        startMs: Math.floor(currentPos),
+                        endMs: parentSegment.endMs
+                    };
+                    this.segmentManager.replaceSegment(parentSegment.id, [seg1, seg2]);
+                } else {
+                    alert('Position must be within segment range');
+                }
             }
 
             menu.remove();
@@ -446,5 +466,24 @@ class UIController {
                 }
             });
         }, 100);
+    }
+
+    /**
+     * 新增標記線
+     */
+    addMarker(percentage) {
+        const bar = document.querySelector('.floating-player-seekbar');
+        if (!bar) return;
+        const marker = document.createElement('div');
+        marker.className = 'seek-marker';
+        marker.style.left = `${percentage}%`;
+        bar.appendChild(marker);
+    }
+
+    /**
+     * 清除標記線
+     */
+    clearMarkers() {
+        document.querySelectorAll('.seek-marker').forEach(el => el.remove());
     }
 }

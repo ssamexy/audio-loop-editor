@@ -16,7 +16,7 @@
         <header class="header">
             <h1 data-i18n="app_title">🎵 Audio Loop Editor</h1>
             <p class="subtitle" data-i18n="app_subtitle">音訊分段剪輯與循環練習工具 - 支援毫秒精度、多段剪輯、試播放</p>
-            <div class="version">v1.4.9</div>
+            <div class="version">v1.5.0</div>
         </header>
 
         <!-- Main Content -->
@@ -64,6 +64,18 @@
                             <button class="btn-preset" data-step="500">0.5s</button>
                             <button class="btn-preset" data-step="1000">1s</button>
                             <button class="btn-preset" data-step="2000">2s</button>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <label data-i18n="main_tools">主音樂工具:</label>
+                        <div class="main-tools-buttons">
+                            <button class="btn btn-secondary" id="btnSplitMainAtCursor" data-i18n="split_main_cursor">📍
+                                主音樂二分</button>
+                            <button class="btn btn-secondary" id="btnMarkSegment" data-i18n="mark_start">🚩
+                                標註開始</button>
+                        </div>
+                        <div id="markInfo" class="mark-info"
+                            style="display:none; color: var(--primary-color); margin-top: 5px; font-weight: bold;">
                         </div>
                     </div>
                     <div class="setting-item">

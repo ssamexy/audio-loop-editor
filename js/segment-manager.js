@@ -100,6 +100,21 @@ class SegmentManager {
     }
 
     /**
+     * 取代段落 (用於同層切分)
+     */
+    replaceSegment(id, newSegments) {
+        const index = this.segments.findIndex(s => s.id === id);
+        if (index >= 0) {
+            // 確保新段落有 ID
+            newSegments.forEach(s => {
+                if (!s.id) s.id = String(this.nextId++);
+            });
+            this.segments.splice(index, 1, ...newSegments);
+            this._notifyChange();
+        }
+    }
+
+    /**
      * 清除所有段落
      */
     clearAll() {

@@ -126,6 +126,10 @@ function playSegmentInPlayer(segment) {
 }
 
 // 初始化應用程式
+// 初始化應用程式
+let isMarkingStart = false;
+let markStartTime = 0;
+
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
     setupEventListeners();
@@ -460,7 +464,75 @@ function setupEventListeners() {
     document.getElementById('btnAddSegment').addEventListener('click', addSegment);
     document.getElementById('btnImportJSON').addEventListener('click', importJSON);
     document.getElementById('btnExportJSON').addEventListener('click', exportJSON);
+    document.getElementById('btnExportJSON').addEventListener('click', exportJSON);
     document.getElementById('btnClearAll').addEventListener('click', clearAllSegments);
+
+    // 主音樂工具控制
+    document.getElementById('btnSplitMainAtCursor').addEventListener('click', () => {
+        if (!audioProcessor.audioBuffer) return alert(typeof i18n !== 'undefined' ? i18n.t('no_audio') : '請先載入音訊');
+
+        if (segmentManager.getCount() > 0) {
+            const warning = typeof i18n !== 'undefined' ? i18n.t('overwrite_warning') : '確定要覆蓋嗎？';
+            if (!confirm(warning)) return;
+        }
+
+        const duration = audioProcessor.duration * 1000;
+        const current = document.getElementById('audioPlayer').currentTime * 1000;
+
+        if (current <= 100 || current >= duration - 100) return; // 邊界保護
+
+        segmentManager.clearAll();
+        segmentManager.addSegment({ name: 'Part 1', startMs: 0, endMs: Math.floor(current) });
+        segmentManager.addSegment({ name: 'Part 2', startMs: Math.floor(current), endMs: Math.floor(duration) });
+    });
+
+    document.getElementById('btnMarkSegment').addEventListener('click', () => {
+        if (!audioProcessor.audioBuffer) return alert(typeof i18n !== 'undefined' ? i18n.t('no_audio') : '請先載入音訊');
+
+        const btn = document.getElementById('btnMarkSegment');
+        const info = document.getElementById('markInfo');
+        const currentMs = document.getElementById('audioPlayer').currentTime * 1000;
+        const durationMs = audioProcessor.duration * 1000;
+
+        if (!isMarkingStart) {
+            // 開始標註
+            isMarkingStart = true;
+            markStartTime = currentMs;
+
+            const markEndText = typeof i18n !== 'undefined' ? i18n.t('mark_end') : '標註結束';
+            btn.innerHTML = markEndText;
+            btn.classList.add('btn-danger');
+            btn.classList.remove('btn-secondary');
+
+            info.style.display = 'block';
+            const infoText = typeof i18n !== 'undefined' ? i18n.t('marking_start_time') : '已標註開始: {time}';
+            info.textContent = infoText.replace('{time}', TimeUtils.formatTime(currentMs));
+
+            if (uiController.addMarker) uiController.addMarker((currentMs / durationMs) * 100);
+        } else {
+            // 結束標註
+            if (currentMs <= markStartTime) {
+                alert('結束時間必須大於開始時間');
+                return;
+            }
+
+            segmentManager.addSegment({
+                name: `Segment ${segmentManager.getCount() + 1}`,
+                startMs: Math.floor(markStartTime),
+                endMs: Math.floor(currentMs)
+            });
+
+            // 重置狀態
+            isMarkingStart = false;
+            const markStartText = typeof i18n !== 'undefined' ? i18n.t('mark_start') : '標註開始';
+            btn.innerHTML = markStartText;
+            btn.classList.remove('btn-danger');
+            btn.classList.add('btn-secondary');
+            info.style.display = 'none';
+
+            if (uiController.clearMarkers) uiController.clearMarkers();
+        }
+    });
 
     // 處理按鈕
     document.getElementById('btnProcess').addEventListener('click', processAudio);
