@@ -845,28 +845,32 @@ body.player-active {
 
 @media (max-width: 768px) {
     .floating-player-bar {
-        flex-direction: row;
-        flex-wrap: wrap;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
         padding: 8px 10px;
         gap: 8px;
         justify-content: space-between;
         align-items: center;
     }
 
-    /* Row 1: Seek bar */
+    /* Row 1: Seek bar - Force full width */
     .floating-player-seekbar {
         order: -1;
-        width: 100%;
+        width: 100% !important;
+        flex: 0 0 100% !important;
         margin-bottom: 4px;
         flex-direction: row;
         align-items: center;
         gap: 8px;
+        box-sizing: border-box;
     }
 
     /* Row 2: Controls, Speed, Mode */
     .floating-player-controls {
         width: auto;
         gap: 8px;
+        flex: 0 1 auto;
     }
 
     .floating-player-controls .btn-player {
@@ -878,10 +882,12 @@ body.player-active {
 
     .floating-player-speed {
         margin: 0;
+        flex: 0 1 auto;
     }
 
     .floating-player-mode {
         margin: 0;
+        flex: 0 1 auto;
     }
 
     .floating-player-mode .floating-checkbox-label {
