@@ -4,10 +4,11 @@
  */
 
 class UIController {
-    constructor(segmentManager, audioProcessor) {
+    constructor(segmentManager, audioProcessor, callbacks = {}) {
         this.segmentManager = segmentManager;
         this.audioProcessor = audioProcessor;
-        this.stepSize = 100; // 預設微調刻度
+        this.callbacks = callbacks; // { onPlaySegment: function(segment) }
+        this.stepSize = 1000; // 預設微調刻度 1000ms
         this.currentPlayingSegment = null;
     }
 
@@ -246,9 +247,9 @@ class UIController {
             btnPlayMain.innerHTML = '▶ ' + (typeof i18n !== 'undefined' ? i18n.t('play_main').replace('▶ ', '') : '播放');
         }
 
-        // 使用全域的 playSegmentInPlayer 函數
-        if (typeof playSegmentInPlayer === 'function') {
-            playSegmentInPlayer(segment);
+        // 使用 callback 如果有提供
+        if (this.callbacks && typeof this.callbacks.onPlaySegment === 'function') {
+            this.callbacks.onPlaySegment(segment);
 
             // 將當前按鈕設為暫停狀態
             if (playBtn) {
@@ -258,6 +259,7 @@ class UIController {
             }
         } else {
             // 後備方案: 使用 AudioProcessor
+            console.warn('UIController: using fallback audioProcessor play');
             if (this.currentPlayingSegment === segment.id) {
                 this.audioProcessor.stop();
                 this.currentPlayingSegment = null;
@@ -292,6 +294,7 @@ class UIController {
      */
     drawWaveform() {
         const canvas = document.getElementById('waveformCanvas');
+        if (!canvas) return; // 沒 canvas 就不畫
         const ctx = canvas.getContext('2d');
 
         canvas.width = canvas.offsetWidth;
@@ -321,7 +324,10 @@ class UIController {
     setStepSize(ms) {
         this.stepSize = ms;
         // 顯示為秒 (例如 1000ms -> 1s)
-        document.getElementById('stepSize').value = ms / 1000;
+        const stepInput = document.getElementById('stepSize');
+        if (stepInput) {
+            stepInput.value = ms / 1000;
+        }
     }
 
     /**
@@ -470,20 +476,22 @@ class UIController {
 
     /**
      * 新增標記線
+     * @note 暫時停用此功能
      */
     addMarker(percentage) {
-        const bar = document.querySelector('.floating-player-seekbar');
-        if (!bar) return;
-        const marker = document.createElement('div');
-        marker.className = 'seek-marker';
-        marker.style.left = `${percentage}%`;
-        bar.appendChild(marker);
+        // const bar = document.querySelector('.floating-player-seekbar');
+        // if (!bar) return;
+        // const marker = document.createElement('div');
+        // marker.className = 'seek-marker';
+        // marker.style.left = `${percentage}%`;
+        // bar.appendChild(marker);
     }
 
     /**
      * 清除標記線
+     * @note 暫時停用此功能
      */
     clearMarkers() {
-        document.querySelectorAll('.seek-marker').forEach(el => el.remove());
+        // document.querySelectorAll('.seek-marker').forEach(el => el.remove());
     }
 }

@@ -2,6 +2,13 @@
 
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
+## [v1.5.2] - 2026-01-22
+
+### Refactored
+- **Codebase Overhaul**: Refactored `app.js` and `ui-controller.js`. Encapsulated application logic into a centralized `AppController` class to improve maintainability and debugging.
+- **Dependency Management**: Decoupled `UIController` from global scope functions, now using strict callback interfaces.
+- **Feature Temporarily Disabled**: Temporarily disabled the visual seek bar markers for "Mark Start/End" due to layout issues, while keeping the marking functionality itself intact.
+
 ## [v1.5.1] - 2026-01-22
 
 ### Fixed

@@ -1,168 +1,81 @@
 /**
  * Main Application - 主應用程式
+ * Refactored to use AppController class
  */
 
-// 全域變數
-let segmentManager;
-let audioProcessor;
-let uiController;
-let currentFile = null;
+class AppController {
+    constructor() {
+        // Core Managers
+        this.segmentManager = null;
+        this.audioProcessor = null;
+        this.uiController = null;
 
-// 播放器狀態
-let isLooping = false;
-let isSeeking = false;
-let currentSegmentRange = null; // 當前播放的段落範圍 {startMs, endMs}
+        // Application State
+        this.state = {
+            currentFile: null,
+            isMarkingStart: false,
+            markStartTime: 0,
 
-/**
- * 播放完整音訊
- */
-function playFullAudio() {
-    const audioPlayer = document.getElementById('audioPlayer');
-    const btnPlayPause = document.getElementById('btnPlayPause');
-    const btnPlayMain = document.getElementById('btnPlayMain');
-    const totalTimeEl = document.getElementById('totalTime');
-
-    // 清除段落範圍
-    currentSegmentRange = null;
-    document.getElementById('floatingPlayerInfo').textContent = i18n ? i18n.t('main_audio') : '主音訊';
-
-    // 重置所有段落播放按鈕為播放狀態
-    document.querySelectorAll('.btn-icon.playing').forEach(btn => {
-        btn.textContent = '▶';
-        btn.classList.remove('playing');
-        btn.classList.add('play');
-    });
-
-    // 重置總時間為完整音訊長度
-    totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
-
-    // 更新主播放按鈕樣式
-    if (btnPlayMain) {
-        btnPlayMain.innerHTML = '⏸ ' + (i18n ? i18n.t('play_main').replace('▶ ', '') : '暫停');
+            // Player State
+            isLooping: false,
+            isSeeking: false,
+            currentSegmentRange: null // {id, startMs, endMs}
+        };
     }
 
-    audioPlayer.currentTime = 0;
-    audioPlayer.play();
-    btnPlayPause.textContent = '⏸';
-}
+    /**
+     * Initialize Application
+     */
+    init() {
+        this.setupInstances();
+        this.setupGlobalListeners();
 
-/**
- * 切換主音訊播放/暫停
- */
-function toggleMainAudio() {
-    const audioPlayer = document.getElementById('audioPlayer');
-    const btnPlayPause = document.getElementById('btnPlayPause');
-    const btnPlayMain = document.getElementById('btnPlayMain');
-    const totalTimeEl = document.getElementById('totalTime');
-    const playText = i18n ? i18n.t('play_main').replace('▶ ', '') : '播放';
-    const pauseText = i18n ? i18n.t('pause') : '暫停';
-
-    // 重置所有段落播放按鈕為播放狀態
-    document.querySelectorAll('.btn-icon.playing').forEach(btn => {
-        btn.textContent = '▶';
-        btn.classList.remove('playing');
-        btn.classList.add('play');
-    });
-
-    // 如果當前正在播放段落，切換到主音訊
-    if (currentSegmentRange !== null) {
-        currentSegmentRange = null;
-        document.getElementById('floatingPlayerInfo').textContent = i18n ? i18n.t('main_audio') : '主音訊';
-        totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
-    }
-
-    // 切換播放/暫停
-    if (audioPlayer.paused) {
-        audioPlayer.play();
-        btnPlayPause.textContent = '⏸';
-        if (btnPlayMain) {
-            btnPlayMain.innerHTML = '⏸ ' + pauseText;
-        }
-    } else {
-        audioPlayer.pause();
-        btnPlayPause.textContent = '▶';
-        if (btnPlayMain) {
-            btnPlayMain.innerHTML = '▶ ' + playText;
+        // Initialize i18n if available
+        if (typeof i18n !== 'undefined' && i18n.init) {
+            i18n.init();
         }
     }
-}
 
-/**
- * 在浮動播放器中播放段落
- */
-function playSegmentInPlayer(segment) {
-    const audioPlayer = document.getElementById('audioPlayer');
-    const btnPlayPause = document.getElementById('btnPlayPause');
-    const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
-    const seekBar = document.getElementById('seekBar');
-    const totalTimeEl = document.getElementById('totalTime');
+    /**
+     * Setup Manager Instances
+     */
+    setupInstances() {
+        this.segmentManager = new SegmentManager();
+        this.audioProcessor = new AudioProcessor();
 
-    // 儲存當前播放的段落 ID 和範圍
-    currentSegmentRange = {
-        id: segment.id,
-        startMs: segment.startMs,
-        endMs: segment.endMs
-    };
+        // UIController receives callbacks to communicate back to AppController
+        this.uiController = new UIController(
+            this.segmentManager,
+            this.audioProcessor,
+            {
+                onPlaySegment: (segment) => this.playSegmentInPlayer(segment)
+            }
+        );
 
-    document.getElementById('floatingPlayerInfo').textContent = (i18n ? i18n.t('segment_prefix') : '段落: ') + segment.name;
+        // Set initial step size
+        this.uiController.setStepSize(1000); // 1 second
 
-    // 根據播放模式更新 seekbar 範圍
-    if (segmentOnlyMode) {
-        // 僅段落模式：seekbar 僅顯示段落範圍
-        seekBar.min = 0;
-        seekBar.max = 100;
-        const segmentDuration = segment.endMs - segment.startMs;
-        totalTimeEl.textContent = TimeUtils.formatTimeSeconds(segmentDuration);
-    } else {
-        // 全檔案模式：恢復原始 seekbar 範圍
-        seekBar.min = 0;
-        seekBar.max = 100;
-        totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
+        // Setup SegmentManager callbacks
+        this.segmentManager.onChange = () => this.handleSegmentChange();
     }
 
-    audioPlayer.currentTime = segment.startMs / 1000;
-    audioPlayer.play();
-    btnPlayPause.textContent = '⏸';
-}
+    /**
+     * Handle Segment Changes
+     */
+    handleSegmentChange() {
+        this.uiController.renderSegments();
 
-// 初始化應用程式
-// 初始化應用程式
-let isMarkingStart = false;
-let markStartTime = 0;
-
-document.addEventListener('DOMContentLoaded', () => {
-    initializeApp();
-    setupEventListeners();
-});
-
-/**
- * 初始化應用程式
- */
-function initializeApp() {
-    segmentManager = new SegmentManager();
-    audioProcessor = new AudioProcessor();
-    uiController = new UIController(segmentManager, audioProcessor);
-
-    // 設定初始 step size
-    uiController.setStepSize(1000); // 預設 1 秒
-
-    // 設定段落變更回調
-    segmentManager.onChange = () => {
-        uiController.renderSegments();
-
-        // 如果正在播放段落，檢查並更新時間範圍
-        if (currentSegmentRange && currentSegmentRange.id) {
-            const segments = segmentManager.getSegments();
-            const currentSegment = segments.find(s => String(s.id) === String(currentSegmentRange.id));
+        // Check and update segment range if currently playing a segment
+        if (this.state.currentSegmentRange && this.state.currentSegmentRange.id) {
+            const segments = this.segmentManager.getSegments();
+            const currentSegment = segments.find(s => String(s.id) === String(this.state.currentSegmentRange.id));
 
             if (currentSegment) {
-                // 更新時間範圍以反映最新的段落設定
-                const oldStart = currentSegmentRange.startMs;
-                const oldEnd = currentSegmentRange.endMs;
-                currentSegmentRange.startMs = currentSegment.startMs;
-                currentSegmentRange.endMs = currentSegment.endMs;
+                // Update range to reflect latest segment settings
+                this.state.currentSegmentRange.startMs = currentSegment.startMs;
+                this.state.currentSegmentRange.endMs = currentSegment.endMs;
 
-                // 更新時間顯示
+                // Update time display
                 const totalTimeEl = document.getElementById('totalTime');
                 const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
 
@@ -171,709 +84,804 @@ function initializeApp() {
                     totalTimeEl.textContent = TimeUtils.formatTimeSeconds(segmentDuration);
                 }
 
-                // 檢查當前播放位置是否在新範圍內
+                // Check if current playback position is within new range
                 const audioPlayer = document.getElementById('audioPlayer');
                 const currentMs = audioPlayer.currentTime * 1000;
 
-                if (currentMs < currentSegmentRange.startMs) {
-                    audioPlayer.currentTime = currentSegmentRange.startMs / 1000;
-                } else if (currentMs > currentSegmentRange.endMs) {
-                    audioPlayer.currentTime = currentSegmentRange.startMs / 1000;
+                if (currentMs < this.state.currentSegmentRange.startMs) {
+                    audioPlayer.currentTime = this.state.currentSegmentRange.startMs / 1000;
+                } else if (currentMs > this.state.currentSegmentRange.endMs) {
+                    audioPlayer.currentTime = this.state.currentSegmentRange.startMs / 1000;
                 }
             }
         }
-    };
-}
+    }
 
-/**
- * 設定主播放器控制
- */
-function setupPlayerControls() {
-    const audioPlayer = document.getElementById('audioPlayer');
-    const btnPlayPause = document.getElementById('btnPlayPause');
-    const btnLoop = document.getElementById('btnLoop');
-    const seekBar = document.getElementById('seekBar');
-    const playbackSpeed = document.getElementById('playbackSpeed');
-    const currentTimeEl = document.getElementById('currentTime');
-    const totalTimeEl = document.getElementById('totalTime');
+    /**
+     * Play Full Audio (Reset Segment Mode)
+     */
+    playFullAudio() {
+        const audioPlayer = document.getElementById('audioPlayer');
+        const btnPlayPause = document.getElementById('btnPlayPause');
+        const btnPlayMain = document.getElementById('btnPlayMain');
+        const totalTimeEl = document.getElementById('totalTime');
 
-    // Play/Pause 按鈕
-    btnPlayPause.addEventListener('click', () => {
+        // Clear segment range
+        this.state.currentSegmentRange = null;
+        document.getElementById('floatingPlayerInfo').textContent = (typeof i18n !== 'undefined' ? i18n.t('main_audio') : '主音訊');
+
+        // Reset all segment play buttons
+        document.querySelectorAll('.btn-icon.playing').forEach(btn => {
+            btn.textContent = '▶';
+            btn.classList.remove('playing');
+            btn.classList.add('play');
+        });
+
+        // Reset total time display
+        if (audioPlayer.duration) {
+            totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
+        }
+
+        // Update main play button style
+        if (btnPlayMain) {
+            btnPlayMain.innerHTML = '⏸ ' + (typeof i18n !== 'undefined' ? i18n.t('play_main').replace('▶ ', '') : '暫停');
+        }
+
+        audioPlayer.currentTime = 0;
+        audioPlayer.play();
+        btnPlayPause.textContent = '⏸';
+    }
+
+    /**
+     * Toggle Main Audio Play/Pause
+     */
+    toggleMainAudio() {
+        const audioPlayer = document.getElementById('audioPlayer');
+        const btnPlayPause = document.getElementById('btnPlayPause');
+        const btnPlayMain = document.getElementById('btnPlayMain');
+        const totalTimeEl = document.getElementById('totalTime');
+        const playText = typeof i18n !== 'undefined' ? i18n.t('play_main').replace('▶ ', '') : '播放';
+        const pauseText = typeof i18n !== 'undefined' ? i18n.t('pause') : '暫停';
+
+        // Reset all segment play buttons
+        document.querySelectorAll('.btn-icon.playing').forEach(btn => {
+            btn.textContent = '▶';
+            btn.classList.remove('playing');
+            btn.classList.add('play');
+        });
+
+        // If currently playing a segment, switch to main audio mode
+        if (this.state.currentSegmentRange !== null) {
+            this.state.currentSegmentRange = null;
+            document.getElementById('floatingPlayerInfo').textContent = typeof i18n !== 'undefined' ? i18n.t('main_audio') : '主音訊';
+            if (audioPlayer.duration) {
+                totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
+            }
+        }
+
+        // Toggle Play/Pause
         if (audioPlayer.paused) {
             audioPlayer.play();
             btnPlayPause.textContent = '⏸';
+            if (btnPlayMain) {
+                btnPlayMain.innerHTML = '⏸ ' + pauseText;
+            }
         } else {
             audioPlayer.pause();
             btnPlayPause.textContent = '▶';
-        }
-    });
-
-    // Loop 按鈕 (只控制 isLooping 狀態，不設置 audioPlayer.loop)
-    btnLoop.addEventListener('click', () => {
-        isLooping = !isLooping;
-        // 不設置 audioPlayer.loop，由 timeupdate 事件手動處理循環
-        btnLoop.classList.toggle('active', isLooping);
-        btnLoop.style.background = isLooping ? '#667eea' : '';
-        btnLoop.style.color = isLooping ? 'white' : '';
-    });
-
-    // 倍速控制
-    playbackSpeed.addEventListener('change', () => {
-        audioPlayer.playbackRate = parseFloat(playbackSpeed.value);
-    });
-
-    // Seekbar 拖曳
-    seekBar.addEventListener('input', () => {
-        isSeeking = true;
-        const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
-
-        if (currentSegmentRange && segmentOnlyMode) {
-            // 僅段落模式：根據段落範圍計算時間
-            const segmentDuration = currentSegmentRange.endMs - currentSegmentRange.startMs;
-            const seekPosInSegment = (seekBar.value / 100) * segmentDuration;
-            currentTimeEl.textContent = TimeUtils.formatTimeSeconds(seekPosInSegment);
-        } else {
-            // 全檔案模式
-            const seekTime = (seekBar.value / 100) * audioPlayer.duration;
-            currentTimeEl.textContent = TimeUtils.formatTimeSeconds(seekTime * 1000);
-        }
-    });
-
-    seekBar.addEventListener('change', () => {
-        const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
-
-        if (currentSegmentRange && segmentOnlyMode) {
-            // 僅段落模式：根據段落範圍計算實際播放時間
-            const segmentDuration = currentSegmentRange.endMs - currentSegmentRange.startMs;
-            const seekPosInSegment = (seekBar.value / 100) * segmentDuration;
-            const actualTimeMs = currentSegmentRange.startMs + seekPosInSegment;
-            audioPlayer.currentTime = actualTimeMs / 1000;
-        } else {
-            // 全檔案模式
-            const seekTime = (seekBar.value / 100) * audioPlayer.duration;
-            audioPlayer.currentTime = seekTime;
-        }
-        isSeeking = false;
-    });
-
-    // 更新進度條
-    audioPlayer.addEventListener('timeupdate', () => {
-        if (!isSeeking && audioPlayer.duration) {
-            const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
-
-            // 根據播放模式計算進度
-            if (currentSegmentRange && segmentOnlyMode) {
-                // 僅段落模式：進度相對於段落
-                const segmentDuration = currentSegmentRange.endMs - currentSegmentRange.startMs;
-                const currentPosInSegment = (audioPlayer.currentTime * 1000) - currentSegmentRange.startMs;
-                const progress = Math.max(0, Math.min(100, (currentPosInSegment / segmentDuration) * 100));
-                seekBar.value = progress;
-                currentTimeEl.textContent = TimeUtils.formatTimeSeconds(Math.max(0, currentPosInSegment));
-            } else {
-                // 全檔案模式：進度相對於整個檔案
-                const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-                seekBar.value = progress;
-                currentTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.currentTime * 1000);
-            }
-
-            // 如果在播放段落且已超過段落結束時間，則停止或循環
-            if (currentSegmentRange) {
-                const currentMs = audioPlayer.currentTime * 1000;
-                if (currentMs >= currentSegmentRange.endMs) {
-                    if (isLooping) {
-                        audioPlayer.currentTime = currentSegmentRange.startMs / 1000;
-                    } else {
-                        audioPlayer.pause();
-                        btnPlayPause.textContent = '▶';
-                        currentSegmentRange = null;
-                        // 恢復全檔案模式顯示
-                        totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
-                    }
-                }
+            if (btnPlayMain) {
+                btnPlayMain.innerHTML = '▶ ' + playText;
             }
         }
-    });
+    }
 
-    // 載入後顯示總時長
-    audioPlayer.addEventListener('loadedmetadata', () => {
-        totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
-    });
+    /**
+     * Play specific segment in the floating player
+     */
+    playSegmentInPlayer(segment) {
+        const audioPlayer = document.getElementById('audioPlayer');
+        const btnPlayPause = document.getElementById('btnPlayPause');
+        const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
+        const seekBar = document.getElementById('seekBar');
+        const totalTimeEl = document.getElementById('totalTime');
 
-    // 播放結束
-    audioPlayer.addEventListener('ended', () => {
-        if (!isLooping) {
-            btnPlayPause.textContent = '▶';
-        }
-    });
+        // Store current segment info
+        this.state.currentSegmentRange = {
+            id: segment.id,
+            startMs: segment.startMs,
+            endMs: segment.endMs
+        };
 
-    // 播放模式切換 (僅段落 checkbox)
-    const segmentOnlyCheckbox = document.getElementById('segmentOnlyMode');
-    if (segmentOnlyCheckbox) {
-        segmentOnlyCheckbox.addEventListener('change', () => {
-            if (segmentOnlyCheckbox.checked && currentSegmentRange) {
-                // 切換到僅段落模式：顯示段落時長
-                const segmentDuration = currentSegmentRange.endMs - currentSegmentRange.startMs;
-                totalTimeEl.textContent = TimeUtils.formatTimeSeconds(segmentDuration);
-            } else {
-                // 切換到全檔案模式：顯示完整時長
+        const segmentPrefix = typeof i18n !== 'undefined' ? i18n.t('segment_prefix') : '段落: ';
+        document.getElementById('floatingPlayerInfo').textContent = segmentPrefix + segment.name;
+
+        // Update seekbar range based on mode
+        if (segmentOnlyMode) {
+            // Segment Only Mode
+            seekBar.min = 0;
+            seekBar.max = 100;
+            const segmentDuration = segment.endMs - segment.startMs;
+            totalTimeEl.textContent = TimeUtils.formatTimeSeconds(segmentDuration);
+        } else {
+            // Full File Mode
+            seekBar.min = 0;
+            seekBar.max = 100;
+            if (audioPlayer.duration) {
                 totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
             }
+        }
+
+        audioPlayer.currentTime = segment.startMs / 1000;
+        audioPlayer.play();
+        btnPlayPause.textContent = '⏸';
+    }
+
+    /**
+     * Setup all DOM event listeners
+     */
+    setupGlobalListeners() {
+        // File Upload
+        this.setupFileUploadListeners();
+
+        // UI Interactions (Drag & Drop JSON)
+        this.setupDragDropListeners();
+
+        // Player Controls
+        this.setupPlayerControls();
+
+        // Marking & Splitting
+        this.setupToolsListeners();
+
+        // Process Buttons
+        document.getElementById('btnProcess').addEventListener('click', () => this.processAudio());
+
+        // Step Size Preset Buttons
+        document.querySelectorAll('.btn-preset').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const stepMs = parseInt(btn.dataset.step);
+                this.uiController.setStepSize(stepMs);
+            });
+        });
+
+        document.getElementById('stepSize').addEventListener('change', (e) => {
+            const stepSeconds = parseFloat(e.target.value);
+            if (stepSeconds > 0) {
+                const stepMs = Math.round(stepSeconds * 1000);
+                this.uiController.setStepSize(stepMs);
+            }
+        });
+
+        // Segment Controls
+        document.getElementById('btnAddSegment').addEventListener('click', () => this.addSegment());
+        document.getElementById('btnImportJSON').addEventListener('click', () => this.importJSON());
+        document.getElementById('btnExportJSON').addEventListener('click', () => this.exportJSON());
+        document.getElementById('btnClearAll').addEventListener('click', () => this.clearAllSegments());
+    }
+
+    /**
+     * Setup File Upload Listeners
+     */
+    setupFileUploadListeners() {
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        const handleDragOver = (e, element) => {
+            e.preventDefault();
+            element.classList.add('dragover');
+        };
+
+        const handleDragLeave = (element) => {
+            element.classList.remove('dragover');
+        };
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => handleDragOver(e, uploadArea));
+        uploadArea.addEventListener('dragleave', () => handleDragLeave(uploadArea));
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) this.handleFileSelect(file);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) this.handleFileSelect(file);
         });
     }
-}
 
-/**
- * 設定事件監聽器
- */
-function setupEventListeners() {
-    // 檔案上傳 (音訊)
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('fileInput');
+    /**
+     * Setup Drag & Drop for JSON Import
+     */
+    setupDragDropListeners() {
+        const segmentsSection = document.getElementById('segmentsSection');
+        const segmentsList = document.getElementById('segmentsList');
 
-    // 拖拉處理共用函數
-    const handleDragOver = (e, element) => {
-        e.preventDefault();
-        element.classList.add('dragover');
-    };
-
-    const handleDragLeave = (element) => {
-        element.classList.remove('dragover');
-    };
-
-    // 音訊上傳區
-    uploadArea.addEventListener('click', () => fileInput.click());
-    uploadArea.addEventListener('dragover', (e) => handleDragOver(e, uploadArea));
-    uploadArea.addEventListener('dragleave', () => handleDragLeave(uploadArea));
-
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('dragover');
-        const file = e.dataTransfer.files[0];
-        if (file) handleFileSelect(file);
-    });
-
-    fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) handleFileSelect(file);
-    });
-
-    // 段落列表區 (JSON 匯入)
-    const segmentsSection = document.getElementById('segmentsSection');
-    const segmentsList = document.getElementById('segmentsList');
-
-    // 監聽整個區塊，但視覺回饋限制在列表區域
-    segmentsSection.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        // 檢查是否拖曳的是檔案
-        if (e.dataTransfer.types.includes('Files')) {
-            segmentsList.classList.add('drag-active');
-            // 顯示提示覆盖层 (如果需要)
-            if (!document.getElementById('dropOverlay')) {
-                const overlay = document.createElement('div');
-                overlay.id = 'dropOverlay';
-                overlay.className = 'drop-overlay';
-                overlay.innerHTML = `<div class="drop-message">${i18n ? i18n.t('drop_json_to_import') : '放開以匯入設定檔'}</div>`;
-                segmentsList.appendChild(overlay);
+        segmentsSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (e.dataTransfer.types.includes('Files')) {
+                segmentsList.classList.add('drag-active');
+                if (!document.getElementById('dropOverlay')) {
+                    const overlay = document.createElement('div');
+                    overlay.id = 'dropOverlay';
+                    overlay.className = 'drop-overlay';
+                    const msg = typeof i18n !== 'undefined' ? i18n.t('drop_json_to_import') : '放開以匯入設定檔';
+                    overlay.innerHTML = `<div class="drop-message">${msg}</div>`;
+                    segmentsList.appendChild(overlay);
+                }
             }
-        }
-    });
+        });
 
-    segmentsSection.addEventListener('dragleave', (e) => {
-        // 確保不是滑到子元素
-        if (e.relatedTarget && !segmentsSection.contains(e.relatedTarget)) {
+        segmentsSection.addEventListener('dragleave', (e) => {
+            if (e.relatedTarget && !segmentsSection.contains(e.relatedTarget)) {
+                segmentsList.classList.remove('drag-active');
+                const overlay = document.getElementById('dropOverlay');
+                if (overlay) overlay.remove();
+            }
+        });
+
+        segmentsSection.addEventListener('drop', async (e) => {
+            e.preventDefault();
             segmentsList.classList.remove('drag-active');
             const overlay = document.getElementById('dropOverlay');
             if (overlay) overlay.remove();
-        }
-    });
 
-    segmentsSection.addEventListener('drop', async (e) => {
-        e.preventDefault();
-        segmentsList.classList.remove('drag-active');
-        const overlay = document.getElementById('dropOverlay');
-        if (overlay) overlay.remove();
-
-        const file = e.dataTransfer.files[0];
-        if (file) {
-            // 檢查副檔名
-            if (file.name.toLowerCase().endsWith('.json')) {
-                const confirmMsg = i18n ? i18n.t('confirm_import') : '是否匯入設定檔？這將覆蓋現有段落。';
-                if (segmentManager.getCount() > 0 && !confirm(confirmMsg)) {
+            const file = e.dataTransfer.files[0];
+            if (file && file.name.toLowerCase().endsWith('.json')) {
+                // Trigger actual import logic via a temporary input mimicking behavior or direct call
+                // Since we have the file object, we can just process it directly.
+                const confirmMsg = typeof i18n !== 'undefined' ? i18n.t('confirm_import') : '是否匯入設定檔？這將覆蓋現有段落。';
+                if (this.segmentManager.getCount() > 0 && !confirm(confirmMsg)) {
                     return;
                 }
 
                 try {
                     const text = await file.text();
-                    const result = segmentManager.importJSON(text);
-                    if (result.success) {
-                        alert(result.message);
-                    } else {
-                        alert(result.message);
-                    }
+                    const result = this.segmentManager.importJSON(text);
+                    alert(result.message);
                 } catch (error) {
-                    alert((i18n ? i18n.t('import_failed', { error: error.message }) : `匯入失敗: ${error.message}`));
+                    const errorMsg = typeof i18n !== 'undefined' ? i18n.t('import_failed', { error: error.message }) : `匯入失敗: ${error.message}`;
+                    alert(errorMsg);
                 }
             }
-        }
-    });
-
-    // 主播放器控制
-    setupPlayerControls();
-
-    // 微調刻度設定 (輸入框顯示秒，內部使用毫秒)
-    document.querySelectorAll('.btn-preset').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const stepMs = parseInt(btn.dataset.step);
-            uiController.setStepSize(stepMs);
-            // 更新輸入框顯示秒
-            document.getElementById('stepSize').value = stepMs / 1000;
         });
-    });
+    }
 
-    document.getElementById('stepSize').addEventListener('change', (e) => {
-        const stepSeconds = parseFloat(e.target.value);
-        if (stepSeconds > 0) {
-            const stepMs = Math.round(stepSeconds * 1000);
-            uiController.setStepSize(stepMs);
-        }
-    });
+    /**
+     * Setup Player Control Listeners
+     */
+    setupPlayerControls() {
+        const audioPlayer = document.getElementById('audioPlayer');
+        const btnPlayPause = document.getElementById('btnPlayPause');
+        const btnLoop = document.getElementById('btnLoop');
+        const seekBar = document.getElementById('seekBar');
+        const playbackSpeed = document.getElementById('playbackSpeed');
+        const currentTimeEl = document.getElementById('currentTime');
+        const totalTimeEl = document.getElementById('totalTime');
 
-    // 自動切分
-    document.querySelectorAll('.btn-split').forEach(btn => {
-        if (btn.id === 'btnCustomSplit') {
-            btn.addEventListener('click', () => {
-                const num = prompt('請輸入要切分的段落數量 (2-100):', '4');
-                if (num) {
-                    const segments = parseInt(num);
-                    if (segments >= 2 && segments <= 100) {
-                        autoSplit(segments);
-                    } else {
-                        alert('請輸入 2-100 之間的數字');
+        // Play/Pause Button
+        btnPlayPause.addEventListener('click', () => {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                btnPlayPause.textContent = '⏸';
+            } else {
+                audioPlayer.pause();
+                btnPlayPause.textContent = '▶';
+            }
+        });
+
+        // Loop Button
+        btnLoop.addEventListener('click', () => {
+            this.state.isLooping = !this.state.isLooping;
+            btnLoop.classList.toggle('active', this.state.isLooping);
+            btnLoop.style.background = this.state.isLooping ? '#667eea' : '';
+            btnLoop.style.color = this.state.isLooping ? 'white' : '';
+        });
+
+        // Speed Control
+        playbackSpeed.addEventListener('change', () => {
+            audioPlayer.playbackRate = parseFloat(playbackSpeed.value);
+        });
+
+        // Seekbar Input (Dragging)
+        seekBar.addEventListener('input', () => {
+            this.state.isSeeking = true;
+            const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
+
+            if (this.state.currentSegmentRange && segmentOnlyMode) {
+                // Segment Mode
+                const segmentDuration = this.state.currentSegmentRange.endMs - this.state.currentSegmentRange.startMs;
+                const seekPosInSegment = (seekBar.value / 100) * segmentDuration;
+                currentTimeEl.textContent = TimeUtils.formatTimeSeconds(seekPosInSegment);
+            } else {
+                // Full File Mode
+                const seekTime = (seekBar.value / 100) * audioPlayer.duration;
+                currentTimeEl.textContent = TimeUtils.formatTimeSeconds(seekTime * 1000);
+            }
+        });
+
+        // Seekbar Change (Drop)
+        seekBar.addEventListener('change', () => {
+            const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
+
+            if (this.state.currentSegmentRange && segmentOnlyMode) {
+                const segmentDuration = this.state.currentSegmentRange.endMs - this.state.currentSegmentRange.startMs;
+                const seekPosInSegment = (seekBar.value / 100) * segmentDuration;
+                const actualTimeMs = this.state.currentSegmentRange.startMs + seekPosInSegment;
+                audioPlayer.currentTime = actualTimeMs / 1000;
+            } else {
+                const seekTime = (seekBar.value / 100) * audioPlayer.duration;
+                audioPlayer.currentTime = seekTime;
+            }
+            this.state.isSeeking = false;
+        });
+
+        // Time Update
+        audioPlayer.addEventListener('timeupdate', () => {
+            if (!this.state.isSeeking && audioPlayer.duration) {
+                const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
+
+                if (this.state.currentSegmentRange && segmentOnlyMode) {
+                    // Segment Mode Progress
+                    const segmentDuration = this.state.currentSegmentRange.endMs - this.state.currentSegmentRange.startMs;
+                    const currentPosInSegment = (audioPlayer.currentTime * 1000) - this.state.currentSegmentRange.startMs;
+                    const progress = Math.max(0, Math.min(100, (currentPosInSegment / segmentDuration) * 100));
+                    seekBar.value = progress;
+                    currentTimeEl.textContent = TimeUtils.formatTimeSeconds(Math.max(0, currentPosInSegment));
+                } else {
+                    // Full File Progress
+                    const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                    seekBar.value = progress;
+                    currentTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.currentTime * 1000);
+                }
+
+                // Loop Check
+                if (this.state.currentSegmentRange) {
+                    const currentMs = audioPlayer.currentTime * 1000;
+                    if (currentMs >= this.state.currentSegmentRange.endMs) {
+                        if (this.state.isLooping) {
+                            audioPlayer.currentTime = this.state.currentSegmentRange.startMs / 1000;
+                        } else {
+                            audioPlayer.pause();
+                            btnPlayPause.textContent = '▶';
+                            this.state.currentSegmentRange = null; // Exit segment mode on finish (non-loop)
+                            // Restore full time display
+                            if (audioPlayer.duration) {
+                                totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Metadata Loaded
+        audioPlayer.addEventListener('loadedmetadata', () => {
+            totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
+        });
+
+        // Ended
+        audioPlayer.addEventListener('ended', () => {
+            if (!this.state.isLooping) {
+                btnPlayPause.textContent = '▶';
+            }
+        });
+
+        // Segment Only Mode Checkbox Change
+        const segmentOnlyCheckbox = document.getElementById('segmentOnlyMode');
+        if (segmentOnlyCheckbox) {
+            segmentOnlyCheckbox.addEventListener('change', () => {
+                if (segmentOnlyCheckbox.checked && this.state.currentSegmentRange) {
+                    const segmentDuration = this.state.currentSegmentRange.endMs - this.state.currentSegmentRange.startMs;
+                    totalTimeEl.textContent = TimeUtils.formatTimeSeconds(segmentDuration);
+                } else {
+                    if (audioPlayer.duration) {
+                        totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
                     }
                 }
             });
-        } else {
-            btn.addEventListener('click', () => {
-                const segments = parseInt(btn.dataset.segments);
-                autoSplit(segments);
-            });
         }
-    });
+    }
 
-    // 段落控制
-    document.getElementById('btnAddSegment').addEventListener('click', addSegment);
-    document.getElementById('btnImportJSON').addEventListener('click', importJSON);
-    document.getElementById('btnExportJSON').addEventListener('click', exportJSON);
-    document.getElementById('btnExportJSON').addEventListener('click', exportJSON);
-    document.getElementById('btnClearAll').addEventListener('click', clearAllSegments);
-
-    // 主音樂工具控制
-    document.getElementById('btnSplitMainAtCursor').addEventListener('click', () => {
-        if (!audioProcessor.audioBuffer) return alert(typeof i18n !== 'undefined' ? i18n.t('no_audio') : '請先載入音訊');
-
-        if (segmentManager.getCount() > 0) {
-            const warning = typeof i18n !== 'undefined' ? i18n.t('overwrite_warning') : '確定要覆蓋嗎？';
-            if (!confirm(warning)) return;
-        }
-
-        const duration = (audioProcessor.audioBuffer ? audioProcessor.audioBuffer.duration : document.getElementById('audioPlayer').duration) * 1000;
-        const current = document.getElementById('audioPlayer').currentTime * 1000;
-
-        if (isNaN(duration) || current <= 100 || current >= duration - 100) return; // 邊界保護
-
-        segmentManager.clearAll();
-        segmentManager.addSegment({ name: 'Part 1', startMs: 0, endMs: Math.floor(current) });
-        segmentManager.addSegment({ name: 'Part 2', startMs: Math.floor(current), endMs: Math.floor(duration) });
-    });
-
-    document.getElementById('btnMarkSegment').addEventListener('click', () => {
-        if (!audioProcessor.audioBuffer) return alert(typeof i18n !== 'undefined' ? i18n.t('no_audio') : '請先載入音訊');
-
-        const btn = document.getElementById('btnMarkSegment');
-        const info = document.getElementById('markInfo');
-        const currentMs = document.getElementById('audioPlayer').currentTime * 1000;
-        const durationMs = (audioProcessor.audioBuffer ? audioProcessor.audioBuffer.duration : document.getElementById('audioPlayer').duration) * 1000;
-
-        if (!isMarkingStart) {
-            // 開始標註
-            isMarkingStart = true;
-            markStartTime = currentMs;
-
-            const markEndText = typeof i18n !== 'undefined' ? i18n.t('mark_end') : '標註結束';
-            btn.innerHTML = markEndText;
-            btn.classList.add('btn-danger');
-            btn.classList.remove('btn-secondary');
-
-            info.style.display = 'block';
-            const infoText = typeof i18n !== 'undefined' ? i18n.t('marking_start_time') : '已標註開始: {time}';
-            info.textContent = infoText.replace('{time}', TimeUtils.formatTime(currentMs));
-
-            if (uiController.addMarker && durationMs > 0) {
-                uiController.addMarker((currentMs / durationMs) * 100);
+    /**
+     * Setup Tools (Mark/Split) Listeners
+     */
+    setupToolsListeners() {
+        // Auto Split Buttons
+        document.querySelectorAll('.btn-split').forEach(btn => {
+            if (btn.id === 'btnCustomSplit') {
+                btn.addEventListener('click', () => {
+                    const num = prompt('請輸入要切分的段落數量 (2-100):', '4');
+                    if (num) {
+                        const segments = parseInt(num);
+                        if (segments >= 2 && segments <= 100) {
+                            this.autoSplit(segments);
+                        } else {
+                            alert('請輸入 2-100 之間的數字');
+                        }
+                    }
+                });
+            } else {
+                btn.addEventListener('click', () => {
+                    const segments = parseInt(btn.dataset.segments);
+                    this.autoSplit(segments);
+                });
             }
-        } else {
-            // 結束標註
-            if (currentMs <= markStartTime) {
-                alert('結束時間必須大於開始時間');
-                return;
+        });
+
+        // Split Main at Cursor
+        document.getElementById('btnSplitMainAtCursor').addEventListener('click', () => {
+            if (!this.audioProcessor.audioBuffer) return alert(typeof i18n !== 'undefined' ? i18n.t('no_audio') : '請先載入音訊');
+
+            if (this.segmentManager.getCount() > 0) {
+                const warning = typeof i18n !== 'undefined' ? i18n.t('overwrite_warning') : '確定要覆蓋嗎？';
+                if (!confirm(warning)) return;
             }
 
-            segmentManager.addSegment({
-                name: `Segment ${segmentManager.getCount() + 1}`,
-                startMs: Math.floor(markStartTime),
-                endMs: Math.floor(currentMs)
-            });
+            const duration = (this.audioProcessor.audioBuffer ? this.audioProcessor.audioBuffer.duration : document.getElementById('audioPlayer').duration) * 1000;
+            const current = document.getElementById('audioPlayer').currentTime * 1000;
 
-            // 重置狀態
-            isMarkingStart = false;
-            const markStartText = typeof i18n !== 'undefined' ? i18n.t('mark_start') : '標註開始';
-            btn.innerHTML = markStartText;
-            btn.classList.remove('btn-danger');
-            btn.classList.add('btn-secondary');
-            info.style.display = 'none';
+            if (isNaN(duration) || current <= 100 || current >= duration - 100) return;
 
-            if (uiController.clearMarkers) uiController.clearMarkers();
-        }
-    });
+            this.segmentManager.clearAll();
+            this.segmentManager.addSegment({ name: 'Part 1', startMs: 0, endMs: Math.floor(current) });
+            this.segmentManager.addSegment({ name: 'Part 2', startMs: Math.floor(current), endMs: Math.floor(duration) });
+        });
 
-    // 處理按鈕
-    document.getElementById('btnProcess').addEventListener('click', processAudio);
-}
+        // Mark Segment Start/End
+        document.getElementById('btnMarkSegment').addEventListener('click', () => {
+            if (!this.audioProcessor.audioBuffer) return alert(typeof i18n !== 'undefined' ? i18n.t('no_audio') : '請先載入音訊');
 
-/**
- * 處理檔案選擇
- */
-async function handleFileSelect(file) {
-    if (!file.type.startsWith('audio/')) {
-        alert(i18n ? i18n.t('select_audio_file') : '請選擇音訊檔案');
-        return;
+            const btn = document.getElementById('btnMarkSegment');
+            const info = document.getElementById('markInfo');
+            const currentMs = document.getElementById('audioPlayer').currentTime * 1000;
+
+            if (!this.state.isMarkingStart) {
+                // Start Marking
+                this.state.isMarkingStart = true;
+                this.state.markStartTime = currentMs;
+
+                const markEndText = typeof i18n !== 'undefined' ? i18n.t('mark_end') : '標註結束';
+                btn.innerHTML = markEndText;
+                btn.classList.add('btn-danger');
+                btn.classList.remove('btn-secondary');
+
+                info.style.display = 'block';
+                const infoText = typeof i18n !== 'undefined' ? i18n.t('marking_start_time') : '已標註開始: {time}';
+                info.textContent = infoText.replace('{time}', TimeUtils.formatTime(currentMs));
+
+                // Marker visual disabled per request
+                // this.uiController.addMarker(...) 
+            } else {
+                // End Marking
+                if (currentMs <= this.state.markStartTime) {
+                    alert('結束時間必須大於開始時間');
+                    return;
+                }
+
+                this.segmentManager.addSegment({
+                    name: `Segment ${this.segmentManager.getCount() + 1}`,
+                    startMs: Math.floor(this.state.markStartTime),
+                    endMs: Math.floor(currentMs)
+                });
+
+                // Reset State
+                this.state.isMarkingStart = false;
+                const markStartText = typeof i18n !== 'undefined' ? i18n.t('mark_start') : '標註開始';
+                btn.innerHTML = markStartText;
+                btn.classList.remove('btn-danger');
+                btn.classList.add('btn-secondary');
+                info.style.display = 'none';
+
+                // Marker visual disabled per request
+                // this.uiController.clearMarkers();
+            }
+        });
     }
 
-    currentFile = file;
-
-    // 顯示檔案資訊
-    document.querySelector('.upload-prompt').style.display = 'none';
-    document.getElementById('fileInfo').style.display = 'block';
-    document.getElementById('fileName').textContent = file.name;
-    document.getElementById('fileDetails').textContent = i18n ? i18n.t('loading') : '載入中...';
-
-    // 載入音訊
-    const result = await audioProcessor.loadFile(file);
-
-    if (result.success) {
-        const info = audioProcessor.getInfo();
-
-        // 使用 i18n 顯示檔案資訊
-        const durationLabel = i18n ? i18n.t('duration') : '長度';
-        const sampleRateLabel = i18n ? i18n.t('sample_rate') : '取樣率';
-        const channelsLabel = i18n ? i18n.t('channels') : '聲道';
-
-        document.getElementById('fileDetails').textContent =
-            `${durationLabel}: ${TimeUtils.formatDuration(info.durationMs)} | ` +
-            `${sampleRateLabel}: ${info.sampleRate} Hz | ` +
-            `${channelsLabel}: ${info.channels}`;
-
-        // 設定音訊播放器
-        const audioPlayer = document.getElementById('audioPlayer');
-        audioPlayer.src = URL.createObjectURL(file);
-
-        // 顯示浮動播放條
-        document.getElementById('floatingPlayerBar').style.display = 'flex';
-        document.body.classList.add('player-active');
-        document.getElementById('floatingPlayerInfo').textContent = (i18n ? i18n.t('main_audio') : '主音訊') + ': ' + file.name;
-
-        // 設定主播放按鈕 (現在在檔案資訊區域內)
-        const btnPlayMain = document.getElementById('btnPlayMain');
-        btnPlayMain.style.display = 'inline-flex';
-        btnPlayMain.onclick = () => {
-            toggleMainAudio();
-        };
-
-        // 顯示設定區塊
-        document.getElementById('settingsSection').style.display = 'block';
-        document.getElementById('segmentsSection').style.display = 'block';
-        document.getElementById('exportSection').style.display = 'block';
-
-        // 預設不新增段落，留白即可
-        // if (segmentManager.getCount() === 0) { ... }
-    } else {
-        alert(`載入失敗: ${result.error}`);
-        document.getElementById('fileDetails').textContent = '載入失敗';
-    }
-}
-
-/**
- * 自動切分
- */
-function autoSplit(numSegments) {
-    if (!audioProcessor.audioBuffer) {
-        alert(i18n ? i18n.t('no_audio') : '請先載入音訊檔案');
-        return;
-    }
-
-    if (segmentManager.getCount() > 0) {
-        const confirmMsg = i18n
-            ? i18n.t('confirm_split', { count: segmentManager.getCount(), num: numSegments })
-            : `將清除現有 ${segmentManager.getCount()} 個段落並自動切分為 ${numSegments} 段。\n\n是否繼續？`;
-        if (!confirm(confirmMsg)) {
+    /**
+     * File Selection Handler
+     */
+    async handleFileSelect(file) {
+        if (!file.type.startsWith('audio/')) {
+            alert(typeof i18n !== 'undefined' ? i18n.t('select_audio_file') : '請選擇音訊檔案');
             return;
         }
-    }
 
-    const info = audioProcessor.getInfo();
-    segmentManager.autoSplit(info.durationMs, numSegments);
-}
+        this.state.currentFile = file;
 
-/**
- * 新增段落
- */
-function addSegment() {
-    if (!audioProcessor.audioBuffer) {
-        alert(i18n ? i18n.t('no_audio') : '請先載入音訊檔案');
-        return;
-    }
+        // UI Updates
+        document.querySelector('.upload-prompt').style.display = 'none';
+        document.getElementById('fileInfo').style.display = 'block';
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileDetails').textContent = typeof i18n !== 'undefined' ? i18n.t('loading') : '載入中...';
 
-    const info = audioProcessor.getInfo();
-    const segments = segmentManager.getSegments();
+        // Load Audio
+        const result = await this.audioProcessor.loadFile(file);
 
-    let startMs = 0;
-    if (segments.length > 0) {
-        const lastSegment = segments[segments.length - 1];
-        startMs = lastSegment.endMs;
-    }
+        if (result.success) {
+            const info = this.audioProcessor.getInfo();
+            const durationLabel = typeof i18n !== 'undefined' ? i18n.t('duration') : '長度';
+            const sampleRateLabel = typeof i18n !== 'undefined' ? i18n.t('sample_rate') : '取樣率';
+            const channelsLabel = typeof i18n !== 'undefined' ? i18n.t('channels') : '聲道';
 
-    const endMs = Math.min(startMs + 10000, info.durationMs);
-    const segmentLabel = i18n ? i18n.t('segment_label') : '段落';
+            document.getElementById('fileDetails').textContent =
+                `${durationLabel}: ${TimeUtils.formatDuration(info.durationMs)} | ` +
+                `${sampleRateLabel}: ${info.sampleRate} Hz | ` +
+                `${channelsLabel}: ${info.channels}`;
 
-    segmentManager.addSegment({
-        name: `${segmentLabel} ${segmentManager.getCount() + 1}`,
-        startMs,
-        endMs
-    });
-}
+            // Initialize Player
+            const audioPlayer = document.getElementById('audioPlayer');
+            audioPlayer.src = URL.createObjectURL(file);
 
-/**
- * 匯入 JSON
- */
-function importJSON() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
+            // Show Player Bar
+            document.getElementById('floatingPlayerBar').style.display = 'flex';
+            document.body.classList.add('player-active');
+            document.getElementById('floatingPlayerInfo').textContent = (typeof i18n !== 'undefined' ? i18n.t('main_audio') : '主音訊') + ': ' + file.name;
 
-    input.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+            // Setup Main Play Button
+            const btnPlayMain = document.getElementById('btnPlayMain');
+            btnPlayMain.style.display = 'inline-flex';
+            btnPlayMain.onclick = () => this.toggleMainAudio();
 
-        try {
-            const text = await file.text();
-            const result = segmentManager.importJSON(text);
-
-            if (result.success) {
-                alert(result.message);
-            } else {
-                alert(result.message);
-            }
-        } catch (error) {
-            alert(`匯入失敗: ${error.message}`);
+            // Show sections
+            document.getElementById('settingsSection').style.display = 'block';
+            document.getElementById('segmentsSection').style.display = 'block';
+            document.getElementById('exportSection').style.display = 'block';
+        } else {
+            alert(`載入失敗: ${result.error}`);
+            document.getElementById('fileDetails').textContent = '載入失敗';
         }
-    });
-
-    input.click();
-}
-
-/**
- * 匯出 JSON
- */
-function exportJSON() {
-    if (segmentManager.getCount() === 0) {
-        alert('沒有段落可以匯出');
-        return;
     }
 
-    const sourceFileName = currentFile ? currentFile.name.replace(/\.[^/.]+$/, '') : 'segments';
-    const data = segmentManager.exportJSON(currentFile ? currentFile.name : '');
-    const json = JSON.stringify(data, null, 2);
+    /**
+     * Auto Split Logic
+     */
+    autoSplit(numSegments) {
+        if (!this.audioProcessor.audioBuffer) {
+            alert(typeof i18n !== 'undefined' ? i18n.t('no_audio') : '請先載入音訊檔案');
+            return;
+        }
 
-    // 使用 UTF-8 BOM 確保中文編碼正確
-    const BOM = '\uFEFF';
-    const blob = new Blob([BOM + json], { type: 'application/json;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
+        if (this.segmentManager.getCount() > 0) {
+            const confirmMsg = typeof i18n !== 'undefined'
+                ? i18n.t('confirm_split', { count: this.segmentManager.getCount(), num: numSegments })
+                : `將清除現有 ${this.segmentManager.getCount()} 個段落並自動切分為 ${numSegments} 段。\n\n是否繼續？`;
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+        }
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${sourceFileName}_segments.json`;
-    a.click();
-
-    URL.revokeObjectURL(url);
-}
-
-/**
- * 清除所有段落
- */
-function clearAllSegments() {
-    if (segmentManager.getCount() === 0) return;
-
-    const confirmMsg = i18n
-        ? i18n.t('confirm_clear', { count: segmentManager.getCount() })
-        : `確定要清除所有 ${segmentManager.getCount()} 個段落嗎？`;
-
-    if (confirm(confirmMsg)) {
-        segmentManager.clearAll();
-    }
-}
-
-/**
- * 處理音訊
- */
-async function processAudio() {
-    if (!audioProcessor.audioBuffer) {
-        alert('請先載入音訊檔案');
-        return;
+        const info = this.audioProcessor.getInfo();
+        this.segmentManager.autoSplit(info.durationMs, numSegments);
     }
 
-    const segments = segmentManager.getSegments();
-    if (segments.length === 0) {
-        alert(i18n ? i18n.t('no_segments') : '請新增至少一個段落');
-        return;
+    /**
+     * Add Segment
+     */
+    addSegment() {
+        if (!this.audioProcessor.audioBuffer) {
+            alert(typeof i18n !== 'undefined' ? i18n.t('no_audio') : '請先載入音訊檔案');
+            return;
+        }
+
+        const info = this.audioProcessor.getInfo();
+        const segments = this.segmentManager.getSegments();
+
+        let startMs = 0;
+        if (segments.length > 0) {
+            const lastSegment = segments[segments.length - 1];
+            startMs = lastSegment.endMs;
+        }
+
+        const endMs = Math.min(startMs + 10000, info.durationMs);
+        const segmentLabel = typeof i18n !== 'undefined' ? i18n.t('segment_label') : '段落';
+
+        this.segmentManager.addSegment({
+            name: `${segmentLabel} ${this.segmentManager.getCount() + 1}`,
+            startMs,
+            endMs
+        });
     }
 
-    // 驗證段落
-    const info = audioProcessor.getInfo();
-    const validation = segmentManager.validateAll(info.durationMs);
-    if (!validation.valid) {
-        const errorPrefix = i18n ? i18n.t('segment_error') : '段落設定有誤:\n';
-        alert(errorPrefix + validation.errors.join('\n'));
-        return;
+    /**
+     * Import JSON
+     */
+    importJSON() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+
+        input.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                const result = this.segmentManager.importJSON(text);
+
+                if (result.success) {
+                    alert(result.message);
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                alert(`匯入失敗: ${error.message}`);
+            }
+        });
+
+        input.click();
     }
 
-    // 確認
-    const keepOriginal = document.getElementById('keepOriginal').checked;
-    let message = i18n
-        ? i18n.t('confirm_process', { count: segments.length })
-        : `將剪輯 ${segments.length} 個段落`;
-    if (keepOriginal) {
-        message += i18n ? i18n.t('keep_full_version') : '\n同時保留完整版本';
+    /**
+     * Export JSON
+     */
+    exportJSON() {
+        if (this.segmentManager.getCount() === 0) {
+            alert('沒有段落可以匯出');
+            return;
+        }
+
+        const sourceFileName = this.state.currentFile ? this.state.currentFile.name.replace(/\.[^/.]+$/, '') : 'segments';
+        const data = this.segmentManager.exportJSON(this.state.currentFile ? this.state.currentFile.name : '');
+        const json = JSON.stringify(data, null, 2);
+
+        // UTF-8 BOM
+        const BOM = '\uFEFF';
+        const blob = new Blob([BOM + json], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${sourceFileName}_segments.json`;
+        a.click();
+
+        URL.revokeObjectURL(url);
     }
 
-    const continuePrompt = i18n ? i18n.t('continue_prompt') : '\n\n是否繼續？';
-    if (!confirm(message + continuePrompt)) {
-        return;
+    /**
+     * Clear All Segments
+     */
+    clearAllSegments() {
+        if (this.segmentManager.getCount() === 0) return;
+
+        const confirmMsg = typeof i18n !== 'undefined'
+            ? i18n.t('confirm_clear', { count: this.segmentManager.getCount() })
+            : `確定要清除所有 ${this.segmentManager.getCount()} 個段落嗎？`;
+
+        if (confirm(confirmMsg)) {
+            this.segmentManager.clearAll();
+        }
     }
 
-    // 顯示進度
-    const progressContainer = document.getElementById('progressContainer');
-    const btnProcess = document.getElementById('btnProcess');
-    const originalBtnText = btnProcess.innerHTML; // 儲存原始按鈕文字
+    /**
+     * Process Audio (Trim & Export)
+     */
+    async processAudio() {
+        if (!this.audioProcessor.audioBuffer) {
+            alert('請先載入音訊檔案');
+            return;
+        }
 
-    progressContainer.style.display = 'block';
-    btnProcess.disabled = true;
+        const segments = this.segmentManager.getSegments();
+        if (segments.length === 0) {
+            alert(typeof i18n !== 'undefined' ? i18n.t('no_segments') : '請新增至少一個段落');
+            return;
+        }
 
-    // 改變按鈕文字
-    const processingText = i18n ? i18n.t('processing_wait') : '⏳ 剪輯中請稍等...';
-    btnProcess.innerHTML = processingText;
+        // Validate
+        const info = this.audioProcessor.getInfo();
+        const validation = this.segmentManager.validateAll(info.durationMs);
+        if (!validation.valid) {
+            const errorPrefix = typeof i18n !== 'undefined' ? i18n.t('segment_error') : '段落設定有誤:\n';
+            alert(errorPrefix + validation.errors.join('\n'));
+            return;
+        }
 
-    // 先顯示準備中，讓 UI 有機會渲染進度條
-    uiController.updateProgress(0, 100, i18n ? i18n.t('preparing') : '準備中...');
+        // Confirm
+        const keepOriginal = document.getElementById('keepOriginal').checked;
+        let message = typeof i18n !== 'undefined'
+            ? i18n.t('confirm_process', { count: segments.length })
+            : `將剪輯 ${segments.length} 個段落`;
+        if (keepOriginal) {
+            message += typeof i18n !== 'undefined' ? i18n.t('keep_full_version') : '\n同時保留完整版本';
+        }
 
-    // 使用 setTimeout 讓 UI 更新後再開始執行繁重工作
-    setTimeout(async () => {
-        try {
-            // 取得輸出格式
-            const useMp3 = document.getElementById('exportMp3')?.checked || false;
-            const format = useMp3 ? 'mp3' : 'wav';
+        const continuePrompt = typeof i18n !== 'undefined' ? i18n.t('continue_prompt') : '\n\n是否繼續？';
+        if (!confirm(message + continuePrompt)) {
+            return;
+        }
 
-            // 處理段落
-            const results = await audioProcessor.processSegments(segments, (current, total, status) => {
-                uiController.updateProgress(current, total, status);
-            }, format);
+        // Progress UI
+        const progressContainer = document.getElementById('progressContainer');
+        const btnProcess = document.getElementById('btnProcess');
 
-            // 取得下載模式 (使用 checkbox)
-            const useZip = document.getElementById('downloadZip')?.checked || false;
-            const baseFilename = currentFile.name.replace(/\.[^/.]+$/, '');
+        progressContainer.style.display = 'block';
+        btnProcess.disabled = true;
 
-            if (useZip) {
-                // ZIP 打包模式
-                const zip = new JSZip();
+        const processingText = typeof i18n !== 'undefined' ? i18n.t('processing_wait') : '⏳ 剪輯中請稍等...';
+        btnProcess.innerHTML = processingText;
 
-                results.forEach(result => {
-                    if (result.success) {
-                        const ext = result.format || 'wav';
-                        const filename = `${result.segment.id}_${result.segment.name}.${ext}`;
-                        zip.file(filename, result.blob);
+        this.uiController.updateProgress(0, 100, typeof i18n !== 'undefined' ? i18n.t('preparing') : '準備中...');
+
+        // Defer execution to allow UI update
+        setTimeout(async () => {
+            try {
+                const useMp3 = document.getElementById('exportMp3')?.checked || false;
+                const format = useMp3 ? 'mp3' : 'wav';
+
+                const results = await this.audioProcessor.processSegments(segments, (current, total, status) => {
+                    this.uiController.updateProgress(current, total, status);
+                }, format);
+
+                const useZip = document.getElementById('downloadZip')?.checked || false;
+                const baseFilename = this.state.currentFile.name.replace(/\.[^/.]+$/, '');
+
+                if (useZip) {
+                    // ZIP Mode
+                    const zip = new JSZip();
+
+                    results.forEach(result => {
+                        if (result.success) {
+                            const ext = result.format || 'wav';
+                            const safeName = result.segment.name.replace(/[^a-z0-9_\u4e00-\u9fa5]/gi, '_');
+                            zip.file(`${result.segment.name}.${ext}`, result.blob);
+                        }
+                    });
+
+                    if (keepOriginal) {
+                        const originalExt = this.state.currentFile.name.split('.').pop();
+                        const response = await fetch(URL.createObjectURL(this.state.currentFile));
+                        const originalBlob = await response.blob();
+                        zip.file(`full_original.${originalExt}`, originalBlob);
                     }
-                });
 
-                // 如果保留完整版本
-                if (keepOriginal) {
-                    const useMp3 = document.getElementById('exportMp3')?.checked || false;
-                    let fullBlob;
-                    let fullExt;
-                    if (useMp3 && typeof lamejs !== 'undefined') {
-                        fullBlob = audioProcessor.audioBufferToMp3(audioProcessor.audioBuffer);
-                        fullExt = 'mp3';
-                    } else {
-                        fullBlob = audioProcessor.audioBufferToWav(audioProcessor.audioBuffer);
-                        fullExt = 'wav';
+                    this.uiController.updateProgress(100, 100, typeof i18n !== 'undefined' ? i18n.t('zipping') : '正在打包...');
+
+                    const content = await zip.generateAsync({ type: "blob" });
+                    const url = URL.createObjectURL(content);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${baseFilename}_segments.zip`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+
+                } else {
+                    // One by one Mode
+                    for (const result of results) {
+                        if (result.success) {
+                            const ext = result.format || 'wav';
+                            const url = URL.createObjectURL(result.blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${baseFilename}_${result.segment.name}.${ext}`;
+                            a.click();
+                            // Small delay to prevent browser block
+                            await new Promise(r => setTimeout(r, 200));
+                            URL.revokeObjectURL(url);
+                        }
                     }
-                    zip.file(`完整版_${baseFilename}.${fullExt}`, fullBlob);
                 }
 
-                // 生成 ZIP 並下載
-                uiController.updateProgress(1, 1, '正在打包 ZIP...');
-                const zipBlob = await zip.generateAsync({ type: 'blob' });
-                downloadBlob(zipBlob, `${baseFilename}_segments.zip`);
-            } else {
-                // 個別下載模式
-                results.forEach(result => {
-                    if (result.success) {
-                        const ext = result.format || 'wav';
-                        const filename = `${result.segment.id}_${result.segment.name}_${baseFilename}.${ext}`;
-                        downloadBlob(result.blob, filename);
-                    }
-                });
+                this.uiController.updateProgress(100, 100, typeof i18n !== 'undefined' ? i18n.t('done') : '完成！');
+                alert(typeof i18n !== 'undefined' ? i18n.t('process_complete') : '剪輯完成！');
 
-                // 如果保留完整版本
-                if (keepOriginal) {
-                    const useMp3 = document.getElementById('exportMp3')?.checked || false;
-                    let fullBlob;
-                    let fullExt;
-                    if (useMp3 && typeof lamejs !== 'undefined') {
-                        fullBlob = audioProcessor.audioBufferToMp3(audioProcessor.audioBuffer);
-                        fullExt = 'mp3';
-                    } else {
-                        fullBlob = audioProcessor.audioBufferToWav(audioProcessor.audioBuffer);
-                        fullExt = 'wav';
-                    }
-                    downloadBlob(fullBlob, `完整版_${baseFilename}.${fullExt}`);
-                }
+            } catch (err) {
+                console.error(err);
+                alert((typeof i18n !== 'undefined' ? i18n.t('error') : '發生錯誤: ') + err.message);
+            } finally {
+                btnProcess.disabled = false;
+                btnProcess.innerHTML = typeof i18n !== 'undefined' ? i18n.t('start_process') : '🎵 開始剪輯';
+                progressContainer.style.display = 'none';
             }
-
-            const successful = results.filter(r => r.success).length;
-            const failed = results.filter(r => !r.success).length;
-
-            // 微小延遲確保進度條顯示完成
-            setTimeout(() => {
-                alert(i18n ? i18n.t('success', { success: successful, failed: failed }) : `處理完成！\n成功: ${successful}\n失敗: ${failed}`);
-            }, 100);
-
-        } catch (error) {
-            alert(`處理失敗: ${error.message}`);
-        } finally {
-            progressContainer.style.display = 'none';
-            btnProcess.disabled = false;
-            btnProcess.innerHTML = originalBtnText; // 恢復原始按鈕文字
-        }
-    }, 50); // 50ms 延遲以確保 UI 更新
+        }, 100);
+    }
 }
 
-/**
- * 下載 Blob
- */
-function downloadBlob(blob, filename) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-}
+// Instantiate and start app
+const app = new AppController();
+
+document.addEventListener('DOMContentLoaded', () => {
+    app.init();
+});
