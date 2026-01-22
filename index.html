@@ -1,21 +1,21 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Audio Loop Editor - ?祥蝺??唾??挾?芾摩?儐?啁毀蝧極?瘀??舀瘥怎?蝎曉漲??畾萄頛胯岫?剜?">
+    <meta name="description" content="Audio Loop Editor - 免費線上音訊分段剪輯與循環練習工具，支援毫秒精度、多段剪輯、試播放功能">
     <meta name="keywords" content="audio editor, loop practice, music practice, audio trimmer, segment editor">
-    <title>Audio Loop Editor | ?唾??挾?芾摩?儐?啁毀蝧極??/title>
-        <link rel="stylesheet" href="css/style.css">
+    <title>Audio Loop Editor | 音訊分段剪輯與循環練習工具</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
     <div class="container">
         <!-- Header -->
         <header class="header">
-            <h1 data-i18n="app_title">? Audio Loop Editor</h1>
-            <p class="subtitle" data-i18n="app_subtitle">?唾??挾?芾摩?儐?啁毀蝧極??- ?舀瘥怎?蝎曉漲??畾萄頛胯岫?剜</p>
+            <h1 data-i18n="app_title">🎵 Audio Loop Editor</h1>
+            <p class="subtitle" data-i18n="app_subtitle">音訊分段剪輯與循環練習工具 - 支援毫秒精度、多段剪輯、試播放</p>
             <div class="version">v1.4.9</div>
         </header>
 
@@ -24,13 +24,13 @@
             <!-- File Upload Section -->
             <section class="section file-upload-section">
                 <div class="section-header-row">
-                    <h2 data-i18n="select_audio">?? ?豢??唾?瑼?</h2>
+                    <h2 data-i18n="select_audio">📁 選擇音訊檔案</h2>
                     <button id="btnPlayMain" class="btn btn-primary btn-play-main" data-i18n="play_main"
-                        data-i18n-title="play_main" title="?剜銝駁閮? style=" display: none;">
-                        ???剜
+                        data-i18n-title="play_main" title="播放主音訊" style="display: none;">
+                        ▶ 播放
                     </button>
                     <div class="lang-switcher">
-                        <button class="lang-btn" onclick="i18n.setLang('zh-TW')">銝剜?</button>
+                        <button class="lang-btn" onclick="i18n.setLang('zh-TW')">中文</button>
                         <button class="lang-btn" onclick="i18n.setLang('en')">EN</button>
                     </div>
                 </div>
@@ -40,9 +40,9 @@
                         <svg class="upload-icon" viewBox="0 0 24 24" width="48" height="48">
                             <path fill="currentColor" d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" />
                         </svg>
-                        <p data-i18n="upload_prompt">暺????喲閮?獢甇方?</p>
-                        <p class="upload-hint" data-i18n="upload_hint">?舀 MP3, WAV, OGG, M4A 蝑撘?/p>
-                        <p class="upload-warning" data-i18n="memory_warning">?? ??嚗閮?獢?憭改?閮擃??刻?憭?/p>
+                        <p data-i18n="upload_prompt">點擊或拖曳音訊檔案到此處</p>
+                        <p class="upload-hint" data-i18n="upload_hint">支援 MP3, WAV, OGG, M4A 等格式</p>
+                        <p class="upload-warning" data-i18n="memory_warning">⚠️ 提醒：音訊檔案越大，記憶體佔用越多</p>
                     </div>
                     <div class="file-info" id="fileInfo" style="display: none;">
                         <div class="file-name" id="fileName"></div>
@@ -55,10 +55,10 @@
 
             <!-- Settings Section -->
             <section class="section settings-section" id="settingsSection" style="display: none;">
-                <h2 data-i18n="settings">?? 閮剖?</h2>
+                <h2 data-i18n="settings">⚙️ 設定</h2>
                 <div class="settings-grid">
                     <div class="setting-item">
-                        <label for="stepSize" data-i18n="step_size">??敺株矽?餃漲 (蝘?:</label>
+                        <label for="stepSize" data-i18n="step_size">時間微調刻度 (秒):</label>
                         <input type="number" id="stepSize" value="1" min="0.1" max="60" step="1">
                         <div class="preset-buttons">
                             <button class="btn-preset" data-step="500">0.5s</button>
@@ -67,14 +67,14 @@
                         </div>
                     </div>
                     <div class="setting-item">
-                        <label data-i18n="auto_split">?芸???:</label>
+                        <label data-i18n="auto_split">自動切分:</label>
                         <div class="auto-split-buttons">
-                            <button class="btn-split" data-segments="2">2 <span data-i18n="segments">畾?/span></button>
-                            <button class="btn-split" data-segments="3">3 <span data-i18n="segments">畾?/span></button>
-                            <button class="btn-split" data-segments="4">4 <span data-i18n="segments">畾?/span></button>
-                            <button class="btn-split" data-segments="5">5 <span data-i18n="segments">畾?/span></button>
-                            <button class="btn-split" data-segments="6">6 <span data-i18n="segments">畾?/span></button>
-                            <button class="btn-split" id="btnCustomSplit" data-i18n="other">?嗡?...</button>
+                            <button class="btn-split" data-segments="2">2 <span data-i18n="segments">段</span></button>
+                            <button class="btn-split" data-segments="3">3 <span data-i18n="segments">段</span></button>
+                            <button class="btn-split" data-segments="4">4 <span data-i18n="segments">段</span></button>
+                            <button class="btn-split" data-segments="5">5 <span data-i18n="segments">段</span></button>
+                            <button class="btn-split" data-segments="6">6 <span data-i18n="segments">段</span></button>
+                            <button class="btn-split" id="btnCustomSplit" data-i18n="other">其他...</button>
                         </div>
                     </div>
                 </div>
@@ -82,55 +82,53 @@
 
             <!-- Segments Section -->
             <section class="section segments-section" id="segmentsSection" style="display: none;">
-                <h2 data-i18n="segment_list">?? ?挾?”</h2>
+                <h2 data-i18n="segment_list">📋 分段列表</h2>
                 <div class="segments-header">
-                    <div class="segment-col-id" data-i18n="id">蝺刻?</div>
-                    <div class="segment-col-name" data-i18n="segment_name">畾菔?迂</div>
-                    <div class="segment-col-time" data-i18n="start_time">????</div>
-                    <div class="segment-col-time" data-i18n="end_time">蝯???</div>
-                    <div class="segment-col-actions" data-i18n="actions">??</div>
+                    <div class="segment-col-id" data-i18n="id">編號</div>
+                    <div class="segment-col-name" data-i18n="segment_name">段落名稱</div>
+                    <div class="segment-col-time" data-i18n="start_time">開始時間</div>
+                    <div class="segment-col-time" data-i18n="end_time">結束時間</div>
+                    <div class="segment-col-actions" data-i18n="actions">操作</div>
                 </div>
                 <div class="segments-list" id="segmentsList">
                     <!-- Segments will be added here dynamically -->
                 </div>
                 <div class="segments-controls">
-                    <button class="btn btn-primary" id="btnAddSegment" data-i18n="add_segment">???啣?畾菔</button>
-                    <button class="btn btn-secondary" id="btnImportJSON" data-i18n="import_settings">?
-                        ?臬畾菔閮剖?</button>
-                    <button class="btn btn-secondary" id="btnExportJSON" data-i18n="export_settings">?
-                        ?臬畾菔閮剖?</button>
-                    <button class="btn btn-danger" id="btnClearAll" data-i18n="clear_all">?? 皜?券</button>
+                    <button class="btn btn-primary" id="btnAddSegment" data-i18n="add_segment">➕ 新增段落</button>
+                    <button class="btn btn-secondary" id="btnImportJSON" data-i18n="import_settings">📥 匯入段落設定</button>
+                    <button class="btn btn-secondary" id="btnExportJSON" data-i18n="export_settings">📤 匯出段落設定</button>
+                    <button class="btn btn-danger" id="btnClearAll" data-i18n="clear_all">🗑 清除全部</button>
                 </div>
             </section>
 
             <!-- Export Section -->
             <section class="section export-section" id="exportSection" style="display: none;">
-                <h2 data-i18n="export_title">? ?臬閮剖?</h2>
+                <h2 data-i18n="export_title">💾 匯出設定</h2>
                 <div class="export-options">
                     <label class="checkbox-label">
                         <input type="checkbox" id="exportMp3" checked>
-                        <span data-i18n="export_mp3">頛詨??MP3 (???暸? WAV)</span>
+                        <span data-i18n="export_mp3">輸出為 MP3 (取消勾選則為 WAV)</span>
                     </label>
-                    <p class="export-note" data-i18n="mp3_slow_note">? MP3 蝺函Ⅳ?閬??瑟????甇?虜??/p>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="downloadZip" checked>
-                            <span data-i18n="download_zip">????ZIP (???暸?銝?)</span>
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="keepOriginal" checked>
-                            <span data-i18n="keep_original">??靽?摰?</span>
-                        </label>
+                    <p class="export-note" data-i18n="mp3_slow_note">💡 MP3 編碼需要較長時間，這是正常的</p>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="downloadZip" checked>
+                        <span data-i18n="download_zip">打包成 ZIP (取消勾選則個別下載)</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="keepOriginal" checked>
+                        <span data-i18n="keep_original">同時保留完整版本</span>
+                    </label>
                 </div>
                 <div class="export-controls">
                     <button class="btn btn-success btn-large" id="btnProcess" data-i18n="start_process">
-                        ? ???芾摩
+                        🎵 開始剪輯
                     </button>
                 </div>
                 <div class="progress-container" id="progressContainer" style="display: none;">
                     <div class="progress-bar">
                         <div class="progress-fill" id="progressFill"></div>
                     </div>
-                    <div class="progress-text" id="progressText" data-i18n="preparing">皞?銝?..</div>
+                    <div class="progress-text" id="progressText" data-i18n="preparing">準備中...</div>
                 </div>
             </section>
         </main>
@@ -138,12 +136,12 @@
         <!-- Footer -->
         <footer class="footer">
             <p>
-                ? <strong>Audio Loop Editor</strong> - <span data-i18n="footer_desc">撠?單?蝺渡?閮剛???畾萄頛臬極??/span>
+                🎵 <strong>Audio Loop Editor</strong> - <span data-i18n="footer_desc">專為音樂練習設計的分段剪輯工具</span>
             </p>
             <p>
                 <a href="https://github.com/ssamexy/audio-loop-editor" target="_blank">GitHub</a> |
-                <a href="./DISCLAIMER.md" target="_blank" data-i18n="disclaimer">?痊?脫?</a> |
-                <span data-i18n="footer_privacy">?????冽?汗?其葉摰?嚗????喃遙雿?獢?/span>
+                <a href="./DISCLAIMER.md" target="_blank" data-i18n="disclaimer">免責聲明</a> |
+                <span data-i18n="footer_privacy">所有處理都在您的瀏覽器中完成，不會上傳任何檔案</span>
             </p>
             <p>&copy; 2026 ssamexy | MIT License</p>
         </footer>
@@ -152,8 +150,8 @@
     <!-- Floating Player Bar -->
     <div class="floating-player-bar" id="floatingPlayerBar" style="display: none;">
         <div class="floating-player-controls">
-            <button id="btnPlayPause" class="btn-player" title="?剜/?怠?">??/button>
-                <button id="btnLoop" class="btn-player" title="敺芰?剜">??</button>
+            <button id="btnPlayPause" class="btn-player" title="播放/暫停">▶</button>
+            <button id="btnLoop" class="btn-player" title="循環播放">🔁</button>
         </div>
         <div class="floating-player-seekbar">
             <input type="range" id="seekBar" class="seek-bar" min="0" max="100" value="0">
@@ -162,7 +160,7 @@
             </div>
         </div>
         <div class="floating-player-speed">
-            <select id="playbackSpeed" class="speed-select" title="?剜?漲">
+            <select id="playbackSpeed" class="speed-select" title="播放速度">
                 <option value="0.5">x0.5</option>
                 <option value="0.75">x0.75</option>
                 <option value="1" selected>x1</option>
@@ -174,11 +172,11 @@
         <div class="floating-player-mode">
             <label class="floating-checkbox-label">
                 <input type="checkbox" id="segmentOnlyMode" checked>
-                <span data-i18n="segment_only">?挾??/span>
+                <span data-i18n="segment_only">僅段落</span>
             </label>
         </div>
         <div class="floating-player-info" id="floatingPlayerInfo">
-            銝駁閮?
+            主音訊
         </div>
     </div>
 
