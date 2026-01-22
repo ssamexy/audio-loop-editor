@@ -320,7 +320,8 @@ class UIController {
      */
     setStepSize(ms) {
         this.stepSize = ms;
-        document.getElementById('stepSize').value = ms;
+        // 顯示為秒 (例如 1000ms -> 1s)
+        document.getElementById('stepSize').value = ms / 1000;
     }
 
     /**

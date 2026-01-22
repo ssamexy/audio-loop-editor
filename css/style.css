@@ -61,6 +61,17 @@ body {
     opacity: 0.8;
 }
 
+/* Remove spinner from step size input */
+#stepSize::-webkit-inner-spin-button,
+#stepSize::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+#stepSize {
+    -moz-appearance: textfield;
+}
+
 /* ===== Sections ===== */
 .section {
     background: var(--card-bg);
@@ -834,39 +845,47 @@ body.player-active {
 
 @media (max-width: 768px) {
     .floating-player-bar {
-        flex-direction: column;
-        padding: 12px 15px;
-        gap: 12px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 8px 10px;
+        gap: 8px;
+        justify-content: space-between;
+        align-items: center;
     }
 
-    /* Row 1: Seek bar (full width) */
+    /* Row 1: Seek bar */
     .floating-player-seekbar {
         order: -1;
         width: 100%;
+        margin-bottom: 4px;
         flex-direction: row;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
     }
 
-    /* Row 2: Controls row */
+    /* Row 2: Controls, Speed, Mode */
     .floating-player-controls {
-        width: 100%;
-        justify-content: center;
-        gap: 12px;
+        width: auto;
+        gap: 8px;
     }
 
     .floating-player-controls .btn-player {
-        width: 48px;
-        height: 48px;
-        font-size: 1.3rem;
+        width: 42px;
+        /* Set to 42px to ensure fit on small screens */
+        height: 42px;
+        font-size: 1.2rem;
     }
 
     .floating-player-speed {
-        margin-left: auto;
+        margin: 0;
     }
 
     .floating-player-mode {
-        margin-right: auto;
+        margin: 0;
+    }
+
+    .floating-player-mode .floating-checkbox-label {
+        font-size: 0.8rem;
     }
 
     .floating-player-info {
@@ -874,7 +893,7 @@ body.player-active {
     }
 
     body.player-active {
-        padding-bottom: 120px;
+        padding-bottom: 140px;
     }
 }
 
