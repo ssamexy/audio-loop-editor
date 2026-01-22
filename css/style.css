@@ -619,19 +619,99 @@ body {
         font-size: 1.8rem;
     }
 
-    .segments-header,
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Hide desktop header */
+    .segments-header {
+        display: none;
+    }
+
+    /* Mobile segment row - 4 rows layout */
     .segment-row {
-        grid-template-columns: 60px 1fr;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 15px;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        margin-bottom: 12px;
+    }
+
+    .segment-row.sub-segment {
+        margin-left: 15px;
+        border-left: 4px solid var(--primary-color);
+    }
+
+    /* Row 1: ID + Name */
+    .segment-row .segment-id-input {
+        width: 60px;
+        font-size: 1rem;
+        padding: 8px;
+    }
+
+    .segment-row>input:nth-child(2) {
+        flex: 1;
+        font-size: 1rem;
+        padding: 10px;
+    }
+
+    /* Time input groups - full width */
+    .segment-row .time-input-group {
+        width: 100%;
+        display: flex;
+        justify-content: center;
         gap: 8px;
     }
 
-    .segment-col-time,
-    .segment-col-actions {
-        grid-column: 1 / -1;
+    /* Time inputs larger on mobile */
+    .segment-row .time-input {
+        flex: 1;
+        max-width: 140px;
+        font-size: 1.1rem;
+        padding: 12px 8px;
+        text-align: center;
     }
 
-    .settings-grid {
-        grid-template-columns: 1fr;
+    /* +/- buttons - DO NOT shrink, keep large */
+    .segment-row .time-adjust-btn {
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px;
+        min-height: 48px;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+    }
+
+    /* Actions row - full width, centered */
+    .segment-row .segment-actions {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        padding-top: 5px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    /* Action buttons - DO NOT shrink, keep large */
+    .segment-row .btn-icon {
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px;
+        min-height: 48px;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    /* Segment controls buttons */
+    .segments-controls {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .segments-controls .btn {
+        width: 100%;
     }
 }
 

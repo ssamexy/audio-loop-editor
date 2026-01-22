@@ -416,18 +416,21 @@ function setupEventListeners() {
     // 主播放器控制
     setupPlayerControls();
 
-    // 微調刻度設定
+    // 微調刻度設定 (輸入框顯示秒，內部使用毫秒)
     document.querySelectorAll('.btn-preset').forEach(btn => {
         btn.addEventListener('click', () => {
-            const step = parseInt(btn.dataset.step);
-            uiController.setStepSize(step);
+            const stepMs = parseInt(btn.dataset.step);
+            uiController.setStepSize(stepMs);
+            // 更新輸入框顯示秒
+            document.getElementById('stepSize').value = stepMs / 1000;
         });
     });
 
     document.getElementById('stepSize').addEventListener('change', (e) => {
-        const step = parseInt(e.target.value);
-        if (step > 0) {
-            uiController.setStepSize(step);
+        const stepSeconds = parseFloat(e.target.value);
+        if (stepSeconds > 0) {
+            const stepMs = Math.round(stepSeconds * 1000);
+            uiController.setStepSize(stepMs);
         }
     });
 
@@ -636,7 +639,11 @@ function exportJSON() {
 function clearAllSegments() {
     if (segmentManager.getCount() === 0) return;
 
-    if (confirm(`確定要清除所有 ${segmentManager.getCount()} 個段落嗎？`)) {
+    const confirmMsg = i18n
+        ? i18n.t('confirm_clear', { count: segmentManager.getCount() })
+        : `確定要清除所有 ${segmentManager.getCount()} 個段落嗎？`;
+
+    if (confirm(confirmMsg)) {
         segmentManager.clearAll();
     }
 }
