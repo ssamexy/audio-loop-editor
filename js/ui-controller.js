@@ -135,14 +135,21 @@ class UIController {
         playBtn.addEventListener('click', () => this.playSegment(segment, playBtn));
         actions.appendChild(playBtn);
 
-        // 新增子段落按鈕 (所有段落都可以分割)
+        // 新增子段落按鈕 (最多支援到三層)
         const addSubBtn = document.createElement('button');
         addSubBtn.className = 'btn-icon add-sub';
         addSubBtn.textContent = typeof i18n !== 'undefined' ? i18n.t('add_sub') : '+子';
         addSubBtn.title = typeof i18n !== 'undefined' ? i18n.t('add_sub_title') : '新增子段落';
-        addSubBtn.addEventListener('click', (e) => {
-            this.showSubSegmentMenu(segment, e.target);
-        });
+
+        // 檢查層級：如果是第三層 (例如 1-1-1)，則不允許再新增子段落
+        const currentLevel = String(segment.id).split('-').length;
+        if (currentLevel >= 3) {
+            addSubBtn.style.display = 'none';
+        } else {
+            addSubBtn.addEventListener('click', (e) => {
+                this.showSubSegmentMenu(segment, e.target);
+            });
+        }
         actions.appendChild(addSubBtn);
 
         // 刪除按鈕
@@ -371,13 +378,20 @@ class UIController {
         // 選單事件
         menu.addEventListener('click', (e) => {
             const action = e.target.dataset.action;
+            if (!action) return;
+
             const audioPlayer = document.getElementById('audioPlayer');
             const parentDuration = parentSegment.endMs - parentSegment.startMs;
+            const currentLevel = String(parentSegment.id).split('-').length;
 
             if (action === 'split-at-position') {
+                if (currentLevel >= 3) {
+                    alert('已達最大層級限制 (3層)');
+                    menu.remove();
+                    return;
+                }
                 const currentPos = audioPlayer.currentTime * 1000;
                 if (currentPos >= parentSegment.startMs && currentPos <= parentSegment.endMs) {
-                    // 找出下一個子段編號
                     const subSegments = this.segmentManager.getSegments().filter(s => s.id.startsWith(`${parentSegment.id}-`));
                     const nextNum = subSegments.length + 1;
 
@@ -397,6 +411,11 @@ class UIController {
                     alert('請先將播放位置移動到此段落範圍內');
                 }
             } else if (action === 'split-by-unit') {
+                if (currentLevel >= 3) {
+                    alert('已達最大層級限制 (3層)');
+                    menu.remove();
+                    return;
+                }
                 const promptMsg = typeof i18n !== 'undefined' ? i18n.t('enter_unit') : '請輸入每段時長 (秒):';
                 const unitMs = prompt(promptMsg, '10');
                 if (unitMs) {
@@ -419,6 +438,11 @@ class UIController {
                     }
                 }
             } else if (action === 'split-evenly') {
+                if (currentLevel >= 3) {
+                    alert('已達最大層級限制 (3層)');
+                    menu.remove();
+                    return;
+                }
                 const promptMsg = typeof i18n !== 'undefined' ? i18n.t('enter_even') : '請輸入要平分的段落數量 (2-20):';
                 const num = prompt(promptMsg, '2');
                 if (num) {
@@ -444,19 +468,40 @@ class UIController {
             } else if (action === 'split-sibling') {
                 const currentPos = audioPlayer.currentTime * 1000;
                 if (currentPos > parentSegment.startMs && currentPos < parentSegment.endMs) {
+                    const originalId = String(parentSegment.id);
+                    const idParts = originalId.split('-');
+                    const prefix = idParts.length > 1 ? idParts.slice(0, -1).join('-') + '-' : '';
+                    const lastPart = idParts[idParts.length - 1];
+
+                    // 產生下一個可用的同層 ID
+                    const getNextSiblingId = (baseId) => {
+                        const parts = baseId.split('-');
+                        let num = parseInt(parts.pop());
+                        if (isNaN(num)) return baseId + '_2';
+
+                        let candidate = prefix + (num + 1);
+                        while (this.segmentManager.getSegments().some(s => s.id === candidate)) {
+                            num++;
+                            candidate = prefix + (num + 1);
+                        }
+                        return candidate;
+                    };
+
                     const seg1 = {
+                        id: originalId,
                         name: parentSegment.name + '-1',
                         startMs: parentSegment.startMs,
                         endMs: Math.floor(currentPos)
                     };
                     const seg2 = {
+                        id: getNextSiblingId(originalId),
                         name: parentSegment.name + '-2',
                         startMs: Math.floor(currentPos),
                         endMs: parentSegment.endMs
                     };
                     this.segmentManager.replaceSegment(parentSegment.id, [seg1, seg2]);
                 } else {
-                    alert('Position must be within segment range');
+                    alert('請將播放位置移動到此段落範圍內');
                 }
             }
 

@@ -2,6 +2,12 @@
 
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
+## [v1.5.3] - 2026-01-22
+
+### Fixed
+- **同層切分 (Sibling Split)**: 修復了在第二級或第三級段落執行時會跳回第一級編號的錯誤。現在會維持在相同層級並自動尋找下一個可用編號。
+- **層級限制**: 增加最大層級限制為 3 層（如 1-1-1），超過此層級將不再顯示「新增子段落」按鈕。
+
 ## [v1.5.2] - 2026-01-22
 
 ### Refactored
