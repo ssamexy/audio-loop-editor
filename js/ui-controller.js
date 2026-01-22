@@ -373,8 +373,8 @@ class UIController {
                 <div class="menu-title">${menuTitle}</div>
                 <button class="menu-item" data-action="split-at-position">${splitPosition}<br><small>(${splitChild})</small></button>
                 <button class="menu-item" data-action="split-sibling">${splitSibling}</button>
-                <button class="menu-item" data-action="split-by-unit">${splitUnit}</button>
-                <button class="menu-item" data-action="split-evenly">${splitEvenly}</button>
+                <button class="menu-item" data-action="split-by-unit">${splitUnit}<br><small>(${splitChild})</small></button>
+                <button class="menu-item" data-action="split-evenly">${splitEvenly}<br><small>(${splitChild})</small></button>
                 <button class="menu-item menu-cancel">✕ ${typeof i18n !== 'undefined' ? i18n.t('cancel') : '取消'}</button>
             `;
         }

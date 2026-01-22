@@ -2,6 +2,11 @@
 
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
+## [v1.5.5] - 2026-01-22
+
+### Changed
+- **UI 優化**: 在子段落選單中，為「依時間單位切分」與「平均分為 N 段」也加上了「二分為子段落」的說明標籤，使操作邏輯更一致。
+
 ## [v1.5.4] - 2026-01-22
 
 ### Fixed
