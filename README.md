@@ -138,6 +138,7 @@ MIT License - Free to use and modify
 ## 🔗 Links
 
 - [Live Demo](https://ssamexy.github.io/audio-loop-editor/)
+- [Changelog](./CHANGELOG.md)
 - [Report Issues](https://github.com/ssamexy/audio-loop-editor/issues)
 
 ---

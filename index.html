@@ -16,7 +16,7 @@
         <header class="header">
             <h1 data-i18n="app_title">🎵 Audio Loop Editor</h1>
             <p class="subtitle" data-i18n="app_subtitle">音訊分段剪輯與循環練習工具 - 支援毫秒精度、多段剪輯、試播放</p>
-            <div class="version">v1.4.7</div>
+            <div class="version">v1.4.8</div>
         </header>
 
         <!-- Main Content -->
@@ -58,13 +58,12 @@
                 <h2 data-i18n="settings">⚙️ 設定</h2>
                 <div class="settings-grid">
                     <div class="setting-item">
-                        <label for="stepSize" data-i18n="step_size">時間微調刻度 (毫秒):</label>
-                        <input type="number" id="stepSize" value="100" min="1" max="10000">
+                        <label for="stepSize" data-i18n="step_size">時間微調刻度 (秒):</label>
+                        <input type="number" id="stepSize" value="1000" min="1" max="10000">
                         <div class="preset-buttons">
-                            <button class="btn-preset" data-step="50">50ms</button>
-                            <button class="btn-preset" data-step="100">100ms</button>
-                            <button class="btn-preset" data-step="500">500ms</button>
-                            <button class="btn-preset" data-step="1000">1000ms</button>
+                            <button class="btn-preset" data-step="500">0.5s</button>
+                            <button class="btn-preset" data-step="1000">1s</button>
+                            <button class="btn-preset" data-step="2000">2s</button>
                         </div>
                     </div>
                     <div class="setting-item">

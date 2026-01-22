@@ -167,9 +167,17 @@ class SegmentManager {
                 });
             });
 
-            return { success: true, message: `成功匯入 ${data.segments.length} 個段落` };
+            const successMsg = typeof i18n !== 'undefined'
+                ? i18n.t('import_success', { count: data.segments.length })
+                : `成功匯入 ${data.segments.length} 個段落`;
+
+            return { success: true, message: successMsg };
         } catch (error) {
-            return { success: false, message: `匯入失敗: ${error.message}` };
+            const errorMsg = typeof i18n !== 'undefined'
+                ? i18n.t('import_failed', { error: error.message })
+                : `匯入失敗: ${error.message}`;
+
+            return { success: false, message: errorMsg };
         }
     }
 

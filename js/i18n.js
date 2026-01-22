@@ -16,15 +16,20 @@ const i18n = {
             'select_audio': '📁 選擇音訊檔案',
             'upload_prompt': '點擊或拖曳音訊檔案到此處',
             'upload_hint': '支援 MP3, WAV, OGG, M4A 等格式',
+            'drop_json_hint': '將 JSON 設定檔拖曳至此處可快速匯入',
+            'drop_json_to_import': '放開以匯入設定檔',
             'loading': '載入中...',
             'play_main': '▶ 播放',
 
             // Settings
             'settings': '⚙️ 設定',
-            'step_size': '時間微調刻度 (毫秒):',
+            'step_size': '時間微調刻度 (秒):',
             'auto_split': '自動切分:',
             'segments': '段',
             'other': '其他...',
+            'confirm_import': '是否匯入設定檔？這將覆蓋現有段落。',
+            'import_failed': '匯入失敗: {error}',
+            'processing_wait': '⏳ 剪輯中請稍等...',
 
             // Segments
             'segment_list': '📋 分段列表',
@@ -111,15 +116,20 @@ const i18n = {
             'select_audio': '📁 Select Audio File',
             'upload_prompt': 'Click or drag audio file here',
             'upload_hint': 'Supports MP3, WAV, OGG, M4A formats',
+            'drop_json_hint': 'Drag JSON settings file here to import',
+            'drop_json_to_import': 'Drop to import settings',
             'loading': 'Loading...',
             'play_main': '▶ Play',
 
             // Settings
             'settings': '⚙️ Settings',
-            'step_size': 'Time adjustment step (ms):',
+            'step_size': 'Time adjustment step (sec):',
             'auto_split': 'Auto split:',
             'segments': 'seg',
             'other': 'Other...',
+            'confirm_import': 'Import settings? This will replace existing segments.',
+            'import_failed': 'Import failed: {error}',
+            'processing_wait': '⏳ Processing, please wait...',
 
             // Segments
             'segment_list': '📋 Segment List',

@@ -139,6 +139,9 @@ function initializeApp() {
     audioProcessor = new AudioProcessor();
     uiController = new UIController(segmentManager, audioProcessor);
 
+    // 設定初始 step size
+    uiController.setStepSize(1000); // 預設 1 秒
+
     // 設定段落變更回調
     segmentManager.onChange = () => {
         uiController.renderSegments();
@@ -319,20 +322,24 @@ function setupPlayerControls() {
  * 設定事件監聽器
  */
 function setupEventListeners() {
-    // 檔案上傳
+    // 檔案上傳 (音訊)
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fileInput');
 
-    uploadArea.addEventListener('click', () => fileInput.click());
-
-    uploadArea.addEventListener('dragover', (e) => {
+    // 拖拉處理共用函數
+    const handleDragOver = (e, element) => {
         e.preventDefault();
-        uploadArea.classList.add('dragover');
-    });
+        element.classList.add('dragover');
+    };
 
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.classList.remove('dragover');
-    });
+    const handleDragLeave = (element) => {
+        element.classList.remove('dragover');
+    };
+
+    // 音訊上傳區
+    uploadArea.addEventListener('click', () => fileInput.click());
+    uploadArea.addEventListener('dragover', (e) => handleDragOver(e, uploadArea));
+    uploadArea.addEventListener('dragleave', () => handleDragLeave(uploadArea));
 
     uploadArea.addEventListener('drop', (e) => {
         e.preventDefault();
@@ -344,6 +351,66 @@ function setupEventListeners() {
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) handleFileSelect(file);
+    });
+
+    // 段落列表區 (JSON 匯入)
+    const segmentsSection = document.getElementById('segmentsSection');
+    const segmentsList = document.getElementById('segmentsList');
+
+    // 監聽整個區塊，但視覺回饋限制在列表區域
+    segmentsSection.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        // 檢查是否拖曳的是檔案
+        if (e.dataTransfer.types.includes('Files')) {
+            segmentsList.classList.add('drag-active');
+            // 顯示提示覆盖层 (如果需要)
+            if (!document.getElementById('dropOverlay')) {
+                const overlay = document.createElement('div');
+                overlay.id = 'dropOverlay';
+                overlay.className = 'drop-overlay';
+                overlay.innerHTML = `<div class="drop-message">${i18n ? i18n.t('drop_json_to_import') : '放開以匯入設定檔'}</div>`;
+                segmentsList.appendChild(overlay);
+            }
+        }
+    });
+
+    segmentsSection.addEventListener('dragleave', (e) => {
+        // 確保不是滑到子元素
+        if (e.relatedTarget && !segmentsSection.contains(e.relatedTarget)) {
+            segmentsList.classList.remove('drag-active');
+            const overlay = document.getElementById('dropOverlay');
+            if (overlay) overlay.remove();
+        }
+    });
+
+    segmentsSection.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        segmentsList.classList.remove('drag-active');
+        const overlay = document.getElementById('dropOverlay');
+        if (overlay) overlay.remove();
+
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            // 檢查副檔名
+            if (file.name.toLowerCase().endsWith('.json')) {
+                const confirmMsg = i18n ? i18n.t('confirm_import') : '是否匯入設定檔？這將覆蓋現有段落。';
+                if (segmentManager.getCount() > 0 && !confirm(confirmMsg)) {
+                    return;
+                }
+
+                try {
+                    const text = await file.text();
+                    const result = segmentManager.importJSON(text);
+                    if (result.success) {
+                        alert(result.message);
+                    } else {
+                        alert(result.message);
+                    }
+                } catch (error) {
+                    alert((i18n ? i18n.t('import_failed', { error: error.message }) : `匯入失敗: ${error.message}`));
+                }
+            }
+        }
     });
 
     // 主播放器控制
@@ -447,15 +514,11 @@ async function handleFileSelect(file) {
 
         // 顯示設定區塊
         document.getElementById('settingsSection').style.display = 'block';
+        document.getElementById('segmentsSection').style.display = 'block';
+        document.getElementById('exportSection').style.display = 'block';
 
-        // 如果沒有段落，自動新增一個
-        if (segmentManager.getCount() === 0) {
-            segmentManager.addSegment({
-                name: '段落 1',
-                startMs: 0,
-                endMs: Math.min(10000, info.durationMs)
-            });
-        }
+        // 預設不新增段落，留白即可
+        // if (segmentManager.getCount() === 0) { ... }
     } else {
         alert(`載入失敗: ${result.error}`);
         document.getElementById('fileDetails').textContent = '載入失敗';
@@ -618,91 +681,108 @@ async function processAudio() {
 
     // 顯示進度
     const progressContainer = document.getElementById('progressContainer');
+    const btnProcess = document.getElementById('btnProcess');
+    const originalBtnText = btnProcess.innerHTML; // 儲存原始按鈕文字
+
     progressContainer.style.display = 'block';
-    document.getElementById('btnProcess').disabled = true;
+    btnProcess.disabled = true;
 
-    try {
-        // 取得輸出格式
-        const useMp3 = document.getElementById('exportMp3')?.checked || false;
-        const format = useMp3 ? 'mp3' : 'wav';
+    // 改變按鈕文字
+    const processingText = i18n ? i18n.t('processing_wait') : '⏳ 剪輯中請稍等...';
+    btnProcess.innerHTML = processingText;
 
-        // 處理段落
-        const results = await audioProcessor.processSegments(segments, (current, total, status) => {
-            uiController.updateProgress(current, total, status);
-        }, format);
+    // 先顯示準備中，讓 UI 有機會渲染進度條
+    uiController.updateProgress(0, 100, i18n ? i18n.t('preparing') : '準備中...');
 
-        // 取得下載模式 (使用 checkbox)
-        const useZip = document.getElementById('downloadZip')?.checked || false;
-        const baseFilename = currentFile.name.replace(/\.[^/.]+$/, '');
+    // 使用 setTimeout 讓 UI 更新後再開始執行繁重工作
+    setTimeout(async () => {
+        try {
+            // 取得輸出格式
+            const useMp3 = document.getElementById('exportMp3')?.checked || false;
+            const format = useMp3 ? 'mp3' : 'wav';
 
-        if (useZip) {
-            // ZIP 打包模式
-            const zip = new JSZip();
+            // 處理段落
+            const results = await audioProcessor.processSegments(segments, (current, total, status) => {
+                uiController.updateProgress(current, total, status);
+            }, format);
 
-            results.forEach(result => {
-                if (result.success) {
-                    const ext = result.format || 'wav';
-                    const filename = `${result.segment.id}_${result.segment.name}.${ext}`;
-                    zip.file(filename, result.blob);
+            // 取得下載模式 (使用 checkbox)
+            const useZip = document.getElementById('downloadZip')?.checked || false;
+            const baseFilename = currentFile.name.replace(/\.[^/.]+$/, '');
+
+            if (useZip) {
+                // ZIP 打包模式
+                const zip = new JSZip();
+
+                results.forEach(result => {
+                    if (result.success) {
+                        const ext = result.format || 'wav';
+                        const filename = `${result.segment.id}_${result.segment.name}.${ext}`;
+                        zip.file(filename, result.blob);
+                    }
+                });
+
+                // 如果保留完整版本
+                if (keepOriginal) {
+                    const useMp3 = document.getElementById('exportMp3')?.checked || false;
+                    let fullBlob;
+                    let fullExt;
+                    if (useMp3 && typeof lamejs !== 'undefined') {
+                        fullBlob = audioProcessor.audioBufferToMp3(audioProcessor.audioBuffer);
+                        fullExt = 'mp3';
+                    } else {
+                        fullBlob = audioProcessor.audioBufferToWav(audioProcessor.audioBuffer);
+                        fullExt = 'wav';
+                    }
+                    zip.file(`完整版_${baseFilename}.${fullExt}`, fullBlob);
                 }
-            });
 
-            // 如果保留完整版本
-            if (keepOriginal) {
-                const useMp3 = document.getElementById('exportMp3')?.checked || false;
-                let fullBlob;
-                let fullExt;
-                if (useMp3 && typeof lamejs !== 'undefined') {
-                    fullBlob = audioProcessor.audioBufferToMp3(audioProcessor.audioBuffer);
-                    fullExt = 'mp3';
-                } else {
-                    fullBlob = audioProcessor.audioBufferToWav(audioProcessor.audioBuffer);
-                    fullExt = 'wav';
+                // 生成 ZIP 並下載
+                uiController.updateProgress(1, 1, '正在打包 ZIP...');
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                downloadBlob(zipBlob, `${baseFilename}_segments.zip`);
+            } else {
+                // 個別下載模式
+                results.forEach(result => {
+                    if (result.success) {
+                        const ext = result.format || 'wav';
+                        const filename = `${result.segment.id}_${result.segment.name}_${baseFilename}.${ext}`;
+                        downloadBlob(result.blob, filename);
+                    }
+                });
+
+                // 如果保留完整版本
+                if (keepOriginal) {
+                    const useMp3 = document.getElementById('exportMp3')?.checked || false;
+                    let fullBlob;
+                    let fullExt;
+                    if (useMp3 && typeof lamejs !== 'undefined') {
+                        fullBlob = audioProcessor.audioBufferToMp3(audioProcessor.audioBuffer);
+                        fullExt = 'mp3';
+                    } else {
+                        fullBlob = audioProcessor.audioBufferToWav(audioProcessor.audioBuffer);
+                        fullExt = 'wav';
+                    }
+                    downloadBlob(fullBlob, `完整版_${baseFilename}.${fullExt}`);
                 }
-                zip.file(`完整版_${baseFilename}.${fullExt}`, fullBlob);
             }
 
-            // 生成 ZIP 並下載
-            uiController.updateProgress(1, 1, '正在打包 ZIP...');
-            const zipBlob = await zip.generateAsync({ type: 'blob' });
-            downloadBlob(zipBlob, `${baseFilename}_segments.zip`);
-        } else {
-            // 個別下載模式
-            results.forEach(result => {
-                if (result.success) {
-                    const ext = result.format || 'wav';
-                    const filename = `${result.segment.id}_${result.segment.name}_${baseFilename}.${ext}`;
-                    downloadBlob(result.blob, filename);
-                }
-            });
+            const successful = results.filter(r => r.success).length;
+            const failed = results.filter(r => !r.success).length;
 
-            // 如果保留完整版本
-            if (keepOriginal) {
-                const useMp3 = document.getElementById('exportMp3')?.checked || false;
-                let fullBlob;
-                let fullExt;
-                if (useMp3 && typeof lamejs !== 'undefined') {
-                    fullBlob = audioProcessor.audioBufferToMp3(audioProcessor.audioBuffer);
-                    fullExt = 'mp3';
-                } else {
-                    fullBlob = audioProcessor.audioBufferToWav(audioProcessor.audioBuffer);
-                    fullExt = 'wav';
-                }
-                downloadBlob(fullBlob, `完整版_${baseFilename}.${fullExt}`);
-            }
+            // 微小延遲確保進度條顯示完成
+            setTimeout(() => {
+                alert(i18n ? i18n.t('success', { success: successful, failed: failed }) : `處理完成！\n成功: ${successful}\n失敗: ${failed}`);
+            }, 100);
+
+        } catch (error) {
+            alert(`處理失敗: ${error.message}`);
+        } finally {
+            progressContainer.style.display = 'none';
+            btnProcess.disabled = false;
+            btnProcess.innerHTML = originalBtnText; // 恢復原始按鈕文字
         }
-
-        const successful = results.filter(r => r.success).length;
-        const failed = results.filter(r => !r.success).length;
-
-        alert(`處理完成！\n成功: ${successful}\n失敗: ${failed}`);
-
-    } catch (error) {
-        alert(`處理失敗: ${error.message}`);
-    } finally {
-        progressContainer.style.display = 'none';
-        document.getElementById('btnProcess').disabled = false;
-    }
+    }, 50); // 50ms 延遲以確保 UI 更新
 }
 
 /**

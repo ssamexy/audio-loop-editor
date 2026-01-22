@@ -387,7 +387,8 @@ class UIController {
                     alert('請先將播放位置移動到此段落範圍內');
                 }
             } else if (action === 'split-by-unit') {
-                const unitMs = prompt('請輸入每段時長 (秒):', '10');
+                const promptMsg = typeof i18n !== 'undefined' ? i18n.t('enter_unit') : '請輸入每段時長 (秒):';
+                const unitMs = prompt(promptMsg, '10');
                 if (unitMs) {
                     const unitValue = parseFloat(unitMs) * 1000;
                     if (unitValue > 0 && unitValue < parentDuration) {
@@ -408,7 +409,8 @@ class UIController {
                     }
                 }
             } else if (action === 'split-evenly') {
-                const num = prompt('請輸入要平分的段落數量 (2-20):', '2');
+                const promptMsg = typeof i18n !== 'undefined' ? i18n.t('enter_even') : '請輸入要平分的段落數量 (2-20):';
+                const num = prompt(promptMsg, '2');
                 if (num) {
                     const n = parseInt(num);
                     if (n >= 2 && n <= 20) {
