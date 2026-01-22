@@ -2,6 +2,13 @@
 
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
+## [v1.5.1] - 2026-01-22
+
+### Fixed
+- **Split Main Audio**: Fixed NaN error for segment duration and missing bilingual support in confirmation dialog.
+- **Mark Start**: Fixed marker position issue caused by invalid duration calculation.
+- **UI Layout**: Fixed position of Main Audio Tools buttons (forced next to each other).
+
 ## [v1.5.0] - 2026-01-22
 
 ### Added

@@ -63,8 +63,17 @@ body {
 .main-tools-buttons {
     display: flex;
     gap: 10px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    /* Keep buttons on one line */
     margin-top: 5px;
+}
+
+.main-tools-buttons .btn {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    /* Distribute space evenly */
 }
 
 /* Remove spinner from step size input */

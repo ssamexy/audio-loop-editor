@@ -476,10 +476,10 @@ function setupEventListeners() {
             if (!confirm(warning)) return;
         }
 
-        const duration = audioProcessor.duration * 1000;
+        const duration = (audioProcessor.audioBuffer ? audioProcessor.audioBuffer.duration : document.getElementById('audioPlayer').duration) * 1000;
         const current = document.getElementById('audioPlayer').currentTime * 1000;
 
-        if (current <= 100 || current >= duration - 100) return; // 邊界保護
+        if (isNaN(duration) || current <= 100 || current >= duration - 100) return; // 邊界保護
 
         segmentManager.clearAll();
         segmentManager.addSegment({ name: 'Part 1', startMs: 0, endMs: Math.floor(current) });
@@ -492,7 +492,7 @@ function setupEventListeners() {
         const btn = document.getElementById('btnMarkSegment');
         const info = document.getElementById('markInfo');
         const currentMs = document.getElementById('audioPlayer').currentTime * 1000;
-        const durationMs = audioProcessor.duration * 1000;
+        const durationMs = (audioProcessor.audioBuffer ? audioProcessor.audioBuffer.duration : document.getElementById('audioPlayer').duration) * 1000;
 
         if (!isMarkingStart) {
             // 開始標註
@@ -508,7 +508,9 @@ function setupEventListeners() {
             const infoText = typeof i18n !== 'undefined' ? i18n.t('marking_start_time') : '已標註開始: {time}';
             info.textContent = infoText.replace('{time}', TimeUtils.formatTime(currentMs));
 
-            if (uiController.addMarker) uiController.addMarker((currentMs / durationMs) * 100);
+            if (uiController.addMarker && durationMs > 0) {
+                uiController.addMarker((currentMs / durationMs) * 100);
+            }
         } else {
             // 結束標註
             if (currentMs <= markStartTime) {
