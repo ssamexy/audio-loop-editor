@@ -32,7 +32,35 @@ class AppController {
 
         // Initialize i18n if available
         if (typeof i18n !== 'undefined' && i18n.init) {
+            i18n.onLangChange = () => this.handleLanguageChange();
             i18n.init();
+        }
+    }
+
+    /**
+     * Handle Language Change
+     */
+    handleLanguageChange() {
+        // Update floating player info
+        const floatingInfo = document.getElementById('floatingPlayerInfo');
+        if (this.state.currentSegmentRange) {
+            const segments = this.segmentManager.getSegments();
+            const segment = segments.find(s => String(s.id) === String(this.state.currentSegmentRange.id));
+            if (segment) {
+                const prefix = typeof i18n !== 'undefined' ? i18n.t('segment_prefix') : '段落: ';
+                floatingInfo.textContent = prefix + segment.name;
+            }
+        } else {
+            floatingInfo.textContent = typeof i18n !== 'undefined' ? i18n.t('main_audio') : '主音訊';
+        }
+
+        // Update Marking Button if active
+        if (this.state.isMarkingStart) {
+            const btn = document.getElementById('btnMarkSegment');
+            const info = document.getElementById('markInfo');
+            btn.innerHTML = typeof i18n !== 'undefined' ? i18n.t('mark_end') : '標註結束';
+            const infoText = typeof i18n !== 'undefined' ? i18n.t('marking_start_time') : '已標註開始: {time}';
+            info.textContent = infoText.replace('{time}', TimeUtils.formatTime(this.state.markStartTime));
         }
     }
 

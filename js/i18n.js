@@ -258,6 +258,7 @@ const i18n = {
             this.currentLang = lang;
             this.applyTranslations();
             localStorage.setItem('audioLoopEditor_lang', lang);
+            if (this.onLangChange) this.onLangChange(lang);
         }
     },
 

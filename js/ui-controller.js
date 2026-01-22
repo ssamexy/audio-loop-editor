@@ -76,8 +76,11 @@ class UIController {
             }
         });
 
-        if (this.segmentManager.isSubSegment(segment.id)) {
+        const currentLevel = String(segment.id).split('-').length;
+        if (currentLevel === 2) {
             row.classList.add('sub-segment');
+        } else if (currentLevel >= 3) {
+            row.classList.add('level-3');
         }
 
         // ID 輸入 (可編輯)
@@ -130,7 +133,8 @@ class UIController {
         const playBtn = document.createElement('button');
         playBtn.className = 'btn-icon play';
         playBtn.textContent = '▶';
-        playBtn.title = '試播放';
+        playBtn.setAttribute('data-i18n-title', 'play_main'); // Reuse play_main for title
+        playBtn.title = typeof i18n !== 'undefined' ? i18n.t('play_main') : '試播放';
         playBtn.dataset.segmentId = segment.id;
         playBtn.addEventListener('click', () => this.playSegment(segment, playBtn));
         actions.appendChild(playBtn);
@@ -138,24 +142,22 @@ class UIController {
         // 新增子段落按鈕 (最多支援到三層)
         const addSubBtn = document.createElement('button');
         addSubBtn.className = 'btn-icon add-sub';
+        addSubBtn.setAttribute('data-i18n', 'add_sub');
+        addSubBtn.setAttribute('data-i18n-title', 'add_sub_title');
         addSubBtn.textContent = typeof i18n !== 'undefined' ? i18n.t('add_sub') : '+子';
         addSubBtn.title = typeof i18n !== 'undefined' ? i18n.t('add_sub_title') : '新增子段落';
 
-        // 檢查層級：如果是第三層 (例如 1-1-1)，則不允許再新增子段落
-        const currentLevel = String(segment.id).split('-').length;
-        if (currentLevel >= 3) {
-            addSubBtn.style.display = 'none';
-        } else {
-            addSubBtn.addEventListener('click', (e) => {
-                this.showSubSegmentMenu(segment, e.target);
-            });
-        }
+        // 綁定事件：即使是第三層也顯示，但在 showSubSegmentMenu 中限制選單
+        addSubBtn.addEventListener('click', (e) => {
+            this.showSubSegmentMenu(segment, e.target);
+        });
         actions.appendChild(addSubBtn);
 
         // 刪除按鈕
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'btn-icon delete';
         deleteBtn.textContent = '✕';
+        deleteBtn.setAttribute('data-i18n-title', 'delete_title');
         deleteBtn.title = typeof i18n !== 'undefined' ? i18n.t('delete_title') : '刪除';
         deleteBtn.addEventListener('click', () => {
             if (confirm(typeof i18n !== 'undefined' ? i18n.t('confirm_delete', { id: segment.id }) : `確定要刪除段落 ${segment.id} 嗎？`)) {
@@ -355,14 +357,27 @@ class UIController {
         const splitChild = typeof i18n !== 'undefined' ? i18n.t('sub_menu_split_child') : '↳ 二分為子段落';
         const splitSibling = typeof i18n !== 'undefined' ? i18n.t('sub_menu_split_sibling') : '✂️ 同層切分';
 
-        menu.innerHTML = `
-            <div class="menu-title">${menuTitle}</div>
-            <button class="menu-item" data-action="split-at-position">${splitPosition}<br><small>(${splitChild})</small></button>
-            <button class="menu-item" data-action="split-sibling">${splitSibling}</button>
-            <button class="menu-item" data-action="split-by-unit">${splitUnit}</button>
-            <button class="menu-item" data-action="split-evenly">${splitEvenly}</button>
-            <button class="menu-item menu-cancel">✕ ${typeof i18n !== 'undefined' ? i18n.t('cancel') : '取消'}</button>
-        `;
+        const currentLevel = String(parentSegment.id).split('-').length;
+        const isMaxLevel = currentLevel >= 3;
+
+        if (isMaxLevel) {
+            // 第三層選單：僅支援同層切分
+            menu.innerHTML = `
+                <div class="menu-title">${menuTitle}</div>
+                <button class="menu-item" data-action="split-sibling">${splitSibling}</button>
+                <button class="menu-item menu-cancel">✕ ${typeof i18n !== 'undefined' ? i18n.t('cancel') : '取消'}</button>
+            `;
+        } else {
+            // 第一、二層選單：支援所有功能
+            menu.innerHTML = `
+                <div class="menu-title">${menuTitle}</div>
+                <button class="menu-item" data-action="split-at-position">${splitPosition}<br><small>(${splitChild})</small></button>
+                <button class="menu-item" data-action="split-sibling">${splitSibling}</button>
+                <button class="menu-item" data-action="split-by-unit">${splitUnit}</button>
+                <button class="menu-item" data-action="split-evenly">${splitEvenly}</button>
+                <button class="menu-item menu-cancel">✕ ${typeof i18n !== 'undefined' ? i18n.t('cancel') : '取消'}</button>
+            `;
+        }
 
         // 定位選單
         const rect = button.getBoundingClientRect();
