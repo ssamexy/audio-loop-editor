@@ -2,6 +2,13 @@
 
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
+## [v1.4.9] - 2026-01-22
+
+### Changed
+- **Mobile Player Bar**: Redesigned the floating player bar on mobile to use 2 rows - seek bar on top, controls on bottom - for better usability.
+- **Step Size Display**: Fixed the default step size to display as "1" (second) instead of "1000" (milliseconds).
+- **Mobile Button Sizes**: Ensured all player control buttons maintain 48x48px touch targets on mobile.
+
 ## [v1.4.8] - 2026-01-22
 
 ### Added

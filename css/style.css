@@ -834,18 +834,47 @@ body.player-active {
 
 @media (max-width: 768px) {
     .floating-player-bar {
-        flex-wrap: wrap;
-        padding: 10px 15px;
-        gap: 10px;
+        flex-direction: column;
+        padding: 12px 15px;
+        gap: 12px;
     }
 
+    /* Row 1: Seek bar (full width) */
     .floating-player-seekbar {
         order: -1;
         width: 100%;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Row 2: Controls row */
+    .floating-player-controls {
+        width: 100%;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .floating-player-controls .btn-player {
+        width: 48px;
+        height: 48px;
+        font-size: 1.3rem;
+    }
+
+    .floating-player-speed {
+        margin-left: auto;
+    }
+
+    .floating-player-mode {
+        margin-right: auto;
     }
 
     .floating-player-info {
         display: none;
+    }
+
+    body.player-active {
+        padding-bottom: 120px;
     }
 }
 
