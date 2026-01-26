@@ -16,7 +16,7 @@
         <header class="header">
             <h1 data-i18n="app_title">🎵 Audio Loop Editor</h1>
             <p class="subtitle" data-i18n="app_subtitle">音訊分段剪輯與循環練習工具 - 支援毫秒精度、多段剪輯、試播放</p>
-            <div class="version">v1.5.8</div>
+            <div class="version">v1.5.9</div>
             <button id="btnHelp" class="help-btn" title="Help">❓</button>
         </header>
 
@@ -157,6 +157,8 @@
                         <!-- Merged files list -->
                     </div>
                     <div class="merge-controls">
+                        <input type="text" id="mergeFilename" class="merge-filename-input" placeholder="合併檔名 (無副檔名)"
+                            data-i18n-placeholder="filename_placeholder">
                         <label class="checkbox-label">
                             <input type="checkbox" id="mergeExportMp3" checked>
                             <span data-i18n="export_mp3">輸出為 MP3</span>

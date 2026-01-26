@@ -44,10 +44,12 @@ const i18n = {
             'merge_title': '🔗 合併音訊',
             'merge_upload_prompt': '點擊或拖曳多個音訊檔案到此處',
             'merge_preview': '▶ 試聽',
-            'merge_process': '🔗 合併並匯出',
             'merge_fail': '合併失敗: {error}',
             'merge_success': '合併成功！',
             'remove_file': '移除檔案',
+            'filename_placeholder': '合併檔名 (無副檔名)',
+            'merge_error_min_files': '請至少選擇兩個音訊檔案',
+            'preview_segment': '試聽片段',
 
             // Manual
             'manual_title': '📖 使用說明',
@@ -241,10 +243,12 @@ const i18n = {
             'merge_title': '🔗 Merge Audio',
             'merge_upload_prompt': 'Click or drag multiple audio files here',
             'merge_preview': '▶ Preview',
-            'merge_process': '🔗 Merge & Export',
             'merge_fail': 'Merge Failed: {error}',
             'merge_success': 'Merge Successful!',
             'remove_file': 'Remove File',
+            'filename_placeholder': 'Filename (no ext)',
+            'merge_error_min_files': 'Please select at least two audio files',
+            'preview_segment': 'Preview Segment',
 
             // Manual
             'manual_title': '📖 User Manual',

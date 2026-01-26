@@ -2,6 +2,18 @@
 
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
+## [v1.5.9] - 2026-01-26
+
+### Added
+- **Merge Improvements**:
+    - **Individual Segment Preview**: Added play button "▶" to preview specific segments in the merge list.
+    - **Time Range Display**: Shows the start and end time of each segment in the final merged sequence (e.g., `00:00 - 00:15`).
+    - **Custom Filename**: Added input field to specify the output filename (default: `merged_audio`).
+- **Translations**: Added new localized strings for merge features.
+
+### Improved
+- **Memory Optimization**: Implemented specific `release()` method in AudioProcessor to free up memory immediately after merge processing.
+
 ## [v1.5.8] - 2026-01-26
 
 ### Added

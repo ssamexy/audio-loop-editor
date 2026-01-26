@@ -341,6 +341,45 @@ class AudioProcessor {
     }
 
     /**
+     * Get duration of an audio file without keeping it in memory
+     * @param {File} file 
+     * @returns {Promise<number>} Duration in seconds
+     */
+    async getDuration(file) {
+        // We need a temporary context for this if we don't want to mess with the main one,
+        // but decoding usually requires an AudioContext. 
+        // We will use the main context but not set it as the main buffer.
+        if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+            return audioBuffer.duration;
+        } catch (error) {
+            console.error('Error getting duration:', error);
+            return 0;
+        }
+    }
+
+    /**
+     * Release resources
+     */
+    release() {
+        this.stop();
+        this.audioBuffer = null;
+        if (this.sourceNode) {
+            try {
+                this.sourceNode.disconnect();
+            } catch (e) {
+                // Ignore
+            }
+            this.sourceNode = null;
+        }
+    }
+
+    /**
      * 取得音訊資訊
      */
     getInfo() {
