@@ -63,6 +63,9 @@ class AppController {
             const infoText = typeof i18n !== 'undefined' ? i18n.t('marking_start_time') : '已標註開始: {time}';
             info.textContent = infoText.replace('{time}', TimeUtils.formatTime(this.state.markStartTime));
         }
+
+        // Update Seek Button Titles
+        this.updateSeekButtonTitles();
     }
 
     /**
@@ -819,7 +822,112 @@ class AppController {
             return;
         }
 
-        // ... (existing code)
+        // Validate
+        const info = this.audioProcessor.getInfo();
+        const validation = this.segmentManager.validateAll(info.durationMs);
+        if (!validation.valid) {
+            const errorPrefix = typeof i18n !== 'undefined' ? i18n.t('segment_error') : '段落設定有誤:\n';
+            alert(errorPrefix + validation.errors.join('\n'));
+            return;
+        }
+
+        // Confirm
+        const keepOriginal = document.getElementById('keepOriginal').checked;
+        let message = typeof i18n !== 'undefined'
+            ? i18n.t('confirm_process', { count: segments.length })
+            : `將剪輯 ${segments.length} 個段落`;
+        if (keepOriginal) {
+            message += typeof i18n !== 'undefined' ? i18n.t('keep_full_version') : '\n同時保留完整版本';
+        }
+
+        const continuePrompt = typeof i18n !== 'undefined' ? i18n.t('continue_prompt') : '\n\n是否繼續？';
+        if (!confirm(message + continuePrompt)) {
+            return;
+        }
+
+        // Progress UI
+        const progressContainer = document.getElementById('progressContainer');
+        const btnProcess = document.getElementById('btnProcess');
+
+        progressContainer.style.display = 'block';
+        btnProcess.disabled = true;
+
+        const processingText = typeof i18n !== 'undefined' ? i18n.t('processing_wait') : '⏳ 剪輯中請稍等...';
+        btnProcess.innerHTML = processingText;
+
+        this.uiController.updateProgress(0, 100, typeof i18n !== 'undefined' ? i18n.t('preparing') : '準備中...');
+
+        // Defer execution to allow UI update
+        setTimeout(async () => {
+            try {
+                const useMp3 = document.getElementById('exportMp3')?.checked || false;
+                const format = useMp3 ? 'mp3' : 'wav';
+
+                const results = await this.audioProcessor.processSegments(segments, (current, total, status) => {
+                    this.uiController.updateProgress(current, total, status);
+                }, format);
+
+                const useZip = document.getElementById('downloadZip')?.checked || false;
+                const baseFilename = this.state.currentFile.name.replace(/\.[^/.]+$/, '');
+
+                if (useZip) {
+                    // ZIP Mode
+                    const zip = new JSZip();
+
+                    results.forEach(result => {
+                        if (result.success) {
+                            const ext = result.format || 'wav';
+                            const safeName = result.segment.name.replace(/[^a-z0-9_\u4e00-\u9fa5]/gi, '_');
+                            zip.file(`${result.segment.name}.${ext}`, result.blob);
+                        }
+                    });
+
+                    if (keepOriginal) {
+                        const originalExt = this.state.currentFile.name.split('.').pop();
+                        const response = await fetch(URL.createObjectURL(this.state.currentFile));
+                        const originalBlob = await response.blob();
+                        zip.file(`full_original.${originalExt}`, originalBlob);
+                    }
+
+                    this.uiController.updateProgress(100, 100, typeof i18n !== 'undefined' ? i18n.t('packing_zip') : '正在打包...');
+
+                    const content = await zip.generateAsync({ type: "blob" });
+                    const url = URL.createObjectURL(content);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${baseFilename}_segments.zip`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+
+                } else {
+                    // One by one Mode
+                    for (const result of results) {
+                        if (result.success) {
+                            const ext = result.format || 'wav';
+                            const url = URL.createObjectURL(result.blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${baseFilename}_${result.segment.name}.${ext}`;
+                            a.click();
+                            // Small delay to prevent browser block
+                            await new Promise(r => setTimeout(r, 200));
+                            URL.revokeObjectURL(url);
+                        }
+                    }
+                }
+
+                this.uiController.updateProgress(100, 100, typeof i18n !== 'undefined' ? i18n.t('success', { success: results.filter(r => r.success).length, failed: results.filter(r => !r.success).length }) : '完成！');
+                alert(typeof i18n !== 'undefined' ? i18n.t('success', { success: results.filter(r => r.success).length, failed: results.filter(r => !r.success).length }) : '剪輯完成！');
+
+            } catch (err) {
+                console.error(err);
+                alert((typeof i18n !== 'undefined' ? i18n.t('error') : '發生錯誤: ') + err.message);
+            } finally {
+                btnProcess.disabled = false;
+                btnProcess.innerHTML = typeof i18n !== 'undefined' ? i18n.t('start_process') : '🎵 開始剪輯';
+                progressContainer.style.display = 'none';
+            }
+        }, 100);
     }
 
     /**
@@ -903,114 +1011,6 @@ class AppController {
                     break;
             }
         });
-    }
-
-    // Validate
-    const info = this.audioProcessor.getInfo();
-    const validation = this.segmentManager.validateAll(info.durationMs);
-    if(!validation.valid) {
-        const errorPrefix = typeof i18n !== 'undefined' ? i18n.t('segment_error') : '段落設定有誤:\n';
-        alert(errorPrefix + validation.errors.join('\n'));
-        return;
-    }
-
-    // Confirm
-    const keepOriginal = document.getElementById('keepOriginal').checked;
-        let message = typeof i18n !== 'undefined'
-    ? i18n.t('confirm_process', { count: segments.length })
-    : `將剪輯 ${segments.length} 個段落`;
-if (keepOriginal) {
-    message += typeof i18n !== 'undefined' ? i18n.t('keep_full_version') : '\n同時保留完整版本';
-}
-
-const continuePrompt = typeof i18n !== 'undefined' ? i18n.t('continue_prompt') : '\n\n是否繼續？';
-if (!confirm(message + continuePrompt)) {
-    return;
-}
-
-// Progress UI
-const progressContainer = document.getElementById('progressContainer');
-const btnProcess = document.getElementById('btnProcess');
-
-progressContainer.style.display = 'block';
-btnProcess.disabled = true;
-
-const processingText = typeof i18n !== 'undefined' ? i18n.t('processing_wait') : '⏳ 剪輯中請稍等...';
-btnProcess.innerHTML = processingText;
-
-this.uiController.updateProgress(0, 100, typeof i18n !== 'undefined' ? i18n.t('preparing') : '準備中...');
-
-// Defer execution to allow UI update
-setTimeout(async () => {
-    try {
-        const useMp3 = document.getElementById('exportMp3')?.checked || false;
-        const format = useMp3 ? 'mp3' : 'wav';
-
-        const results = await this.audioProcessor.processSegments(segments, (current, total, status) => {
-            this.uiController.updateProgress(current, total, status);
-        }, format);
-
-        const useZip = document.getElementById('downloadZip')?.checked || false;
-        const baseFilename = this.state.currentFile.name.replace(/\.[^/.]+$/, '');
-
-        if (useZip) {
-            // ZIP Mode
-            const zip = new JSZip();
-
-            results.forEach(result => {
-                if (result.success) {
-                    const ext = result.format || 'wav';
-                    const safeName = result.segment.name.replace(/[^a-z0-9_\u4e00-\u9fa5]/gi, '_');
-                    zip.file(`${result.segment.name}.${ext}`, result.blob);
-                }
-            });
-
-            if (keepOriginal) {
-                const originalExt = this.state.currentFile.name.split('.').pop();
-                const response = await fetch(URL.createObjectURL(this.state.currentFile));
-                const originalBlob = await response.blob();
-                zip.file(`full_original.${originalExt}`, originalBlob);
-            }
-
-            this.uiController.updateProgress(100, 100, typeof i18n !== 'undefined' ? i18n.t('packing_zip') : '正在打包...'); // Fixed key to 'packing_zip' or 'zipping' depending on i18n.js, i18n.js has 'packing_zip'
-
-            const content = await zip.generateAsync({ type: "blob" });
-            const url = URL.createObjectURL(content);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${baseFilename}_segments.zip`;
-            a.click();
-            URL.revokeObjectURL(url);
-
-        } else {
-            // One by one Mode
-            for (const result of results) {
-                if (result.success) {
-                    const ext = result.format || 'wav';
-                    const url = URL.createObjectURL(result.blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${baseFilename}_${result.segment.name}.${ext}`;
-                    a.click();
-                    // Small delay to prevent browser block
-                    await new Promise(r => setTimeout(r, 200));
-                    URL.revokeObjectURL(url);
-                }
-            }
-        }
-
-        this.uiController.updateProgress(100, 100, typeof i18n !== 'undefined' ? i18n.t('success', { success: results.filter(r => r.success).length, failed: results.filter(r => !r.success).length }) : '完成！');
-        alert(typeof i18n !== 'undefined' ? i18n.t('success', { success: results.filter(r => r.success).length, failed: results.filter(r => !r.success).length }) : '剪輯完成！');
-
-    } catch (err) {
-        console.error(err);
-        alert((typeof i18n !== 'undefined' ? i18n.t('error') : '發生錯誤: ') + err.message);
-    } finally {
-        btnProcess.disabled = false;
-        btnProcess.innerHTML = typeof i18n !== 'undefined' ? i18n.t('start_process') : '🎵 開始剪輯';
-        progressContainer.style.display = 'none';
-    }
-}, 100);
     }
 }
 
