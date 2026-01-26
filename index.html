@@ -16,7 +16,7 @@
         <header class="header">
             <h1 data-i18n="app_title">🎵 Audio Loop Editor</h1>
             <p class="subtitle" data-i18n="app_subtitle">音訊分段剪輯與循環練習工具 - 支援毫秒精度、多段剪輯、試播放</p>
-            <div class="version">v1.5.5</div>
+            <div class="version">v1.5.6</div>
         </header>
 
         <!-- Main Content -->
@@ -162,7 +162,9 @@
     <!-- Floating Player Bar -->
     <div class="floating-player-bar" id="floatingPlayerBar" style="display: none;">
         <div class="floating-player-controls">
+            <button id="btnRewind" class="btn-player" title="倒退">⏪</button>
             <button id="btnPlayPause" class="btn-player" title="播放/暫停">▶</button>
+            <button id="btnForward" class="btn-player" title="前進">⏩</button>
             <button id="btnLoop" class="btn-player" title="循環播放">🔁</button>
         </div>
         <div class="floating-player-seekbar">
@@ -172,6 +174,14 @@
             </div>
         </div>
         <div class="floating-player-speed">
+            <select id="seekStep" class="speed-select" title="快進/退 (秒)" data-i18n-title="seek_setting">
+                <option value="2">2s</option>
+                <option value="5">5s</option>
+                <option value="10" selected>10s</option>
+                <option value="20">20s</option>
+                <option value="30">30s</option>
+                <option value="60">60s</option>
+            </select>
             <select id="playbackSpeed" class="speed-select" title="播放速度">
                 <option value="0.5">x0.5</option>
                 <option value="0.75">x0.75</option>

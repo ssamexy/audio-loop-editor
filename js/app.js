@@ -19,7 +19,8 @@ class AppController {
             // Player State
             isLooping: false,
             isSeeking: false,
-            currentSegmentRange: null // {id, startMs, endMs}
+            currentSegmentRange: null, // {id, startMs, endMs}
+            seekStep: 10 // Default 10s
         };
     }
 
@@ -257,6 +258,9 @@ class AppController {
         // Player Controls
         this.setupPlayerControls();
 
+        // Keyboard Shortcuts
+        this.setupKeyboardShortcuts();
+
         // Marking & Splitting
         this.setupToolsListeners();
 
@@ -390,14 +394,20 @@ class AppController {
 
         // Play/Pause Button
         btnPlayPause.addEventListener('click', () => {
-            if (audioPlayer.paused) {
-                audioPlayer.play();
-                btnPlayPause.textContent = '⏸';
-            } else {
-                audioPlayer.pause();
-                btnPlayPause.textContent = '▶';
-            }
+            this.togglePlayPause();
         });
+
+        // Rewind Button
+        const btnRewind = document.getElementById('btnRewind');
+        if (btnRewind) {
+            btnRewind.onclick = () => this.seekBy(-this.state.seekStep);
+        }
+
+        // Forward Button
+        const btnForward = document.getElementById('btnForward');
+        if (btnForward) {
+            btnForward.onclick = () => this.seekBy(this.state.seekStep);
+        }
 
         // Loop Button
         btnLoop.addEventListener('click', () => {
@@ -411,6 +421,17 @@ class AppController {
         playbackSpeed.addEventListener('change', () => {
             audioPlayer.playbackRate = parseFloat(playbackSpeed.value);
         });
+
+        // Seek Step Control
+        const seekStepSelect = document.getElementById('seekStep');
+        if (seekStepSelect) {
+            seekStepSelect.addEventListener('change', () => {
+                this.state.seekStep = parseInt(seekStepSelect.value);
+                this.updateSeekButtonTitles();
+            });
+            // Init title
+            this.updateSeekButtonTitles();
+        }
 
         // Seekbar Input (Dragging)
         seekBar.addEventListener('input', () => {
@@ -798,112 +819,198 @@ class AppController {
             return;
         }
 
-        // Validate
-        const info = this.audioProcessor.getInfo();
-        const validation = this.segmentManager.validateAll(info.durationMs);
-        if (!validation.valid) {
-            const errorPrefix = typeof i18n !== 'undefined' ? i18n.t('segment_error') : '段落設定有誤:\n';
-            alert(errorPrefix + validation.errors.join('\n'));
-            return;
+        // ... (existing code)
+    }
+
+    /**
+     * Toggle Play/Pause Logic
+     */
+    togglePlayPause() {
+        const audioPlayer = document.getElementById('audioPlayer');
+        const btnPlayPause = document.getElementById('btnPlayPause');
+
+        if (audioPlayer.paused) {
+            audioPlayer.play();
+            btnPlayPause.textContent = '⏸';
+        } else {
+            audioPlayer.pause();
+            btnPlayPause.textContent = '▶';
+        }
+    }
+
+    /**
+     * Seek by seconds
+     */
+    seekBy(seconds) {
+        const audioPlayer = document.getElementById('audioPlayer');
+        if (!audioPlayer.duration) return;
+
+        let newTime = audioPlayer.currentTime + seconds;
+        const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
+
+        if (this.state.currentSegmentRange && segmentOnlyMode) {
+            const startSec = this.state.currentSegmentRange.startMs / 1000;
+            const endSec = this.state.currentSegmentRange.endMs / 1000;
+
+            // Constrain to segment
+            if (newTime < startSec) newTime = startSec;
+            if (newTime > endSec) newTime = endSec;
+        } else {
+            // Constrain to file
+            if (newTime < 0) newTime = 0;
+            if (newTime > audioPlayer.duration) newTime = audioPlayer.duration;
         }
 
-        // Confirm
-        const keepOriginal = document.getElementById('keepOriginal').checked;
+        audioPlayer.currentTime = newTime;
+    }
+
+    /**
+     * Update Seek Button Titles with i18n
+     */
+    updateSeekButtonTitles() {
+        const btnRewind = document.getElementById('btnRewind');
+        const btnForward = document.getElementById('btnForward');
+
+        if (typeof i18n !== 'undefined') {
+            if (btnRewind) btnRewind.title = i18n.t('rewind', { s: this.state.seekStep });
+            if (btnForward) btnForward.title = i18n.t('forward', { s: this.state.seekStep });
+        } else {
+            if (btnRewind) btnRewind.title = `倒退 ${this.state.seekStep} 秒`;
+            if (btnForward) btnForward.title = `前進 ${this.state.seekStep} 秒`;
+        }
+    }
+
+    /**
+     * Setup Keyboard Shortcuts
+     */
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // Ignore if input focused
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            switch (e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    this.togglePlayPause();
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    this.seekBy(-this.state.seekStep);
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    this.seekBy(this.state.seekStep);
+                    break;
+            }
+        });
+    }
+
+    // Validate
+    const info = this.audioProcessor.getInfo();
+    const validation = this.segmentManager.validateAll(info.durationMs);
+    if(!validation.valid) {
+        const errorPrefix = typeof i18n !== 'undefined' ? i18n.t('segment_error') : '段落設定有誤:\n';
+        alert(errorPrefix + validation.errors.join('\n'));
+        return;
+    }
+
+    // Confirm
+    const keepOriginal = document.getElementById('keepOriginal').checked;
         let message = typeof i18n !== 'undefined'
-            ? i18n.t('confirm_process', { count: segments.length })
-            : `將剪輯 ${segments.length} 個段落`;
-        if (keepOriginal) {
-            message += typeof i18n !== 'undefined' ? i18n.t('keep_full_version') : '\n同時保留完整版本';
-        }
+    ? i18n.t('confirm_process', { count: segments.length })
+    : `將剪輯 ${segments.length} 個段落`;
+if (keepOriginal) {
+    message += typeof i18n !== 'undefined' ? i18n.t('keep_full_version') : '\n同時保留完整版本';
+}
 
-        const continuePrompt = typeof i18n !== 'undefined' ? i18n.t('continue_prompt') : '\n\n是否繼續？';
-        if (!confirm(message + continuePrompt)) {
-            return;
-        }
+const continuePrompt = typeof i18n !== 'undefined' ? i18n.t('continue_prompt') : '\n\n是否繼續？';
+if (!confirm(message + continuePrompt)) {
+    return;
+}
 
-        // Progress UI
-        const progressContainer = document.getElementById('progressContainer');
-        const btnProcess = document.getElementById('btnProcess');
+// Progress UI
+const progressContainer = document.getElementById('progressContainer');
+const btnProcess = document.getElementById('btnProcess');
 
-        progressContainer.style.display = 'block';
-        btnProcess.disabled = true;
+progressContainer.style.display = 'block';
+btnProcess.disabled = true;
 
-        const processingText = typeof i18n !== 'undefined' ? i18n.t('processing_wait') : '⏳ 剪輯中請稍等...';
-        btnProcess.innerHTML = processingText;
+const processingText = typeof i18n !== 'undefined' ? i18n.t('processing_wait') : '⏳ 剪輯中請稍等...';
+btnProcess.innerHTML = processingText;
 
-        this.uiController.updateProgress(0, 100, typeof i18n !== 'undefined' ? i18n.t('preparing') : '準備中...');
+this.uiController.updateProgress(0, 100, typeof i18n !== 'undefined' ? i18n.t('preparing') : '準備中...');
 
-        // Defer execution to allow UI update
-        setTimeout(async () => {
-            try {
-                const useMp3 = document.getElementById('exportMp3')?.checked || false;
-                const format = useMp3 ? 'mp3' : 'wav';
+// Defer execution to allow UI update
+setTimeout(async () => {
+    try {
+        const useMp3 = document.getElementById('exportMp3')?.checked || false;
+        const format = useMp3 ? 'mp3' : 'wav';
 
-                const results = await this.audioProcessor.processSegments(segments, (current, total, status) => {
-                    this.uiController.updateProgress(current, total, status);
-                }, format);
+        const results = await this.audioProcessor.processSegments(segments, (current, total, status) => {
+            this.uiController.updateProgress(current, total, status);
+        }, format);
 
-                const useZip = document.getElementById('downloadZip')?.checked || false;
-                const baseFilename = this.state.currentFile.name.replace(/\.[^/.]+$/, '');
+        const useZip = document.getElementById('downloadZip')?.checked || false;
+        const baseFilename = this.state.currentFile.name.replace(/\.[^/.]+$/, '');
 
-                if (useZip) {
-                    // ZIP Mode
-                    const zip = new JSZip();
+        if (useZip) {
+            // ZIP Mode
+            const zip = new JSZip();
 
-                    results.forEach(result => {
-                        if (result.success) {
-                            const ext = result.format || 'wav';
-                            const safeName = result.segment.name.replace(/[^a-z0-9_\u4e00-\u9fa5]/gi, '_');
-                            zip.file(`${result.segment.name}.${ext}`, result.blob);
-                        }
-                    });
+            results.forEach(result => {
+                if (result.success) {
+                    const ext = result.format || 'wav';
+                    const safeName = result.segment.name.replace(/[^a-z0-9_\u4e00-\u9fa5]/gi, '_');
+                    zip.file(`${result.segment.name}.${ext}`, result.blob);
+                }
+            });
 
-                    if (keepOriginal) {
-                        const originalExt = this.state.currentFile.name.split('.').pop();
-                        const response = await fetch(URL.createObjectURL(this.state.currentFile));
-                        const originalBlob = await response.blob();
-                        zip.file(`full_original.${originalExt}`, originalBlob);
-                    }
+            if (keepOriginal) {
+                const originalExt = this.state.currentFile.name.split('.').pop();
+                const response = await fetch(URL.createObjectURL(this.state.currentFile));
+                const originalBlob = await response.blob();
+                zip.file(`full_original.${originalExt}`, originalBlob);
+            }
 
-                    this.uiController.updateProgress(100, 100, typeof i18n !== 'undefined' ? i18n.t('zipping') : '正在打包...');
+            this.uiController.updateProgress(100, 100, typeof i18n !== 'undefined' ? i18n.t('packing_zip') : '正在打包...'); // Fixed key to 'packing_zip' or 'zipping' depending on i18n.js, i18n.js has 'packing_zip'
 
-                    const content = await zip.generateAsync({ type: "blob" });
-                    const url = URL.createObjectURL(content);
+            const content = await zip.generateAsync({ type: "blob" });
+            const url = URL.createObjectURL(content);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${baseFilename}_segments.zip`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+        } else {
+            // One by one Mode
+            for (const result of results) {
+                if (result.success) {
+                    const ext = result.format || 'wav';
+                    const url = URL.createObjectURL(result.blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `${baseFilename}_segments.zip`;
+                    a.download = `${baseFilename}_${result.segment.name}.${ext}`;
                     a.click();
+                    // Small delay to prevent browser block
+                    await new Promise(r => setTimeout(r, 200));
                     URL.revokeObjectURL(url);
-
-                } else {
-                    // One by one Mode
-                    for (const result of results) {
-                        if (result.success) {
-                            const ext = result.format || 'wav';
-                            const url = URL.createObjectURL(result.blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = `${baseFilename}_${result.segment.name}.${ext}`;
-                            a.click();
-                            // Small delay to prevent browser block
-                            await new Promise(r => setTimeout(r, 200));
-                            URL.revokeObjectURL(url);
-                        }
-                    }
                 }
-
-                this.uiController.updateProgress(100, 100, typeof i18n !== 'undefined' ? i18n.t('done') : '完成！');
-                alert(typeof i18n !== 'undefined' ? i18n.t('process_complete') : '剪輯完成！');
-
-            } catch (err) {
-                console.error(err);
-                alert((typeof i18n !== 'undefined' ? i18n.t('error') : '發生錯誤: ') + err.message);
-            } finally {
-                btnProcess.disabled = false;
-                btnProcess.innerHTML = typeof i18n !== 'undefined' ? i18n.t('start_process') : '🎵 開始剪輯';
-                progressContainer.style.display = 'none';
             }
-        }, 100);
+        }
+
+        this.uiController.updateProgress(100, 100, typeof i18n !== 'undefined' ? i18n.t('success', { success: results.filter(r => r.success).length, failed: results.filter(r => !r.success).length }) : '完成！');
+        alert(typeof i18n !== 'undefined' ? i18n.t('success', { success: results.filter(r => r.success).length, failed: results.filter(r => !r.success).length }) : '剪輯完成！');
+
+    } catch (err) {
+        console.error(err);
+        alert((typeof i18n !== 'undefined' ? i18n.t('error') : '發生錯誤: ') + err.message);
+    } finally {
+        btnProcess.disabled = false;
+        btnProcess.innerHTML = typeof i18n !== 'undefined' ? i18n.t('start_process') : '🎵 開始剪輯';
+        progressContainer.style.display = 'none';
+    }
+}, 100);
     }
 }
 

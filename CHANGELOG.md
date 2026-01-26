@@ -2,6 +2,13 @@
 
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
+## [v1.5.6] - 2026-01-26
+
+### Added
+- **Audio Controls**: Added standard Rewind (⏪) and Forward (⏩) buttons to the player bar.
+- **Seek Settings**: Added a dropdown menu to customize the seek step (2s, 5s, 10s, 20s, 30s, 60s), defaulting to 10s.
+- **Keyboard Shortcuts**: Implemented keyboard shortcuts for better control: `Space` (Play/Pause), `Left Arrow` (Rewind), `Right Arrow` (Forward).
+
 ## [v1.5.5] - 2026-01-22
 
 ### Changed

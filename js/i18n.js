@@ -68,6 +68,9 @@ const i18n = {
             'segment_prefix': '段落: ',
             'segment_only': '僅段落',
             'pause': '暫停',
+            'rewind': '倒退 {s} 秒',
+            'forward': '前進 {s} 秒',
+            'seek_setting': '快進/退 (秒)',
 
             // File Details
             'duration': '長度',
@@ -168,6 +171,9 @@ const i18n = {
             'segment_prefix': 'Segment: ',
             'segment_only': 'Segment Only',
             'pause': 'Pause',
+            'rewind': 'Rewind {s}s',
+            'forward': 'Forward {s}s',
+            'seek_setting': 'Seek Step(s)',
 
             // File Details
             'duration': 'Duration',
