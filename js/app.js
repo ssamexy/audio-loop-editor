@@ -1100,34 +1100,34 @@ class AppController {
         let currentTime = 0;
 
         this.state.mergeFiles.forEach((item, index) => {
-            const item = document.createElement('div');
-            item.className = 'merge-item';
+            const itemEl = document.createElement('div');
+            itemEl.className = 'merge-item';
             // Drag properties
-            item.draggable = true;
-            item.dataset.index = index;
+            itemEl.draggable = true;
+            itemEl.dataset.index = index;
 
-            item.addEventListener('dragstart', (e) => {
+            itemEl.addEventListener('dragstart', (e) => {
                 e.dataTransfer.effectAllowed = 'move';
                 e.dataTransfer.setData('text/plain', index);
-                item.classList.add('dragging');
+                itemEl.classList.add('dragging');
             });
 
-            item.addEventListener('dragend', () => {
-                item.classList.remove('dragging');
+            itemEl.addEventListener('dragend', () => {
+                itemEl.classList.remove('dragging');
                 document.querySelectorAll('.merge-item').forEach(el => el.classList.remove('drag-over-item'));
             });
 
-            item.addEventListener('dragover', (e) => {
+            itemEl.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'move';
-                item.classList.add('drag-over-item');
+                itemEl.classList.add('drag-over-item');
             });
 
-            item.addEventListener('dragleave', () => {
-                item.classList.remove('drag-over-item');
+            itemEl.addEventListener('dragleave', () => {
+                itemEl.classList.remove('drag-over-item');
             });
 
-            item.addEventListener('drop', (e) => {
+            itemEl.addEventListener('drop', (e) => {
                 e.preventDefault();
                 const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
                 const toIndex = index;
@@ -1144,7 +1144,7 @@ class AppController {
 
             const nameEl = document.createElement('div');
             nameEl.className = 'merge-item-name';
-            nameEl.textContent = `${index + 1}. ${file.name}`;
+            nameEl.textContent = `${index + 1}. ${item.file.name}`;
 
             const removeBtn = document.createElement('button');
             removeBtn.className = 'btn-remove-merge';
@@ -1189,16 +1189,16 @@ class AppController {
 
             const sizeEl = document.createElement('span');
             sizeEl.className = 'merge-item-size';
-            sizeEl.textContent = TimeUtils.formatBytes != undefined ? TimeUtils.formatBytes(file.size) : `${Math.round(file.size / 1024)} KB`;
+            sizeEl.textContent = TimeUtils.formatBytes != undefined ? TimeUtils.formatBytes(item.file.size) : `${Math.round(item.file.size / 1024)} KB`;
 
             infoEl.appendChild(previewBtn);
             infoEl.appendChild(timeRangeEl);
             infoEl.appendChild(sizeEl);
 
-            item.appendChild(nameEl);
-            item.appendChild(infoEl);
-            item.appendChild(removeBtn);
-            listEl.appendChild(item);
+            itemEl.appendChild(nameEl);
+            itemEl.appendChild(infoEl);
+            itemEl.appendChild(removeBtn);
+            listEl.appendChild(itemEl);
         });
     }
 
