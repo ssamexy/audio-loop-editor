@@ -14,6 +14,15 @@ class AudioProcessor {
     }
 
     /**
+     * 釋放資源
+     */
+    release() {
+        this.stop();
+        this.audioBuffer = null;
+        this.sourceNode = null;
+    }
+
+    /**
      * 載入音訊檔案
      */
     async loadFile(file) {

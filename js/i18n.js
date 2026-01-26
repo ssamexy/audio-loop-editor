@@ -43,6 +43,7 @@ const i18n = {
             // Merge
             'merge_title': '🔗 合併音訊',
             'merge_upload_prompt': '點擊或拖曳多個音訊檔案到此處',
+            'merge_preview': '▶ 試聽',
             'merge_process': '🔗 合併並匯出',
             'merge_fail': '合併失敗: {error}',
             'merge_success': '合併成功！',
@@ -239,6 +240,7 @@ const i18n = {
             // Merge
             'merge_title': '🔗 Merge Audio',
             'merge_upload_prompt': 'Click or drag multiple audio files here',
+            'merge_preview': '▶ Preview',
             'merge_process': '🔗 Merge & Export',
             'merge_fail': 'Merge Failed: {error}',
             'merge_success': 'Merge Successful!',

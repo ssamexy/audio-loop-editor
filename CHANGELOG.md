@@ -2,6 +2,15 @@
 
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
+## [v1.5.8] - 2026-01-26
+
+### Added
+- **Merge Preview**: Added play button to preview merged audio before downloading.
+- **Drag & Drop Reordering**: Support reordering files in the merge list via drag and drop.
+
+### Optimized
+- **Memory Usage**: Implemented strict memory release logic during large file operations to prevent crashes.
+
 ## [v1.5.7] - 2026-01-26
 
 ### Added

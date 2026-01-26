@@ -1033,7 +1033,7 @@ class AppController {
     setupMergeListeners() {
         const uploadArea = document.getElementById('mergeUploadArea');
         const fileInput = document.getElementById('mergeFileInput');
-        const btnMergeProcess = document.getElementById('btnMergeProcess');
+        const btnMergePreview = document.getElementById('btnMergePreview');
 
         if (!uploadArea || !fileInput || !btnMergeProcess) return;
 
@@ -1060,7 +1060,10 @@ class AppController {
             this.addFilesToMerge(files);
         });
 
-        btnMergeProcess.addEventListener('click', () => this.processMerge());
+        btnMergeProcess.addEventListener('click', () => this.processMerge(false));
+        if (btnMergePreview) {
+            btnMergePreview.addEventListener('click', () => this.processMerge(true));
+        }
 
         // Render initial empty list
         this.renderMergeList();
@@ -1086,6 +1089,45 @@ class AppController {
         this.state.mergeFiles.forEach((file, index) => {
             const item = document.createElement('div');
             item.className = 'merge-item';
+            // Drag properties
+            item.draggable = true;
+            item.dataset.index = index;
+
+            item.addEventListener('dragstart', (e) => {
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', index);
+                item.classList.add('dragging');
+            });
+
+            item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+                document.querySelectorAll('.merge-item').forEach(el => el.classList.remove('drag-over-item'));
+            });
+
+            item.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                item.classList.add('drag-over-item');
+            });
+
+            item.addEventListener('dragleave', () => {
+                item.classList.remove('drag-over-item');
+            });
+
+            item.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                const toIndex = index;
+
+                if (fromIndex !== toIndex && !isNaN(fromIndex)) {
+                    // Reorder array
+                    const movedItem = this.state.mergeFiles[fromIndex];
+                    this.state.mergeFiles.splice(fromIndex, 1);
+                    this.state.mergeFiles.splice(toIndex, 0, movedItem);
+                    this.renderMergeList();
+                }
+            });
+
 
             const nameEl = document.createElement('div');
             nameEl.className = 'merge-item-name';
@@ -1117,13 +1159,19 @@ class AppController {
     /**
      * Process Merge
      */
-    async processMerge() {
+    /**
+     * Process Merge
+     * @param {boolean} isPreview 
+     */
+    async processMerge(isPreview = false) {
         if (this.state.mergeFiles.length < 2) {
             alert('請至少選擇兩個音訊檔案');
             return;
         }
 
-        const btn = document.getElementById('btnMergeProcess');
+        const btn = isPreview ? document.getElementById('btnMergePreview') : document.getElementById('btnMergeProcess');
+        if (!btn) return;
+
         const originalText = btn.textContent;
         btn.disabled = true;
         btn.textContent = typeof i18n !== 'undefined' ? i18n.t('processing_wait') : '處理中...';
@@ -1131,49 +1179,89 @@ class AppController {
         try {
             // Load all files
             const buffers = [];
+            // Optimization: Load one by one and try to be clean
             for (const file of this.state.mergeFiles) {
-                const result = await this.audioProcessor.loadFile(file); // This loads to this.audioProcessor.audioBuffer
+                const result = await this.audioProcessor.loadFile(file);
                 if (!result.success) throw new Error(`Load failed: ${file.name}`);
-                buffers.push(this.audioProcessor.audioBuffer); // Grab the buffer
+                buffers.push(this.audioProcessor.audioBuffer);
+                // We keep the buffer ref in array, but we should clear the class one to avoid confusion
+                // The AudioProcessor.loadFile sets 'this.audioBuffer'. We just pushed it to local array.
             }
 
             // Merge
             const mergedBuffer = this.audioProcessor.mergeBuffers(buffers);
             if (!mergedBuffer) throw new Error('Merge failed');
 
-            // Encode (Export)
-            const useMp3 = document.getElementById('mergeExportMp3').checked;
-            let blob;
-            let ext;
-            if (useMp3 && typeof lamejs !== 'undefined') {
-                blob = this.audioProcessor.audioBufferToMp3(mergedBuffer);
-                ext = 'mp3';
+            // --- Optimization: Release source buffers after merge ---
+            buffers.length = 0; // Clear reference array
+            this.audioProcessor.release(); // Clear processor internal ref
+
+            if (isPreview) {
+                // Preview Logic: Play in Main Player
+                // We need to set this merged buffer as the main buffer in processor
+                this.audioProcessor.audioBuffer = mergedBuffer;
+
+                const audioPlayer = document.getElementById('audioPlayer');
+                // Create a blob just for playback? Or use AudioBufferSourceNode?
+                // The app structure relies on audioPlayer.src for some events usually,
+                // but we can also use Web Audio API playback.
+                // However, to keep it simple with existing UI (play/pause buttons etc which rely on <audio>),
+                // let's convert to WAV blob and set as src.
+
+                const blob = this.audioProcessor.audioBufferToWav(mergedBuffer);
+                const url = URL.createObjectURL(blob);
+
+                this.state.currentFile = { name: "Merged_Preview.wav" }; // Mock
+
+                // Reuse handleFileSelect logic parts manually or call it?
+                // Calling handleFileSelect expects a File object.
+                // Let's implement a lighter update.
+
+                audioPlayer.src = url;
+                document.getElementById('fileName').textContent = "Merged Preview";
+                document.getElementById('fileDetails').textContent = `${TimeUtils.formatDuration(mergedBuffer.duration * 1000)}`;
+
+                document.getElementById('floatingPlayerInfo').textContent = "Preview Merged";
+                document.getElementById('floatingPlayerBar').style.display = 'flex';
+
+                audioPlayer.play();
+                document.getElementById('btnPlayPause').textContent = '⏸';
+
             } else {
-                blob = this.audioProcessor.audioBufferToWav(mergedBuffer);
-                ext = 'wav';
+                // Export Logic
+                const useMp3 = document.getElementById('mergeExportMp3').checked;
+                let blob;
+                let ext;
+                if (useMp3 && typeof lamejs !== 'undefined') {
+                    blob = this.audioProcessor.audioBufferToMp3(mergedBuffer);
+                    ext = 'mp3';
+                } else {
+                    blob = this.audioProcessor.audioBufferToWav(mergedBuffer);
+                    ext = 'wav';
+                }
+
+                // Download
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `merged_audio.${ext}`;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                alert(typeof i18n !== 'undefined' ? i18n.t('merge_success') : '合併成功！');
             }
-
-            // Download
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `merged_audio.${ext}`;
-            a.click();
-            URL.revokeObjectURL(url);
-
-            alert(typeof i18n !== 'undefined' ? i18n.t('merge_success') : '合併成功！');
 
         } catch (error) {
             console.error(error);
             const msg = typeof i18n !== 'undefined' ? i18n.t('merge_fail', { error: error.message }) : `合併失敗: ${error.message}`;
             alert(msg);
         } finally {
-            btn.disabled = false;
-            btn.textContent = originalText;
-            // Restore main audio buffer if needed
-            if (this.state.currentFile) {
-                await this.audioProcessor.loadFile(this.state.currentFile);
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = originalText;
             }
+            // If not preview, we might want to restore original file?
+            // If preview, we ALREADY replaced the context.
         }
     }
 
