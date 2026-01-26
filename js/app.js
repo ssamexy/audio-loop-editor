@@ -1303,43 +1303,43 @@ class AppController {
             }
         }
     }
-}
 
 
-/**
- * Setup Help Listeners
- */
-setupHelpListeners() {
-    const btnHelp = document.getElementById('btnHelp');
-    const modal = document.getElementById('manualModal');
-    const content = document.getElementById('manualContent');
-    if (!btnHelp || !modal || !content) return;
 
-    const closeBtn = modal.querySelector('.close-modal');
+    /**
+     * Setup Help Listeners
+     */
+    setupHelpListeners() {
+        const btnHelp = document.getElementById('btnHelp');
+        const modal = document.getElementById('manualModal');
+        const content = document.getElementById('manualContent');
+        if (!btnHelp || !modal || !content) return;
 
-    const openModal = () => {
-        content.innerHTML = typeof i18n !== 'undefined' ? i18n.t('manual_content') : 'Loading...';
-        // Also set title
-        const titleEl = document.createElement('h2');
-        titleEl.textContent = typeof i18n !== 'undefined' ? i18n.t('manual_title') : 'User Manual';
-        content.prepend(titleEl);
-        modal.style.display = 'block';
-    };
+        const closeBtn = modal.querySelector('.close-modal');
 
-    btnHelp.addEventListener('click', openModal);
+        const openModal = () => {
+            content.innerHTML = typeof i18n !== 'undefined' ? i18n.t('manual_content') : 'Loading...';
+            // Also set title
+            const titleEl = document.createElement('h2');
+            titleEl.textContent = typeof i18n !== 'undefined' ? i18n.t('manual_title') : 'User Manual';
+            content.prepend(titleEl);
+            modal.style.display = 'block';
+        };
 
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            modal.style.display = 'none';
+        btnHelp.addEventListener('click', openModal);
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+        }
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
         });
     }
-
-    window.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.style.display = 'none';
-        }
-    });
-}
 }
 
 // Instantiate and start app
