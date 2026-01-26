@@ -289,6 +289,49 @@ class AudioProcessor {
     }
 
     /**
+     * 合併多個 AudioBuffer
+     */
+    mergeBuffers(buffers) {
+        if (!buffers || buffers.length === 0) return null;
+        if (buffers.length === 1) return buffers[0];
+
+        // 1. Calculate total length and max channels/sampleRate
+        let totalLength = 0;
+        let channels = 1;
+        let sampleRate = buffers[0].sampleRate;
+
+        for (const buf of buffers) {
+            totalLength += buf.length;
+            channels = Math.max(channels, buf.numberOfChannels);
+            // We assume sample rates are compatible or we stick to the first one.
+            // Ideally we should resample, but for simplicity we stick to base sample Rate.
+            // A more robust implementation would resample everything to 44.1 or 48k.
+            // For now, let's just proceed.
+        }
+
+        const mergedBuffer = this.audioContext.createBuffer(
+            channels,
+            totalLength,
+            sampleRate
+        );
+
+        // 2. Copy data
+        let offset = 0;
+        for (const buf of buffers) {
+            for (let channel = 0; channel < channels; channel++) {
+                // If buffer has this channel, copy it. If not (mono -> stereo), copy partial or dup mono?
+                // Let's copy channel 0 if channel N not found (mono to stereo upmix simple)
+                const sourceData = buf.getChannelData(channel < buf.numberOfChannels ? channel : 0);
+                const targetData = mergedBuffer.getChannelData(channel);
+                targetData.set(sourceData, offset);
+            }
+            offset += buf.length;
+        }
+
+        return mergedBuffer;
+    }
+
+    /**
      * 取得音訊資訊
      */
     getInfo() {

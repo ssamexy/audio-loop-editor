@@ -2,6 +2,13 @@
 
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
+## [v1.5.7] - 2026-01-26
+
+### Added
+- **Merge Feature**: New "Merge Audio" section to combine multiple audio files into one and export as MP3/WAV.
+- **User Manual**: Added a Help (❓) button in the header that opens a friendly user manual.
+- **UI Layout**: Reordered player controls to `Play | Rewind | Forward | Loop` for better ergonomics.
+
 ## [v1.5.6] - 2026-01-26
 
 ### Added

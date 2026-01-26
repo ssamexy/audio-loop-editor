@@ -37,7 +37,41 @@ const i18n = {
             'overwrite_warning': '這將會清除所有現有段落並重新切分，確定嗎？',
             'marking_start_time': '已標註開始: {time}',
             'sub_menu_split_child': '↳ 二分為子段落 (保留此層)',
+            'sub_menu_split_child': '↳ 二分為子段落 (保留此層)',
             'sub_menu_split_sibling': '✂️ 同層切分 (取代此層)',
+
+            // Merge
+            'merge_title': '🔗 合併音訊',
+            'merge_upload_prompt': '點擊或拖曳多個音訊檔案到此處',
+            'merge_process': '🔗 合併並匯出',
+            'merge_fail': '合併失敗: {error}',
+            'merge_success': '合併成功！',
+            'remove_file': '移除檔案',
+
+            // Manual
+            'manual_title': '📖 使用說明',
+            'manual_content': `
+                <h3>1. 載入音訊</h3>
+                <ul>
+                    <li>點擊上方區塊選擇檔案，或直接將檔案拖曳進來。</li>
+                    <li>支援 MP3, WAV 等常見格式。</li>
+                </ul>
+                <h3>2. 播放控制</h3>
+                <ul>
+                    <li>使用下方懸浮播放列控制播放/暫停。</li>
+                    <li>快捷鍵：空白鍵 (播放/暫停)、左右方向鍵 (快進/退)。</li>
+                </ul>
+                <h3>3. 剪輯與標註</h3>
+                <ul>
+                    <li>使用「標註開始」與「標註結束」來設定新的段落。</li>
+                    <li>使用「自動切分」功能快速將音樂分成數段。</li>
+                </ul>
+                <h3>4. 匯出與合併</h3>
+                <ul>
+                    <li>在「匯出設定」勾選需要的格式 (MP3/WAV) 與打包方式 (ZIP)。</li>
+                    <li>若要合併多個檔案，請使用下方的「合併音訊」區塊。</li>
+                </ul>
+            `,
 
             // Segments
             'segment_list': '📋 分段列表',
@@ -201,6 +235,39 @@ const i18n = {
             'marking_start_time': 'Marked Start: {time}',
             'sub_menu_split_child': '↳ Split into Sub-segments (Keep Parent)',
             'sub_menu_split_sibling': '✂️ Split Here (Replace Parent)',
+
+            // Merge
+            'merge_title': '🔗 Merge Audio',
+            'merge_upload_prompt': 'Click or drag multiple audio files here',
+            'merge_process': '🔗 Merge & Export',
+            'merge_fail': 'Merge Failed: {error}',
+            'merge_success': 'Merge Successful!',
+            'remove_file': 'Remove File',
+
+            // Manual
+            'manual_title': '📖 User Manual',
+            'manual_content': `
+                <h3>1. Load Audio</h3>
+                <ul>
+                    <li>Click the upload area or drag & drop an audio file.</li>
+                    <li>Supports MP3, WAV, etc.</li>
+                </ul>
+                <h3>2. Playback Control</h3>
+                <ul>
+                    <li>Use the floating player bar at the bottom.</li>
+                    <li>Shortcuts: Space (Play/Pause), Left/Right Arrows (Seek).</li>
+                </ul>
+                <h3>3. Edit & Mark</h3>
+                <ul>
+                    <li>Use "Mark Start" and "Mark End" to define new segments.</li>
+                    <li>Use "Auto Split" to quickly divide audio into parts.</li>
+                </ul>
+                <h3>4. Export & Merge</h3>
+                <ul>
+                    <li>Check "Export as MP3" or "ZIP" in the Export settings.</li>
+                    <li>To merge files, use the "Merge Audio" section below.</li>
+                </ul>
+            `,
 
             // Footer
             'footer_desc': 'Audio segment editor designed for music practice',

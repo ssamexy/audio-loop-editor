@@ -20,7 +20,11 @@ class AppController {
             isLooping: false,
             isSeeking: false,
             currentSegmentRange: null, // {id, startMs, endMs}
-            seekStep: 10 // Default 10s
+            currentSegmentRange: null, // {id, startMs, endMs}
+            seekStep: 10, // Default 10s
+
+            // Merge State
+            mergeFiles: [] // Array of File objects
         };
     }
 
@@ -266,6 +270,15 @@ class AppController {
 
         // Marking & Splitting
         this.setupToolsListeners();
+
+        // Marking & Splitting
+        this.setupToolsListeners();
+
+        // Merge Feature
+        this.setupMergeListeners();
+
+        // Help Modal
+        this.setupHelpListeners();
 
         // Process Buttons
         document.getElementById('btnProcess').addEventListener('click', () => this.processAudio());
@@ -1009,6 +1022,192 @@ class AppController {
                     e.preventDefault();
                     this.seekBy(this.state.seekStep);
                     break;
+            }
+        });
+    }
+
+
+    /**
+     * Setup Merge Listeners
+     */
+    setupMergeListeners() {
+        const uploadArea = document.getElementById('mergeUploadArea');
+        const fileInput = document.getElementById('mergeFileInput');
+        const btnMergeProcess = document.getElementById('btnMergeProcess');
+
+        if (!uploadArea || !fileInput || !btnMergeProcess) return;
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('audio/'));
+            this.addFilesToMerge(files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
+            this.addFilesToMerge(files);
+        });
+
+        btnMergeProcess.addEventListener('click', () => this.processMerge());
+
+        // Render initial empty list
+        this.renderMergeList();
+    }
+
+    /**
+     * Add files to merge list
+     */
+    addFilesToMerge(files) {
+        if (files.length === 0) return;
+        this.state.mergeFiles = [...this.state.mergeFiles, ...files];
+        this.renderMergeList();
+    }
+
+    /**
+     * Render Merge List
+     */
+    renderMergeList() {
+        const listEl = document.getElementById('mergeList');
+        if (!listEl) return;
+        listEl.innerHTML = '';
+
+        this.state.mergeFiles.forEach((file, index) => {
+            const item = document.createElement('div');
+            item.className = 'merge-item';
+
+            const nameEl = document.createElement('div');
+            nameEl.className = 'merge-item-name';
+            nameEl.textContent = `${index + 1}. ${file.name}`;
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'btn-remove-merge';
+            removeBtn.innerHTML = '×';
+            const removeTitle = typeof i18n !== 'undefined' ? i18n.t('remove_file') : '移除檔案';
+            removeBtn.title = removeTitle;
+            removeBtn.onclick = () => {
+                this.state.mergeFiles.splice(index, 1);
+                this.renderMergeList();
+            };
+
+            const infoEl = document.createElement('div');
+            infoEl.className = 'merge-item-info';
+            // Async load to get duration? No, might be too heavy. Just show name for now.
+            // Or maybe just file size?
+            infoEl.textContent = TimeUtils.formatBytes != undefined ? TimeUtils.formatBytes(file.size) : `${Math.round(file.size / 1024)} KB`;
+
+            item.appendChild(nameEl);
+            item.appendChild(infoEl);
+            item.appendChild(removeBtn);
+            listEl.appendChild(item);
+        });
+    }
+
+    /**
+     * Process Merge
+     */
+    async processMerge() {
+        if (this.state.mergeFiles.length < 2) {
+            alert('請至少選擇兩個音訊檔案');
+            return;
+        }
+
+        const btn = document.getElementById('btnMergeProcess');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = typeof i18n !== 'undefined' ? i18n.t('processing_wait') : '處理中...';
+
+        try {
+            // Load all files
+            const buffers = [];
+            for (const file of this.state.mergeFiles) {
+                const result = await this.audioProcessor.loadFile(file); // This loads to this.audioProcessor.audioBuffer
+                if (!result.success) throw new Error(`Load failed: ${file.name}`);
+                buffers.push(this.audioProcessor.audioBuffer); // Grab the buffer
+            }
+
+            // Merge
+            const mergedBuffer = this.audioProcessor.mergeBuffers(buffers);
+            if (!mergedBuffer) throw new Error('Merge failed');
+
+            // Encode (Export)
+            const useMp3 = document.getElementById('mergeExportMp3').checked;
+            let blob;
+            let ext;
+            if (useMp3 && typeof lamejs !== 'undefined') {
+                blob = this.audioProcessor.audioBufferToMp3(mergedBuffer);
+                ext = 'mp3';
+            } else {
+                blob = this.audioProcessor.audioBufferToWav(mergedBuffer);
+                ext = 'wav';
+            }
+
+            // Download
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `merged_audio.${ext}`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            alert(typeof i18n !== 'undefined' ? i18n.t('merge_success') : '合併成功！');
+
+        } catch (error) {
+            console.error(error);
+            const msg = typeof i18n !== 'undefined' ? i18n.t('merge_fail', { error: error.message }) : `合併失敗: ${error.message}`;
+            alert(msg);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+            // Restore main audio buffer if needed
+            if (this.state.currentFile) {
+                await this.audioProcessor.loadFile(this.state.currentFile);
+            }
+        }
+    }
+
+    /**
+     * Setup Help Listeners
+     */
+    setupHelpListeners() {
+        const btnHelp = document.getElementById('btnHelp');
+        const modal = document.getElementById('manualModal');
+        const content = document.getElementById('manualContent');
+        if (!btnHelp || !modal || !content) return;
+
+        const closeBtn = modal.querySelector('.close-modal');
+
+        const openModal = () => {
+            content.innerHTML = typeof i18n !== 'undefined' ? i18n.t('manual_content') : 'Loading...';
+            // Also set title
+            const titleEl = document.createElement('h2');
+            titleEl.textContent = typeof i18n !== 'undefined' ? i18n.t('manual_title') : 'User Manual';
+            content.prepend(titleEl);
+            modal.style.display = 'block';
+        };
+
+        btnHelp.addEventListener('click', openModal);
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+        }
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
             }
         });
     }

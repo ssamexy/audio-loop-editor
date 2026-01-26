@@ -16,7 +16,8 @@
         <header class="header">
             <h1 data-i18n="app_title">🎵 Audio Loop Editor</h1>
             <p class="subtitle" data-i18n="app_subtitle">音訊分段剪輯與循環練習工具 - 支援毫秒精度、多段剪輯、試播放</p>
-            <div class="version">v1.5.6</div>
+            <div class="version">v1.5.7</div>
+            <button id="btnHelp" class="help-btn" title="Help">❓</button>
         </header>
 
         <!-- Main Content -->
@@ -143,6 +144,27 @@
                     <div class="progress-text" id="progressText" data-i18n="preparing">準備中...</div>
                 </div>
             </section>
+
+            <!-- Merge Audio Section -->
+            <section class="section merge-section" id="mergeSection">
+                <h2 data-i18n="merge_title">🔗 合併音訊</h2>
+                <div class="merge-container">
+                    <div class="merge-upload-area" id="mergeUploadArea">
+                        <input type="file" id="mergeFileInput" accept="audio/*" multiple hidden>
+                        <p data-i18n="merge_upload_prompt">點擊或拖曳多個音訊檔案到此處</p>
+                    </div>
+                    <div class="merge-list" id="mergeList">
+                        <!-- Merged files list -->
+                    </div>
+                    <div class="merge-controls">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="mergeExportMp3" checked>
+                            <span data-i18n="export_mp3">輸出為 MP3</span>
+                        </label>
+                        <button class="btn btn-primary" id="btnMergeProcess" data-i18n="merge_process">🔗 合併並匯出</button>
+                    </div>
+                </div>
+            </section>
         </main>
 
         <!-- Footer -->
@@ -159,11 +181,21 @@
         </footer>
     </div>
 
+    <!-- User Manual Modal -->
+    <div id="manualModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="manual-body" id="manualContent">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </div>
+
     <!-- Floating Player Bar -->
     <div class="floating-player-bar" id="floatingPlayerBar" style="display: none;">
         <div class="floating-player-controls">
-            <button id="btnRewind" class="btn-player" title="倒退">⏪</button>
             <button id="btnPlayPause" class="btn-player" title="播放/暫停">▶</button>
+            <button id="btnRewind" class="btn-player" title="倒退">⏪</button>
             <button id="btnForward" class="btn-player" title="前進">⏩</button>
             <button id="btnLoop" class="btn-player" title="循環播放">🔁</button>
         </div>
