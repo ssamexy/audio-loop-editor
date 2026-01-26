@@ -1167,8 +1167,8 @@ class AppController {
             // If it's the first render where we might not have duration yet (if legacy), handle gracefully
             // But addFilesToMerge ensures we have it.
 
-            const startStr = TimeUtils.formatTime(currentTime);
-            const endStr = TimeUtils.formatTime(currentTime + duration);
+            const startStr = TimeUtils.formatTime(currentTime * 1000);
+            const endStr = TimeUtils.formatTime((currentTime + duration) * 1000);
 
             // Update accumulator
             currentTime += duration;
