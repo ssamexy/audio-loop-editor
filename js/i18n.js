@@ -40,7 +40,6 @@ const i18n = {
             'overwrite_warning': '這將會清除所有現有段落並重新切分，確定嗎？',
             'marking_start_time': '已標註開始: {time}',
             'sub_menu_split_child': '↳ 二分為子段落 (保留此層)',
-            'sub_menu_split_child': '↳ 二分為子段落 (保留此層)',
             'sub_menu_split_sibling': '✂️ 同層切分 (取代此層)',
 
             // Merge
@@ -54,7 +53,6 @@ const i18n = {
             'merge_error_min_files': '請至少選擇兩個音訊檔案',
             'merge_error_min_files': '請至少選擇兩個音訊檔案',
             'preview_segment': '試聽片段',
-            'merge_process': '🔗 合併並匯出',
             'merge_process': '🔗 合併並匯出',
 
             // Video Converter
@@ -290,7 +288,6 @@ const i18n = {
             'filename_placeholder': 'Filename (no ext)',
             'merge_error_min_files': 'Please select at least two audio files',
             'preview_segment': 'Preview Segment',
-            'merge_process': '🔗 Merge and Export',
             'merge_process': '🔗 Merge and Export',
 
             // Video Converter
