@@ -14,7 +14,9 @@ const i18n = {
 
             // File Upload
             'select_audio': '📁 選擇音訊檔案',
+            'select_video': '🎬 選擇影片檔案',
             'upload_prompt': '點擊或拖曳音訊檔案到此處',
+            'video_upload_prompt': '點擊或拖曳影片檔案到此處 (MP4, WEBM, MOV...)',
             'upload_hint': '支援 MP3, WAV, OGG, M4A 等格式',
             'drop_json_hint': '將 JSON 設定檔拖曳至此處可快速匯入',
             'drop_json_to_import': '放開以匯入設定檔',
@@ -49,30 +51,43 @@ const i18n = {
             'remove_file': '移除檔案',
             'filename_placeholder': '合併檔名 (無副檔名)',
             'merge_error_min_files': '請至少選擇兩個音訊檔案',
+            'merge_error_min_files': '請至少選擇兩個音訊檔案',
             'preview_segment': '試聽片段',
+
+            // Video Converter
+            'video_convert_title': '🎞️ 影片轉音訊',
+            'video_convert_desc': '將影片檔案轉換為 WAV 或 MP3 音訊檔',
+            'convert_process': '🔄 開始轉換',
+            'convert_success': '轉換成功！',
+            'video_file_too_large': '⚠️ 影片檔案較大，解碼可能需要一些時間，請耐心等待',
+
+            // Feature Sections
+            'feature_split_title': '✂️ 音樂分段剪輯',
+            'feature_merge_title': '🔗 音樂合併工具',
+            'feature_converter_title': '🎞️ 影片轉音訊工具',
 
             // Manual
             'manual_title': '📖 使用說明',
             'manual_content': `
-                <h3>1. 載入音訊</h3>
+                <h3>1. 音樂分段剪輯</h3>
                 <ul>
-                    <li>點擊上方區塊選擇檔案，或直接將檔案拖曳進來。</li>
-                    <li>支援 MP3, WAV 等常見格式。</li>
+                    <li>點擊「選擇音訊檔案」載入 MP3/WAV。</li>
+                    <li>使用「標註開始/結束」或「自動切分」來分割音樂。</li>
+                    <li>勾選「輸出為 MP3」並點擊「開始剪輯」即可下載。</li>
                 </ul>
-                <h3>2. 播放控制</h3>
+                <h3>2. 音樂合併工具</h3>
                 <ul>
-                    <li>使用下方懸浮播放列控制播放/暫停。</li>
-                    <li>快捷鍵：空白鍵 (播放/暫停)、左右方向鍵 (快進/退)。</li>
+                    <li>將多個音訊檔案拖曳到合併區塊。</li>
+                    <li>調整順序後，點擊「合併並匯出」。</li>
                 </ul>
-                <h3>3. 剪輯與標註</h3>
+                <h3>3. 影片轉音訊</h3>
                 <ul>
-                    <li>使用「標註開始」與「標註結束」來設定新的段落。</li>
-                    <li>使用「自動切分」功能快速將音樂分成數段。</li>
+                    <li>載入影片檔 (支援 MP4/MOV 等)。</li>
+                    <li>選擇輸出格式 (WAV/MP3) 並轉換。</li>
                 </ul>
-                <h3>4. 匯出與合併</h3>
+                <h3>播放控制快捷鍵</h3>
                 <ul>
-                    <li>在「匯出設定」勾選需要的格式 (MP3/WAV) 與打包方式 (ZIP)。</li>
-                    <li>若要合併多個檔案，請使用下方的「合併音訊」區塊。</li>
+                    <li>空白鍵 (播放/暫停)、左右方向鍵 (快進/退)。</li>
                 </ul>
             `,
 
@@ -162,7 +177,9 @@ const i18n = {
 
             // File Upload
             'select_audio': '📁 Select Audio File',
+            'select_video': '🎬 Select Video File',
             'upload_prompt': 'Click or drag audio file here',
+            'video_upload_prompt': 'Click or drag video file here (MP4, WEBM...)',
             'upload_hint': 'Supports MP3, WAV, OGG, M4A formats',
             'drop_json_hint': 'Drag JSON settings file here to import',
             'drop_json_to_import': 'Drop to import settings',
@@ -250,28 +267,40 @@ const i18n = {
             'merge_error_min_files': 'Please select at least two audio files',
             'preview_segment': 'Preview Segment',
 
+            // Video Converter
+            'video_convert_title': '🎞️ Video to Audio',
+            'video_convert_desc': 'Convert video files to WAV or MP3 audio',
+            'convert_process': '🔄 Start Conversion',
+            'convert_success': 'Conversion Successful!',
+            'video_file_too_large': '⚠️ Video files may be large, decoding might take time.',
+
+            // Feature Sections
+            'feature_split_title': '✂️ Audio Splitter',
+            'feature_merge_title': '🔗 Audio Merger',
+            'feature_converter_title': '🎞️ Video Converter',
+
             // Manual
             'manual_title': '📖 User Manual',
             'manual_content': `
-                <h3>1. Load Audio</h3>
+                <h3>1. Audio Splitter</h3>
                 <ul>
-                    <li>Click the upload area or drag & drop an audio file.</li>
-                    <li>Supports MP3, WAV, etc.</li>
+                    <li>Load audio file (MP3/WAV).</li>
+                    <li>Use "Mark" or "Auto Split" tools.</li>
+                    <li>Export segments as ZIP or individual files.</li>
                 </ul>
-                <h3>2. Playback Control</h3>
+                <h3>2. Audio Merger</h3>
                 <ul>
-                    <li>Use the floating player bar at the bottom.</li>
-                    <li>Shortcuts: Space (Play/Pause), Left/Right Arrows (Seek).</li>
+                    <li>Drag multiple files into the merge area.</li>
+                    <li>Reorder if needed and click "Merge & Export".</li>
                 </ul>
-                <h3>3. Edit & Mark</h3>
+                <h3>3. Video Converter</h3>
                 <ul>
-                    <li>Use "Mark Start" and "Mark End" to define new segments.</li>
-                    <li>Use "Auto Split" to quickly divide audio into parts.</li>
+                    <li>Load video file (MP4/MOV).</li>
+                    <li>Select format and convert to audio.</li>
                 </ul>
-                <h3>4. Export & Merge</h3>
+                <h3>Shortcuts</h3>
                 <ul>
-                    <li>Check "Export as MP3" or "ZIP" in the Export settings.</li>
-                    <li>To merge files, use the "Merge Audio" section below.</li>
+                    <li>Space (Play/Pause), Left/Right Arrows (Seek).</li>
                 </ul>
             `,
 

@@ -8,6 +8,7 @@ class AppController {
         // Core Managers
         this.segmentManager = null;
         this.audioProcessor = null;
+        this.videoProcessor = null;
         this.uiController = null;
 
         // Application State
@@ -33,7 +34,9 @@ class AppController {
      */
     init() {
         this.setupInstances();
+        this.setupInstances();
         this.setupGlobalListeners();
+        this.setupVideoConverterListeners();
 
         // Initialize i18n if available
         if (typeof i18n !== 'undefined' && i18n.init) {
@@ -77,7 +80,9 @@ class AppController {
      */
     setupInstances() {
         this.segmentManager = new SegmentManager();
+        this.segmentManager = new SegmentManager();
         this.audioProcessor = new AudioProcessor();
+        this.videoProcessor = new AudioProcessor();
 
         // UIController receives callbacks to communicate back to AppController
         this.uiController = new UIController(
@@ -1305,6 +1310,143 @@ class AppController {
     }
 
 
+
+    /**
+     * Setup Video Converter Listeners
+     */
+    setupVideoConverterListeners() {
+        const uploadArea = document.getElementById('videoUploadArea');
+        const fileInput = document.getElementById('videoFileInput');
+        const btnConvert = document.getElementById('btnVideoConvert');
+
+        if (!uploadArea || !fileInput) return;
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                this.handleVideoFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                this.handleVideoFile(e.target.files[0]);
+            }
+        });
+
+        if (btnConvert) {
+            btnConvert.addEventListener('click', () => this.processVideoConversion());
+        }
+    }
+
+    /**
+     * Handle Video File Load
+     * @param {File} file 
+     */
+    async handleVideoFile(file) {
+        const fileNameEl = document.getElementById('videoFileName');
+        const fileDetailsEl = document.getElementById('videoFileDetails');
+        const fileInfoEl = document.getElementById('videoFileInfo');
+        const videoControls = document.getElementById('videoControls');
+
+        if (!fileNameEl || !fileDetailsEl) return;
+
+        // Show loading state
+        fileNameEl.textContent = file.name;
+        fileDetailsEl.textContent = typeof i18n !== 'undefined' ? i18n.t('loading') : 'Loading...';
+        fileInfoEl.style.display = 'block';
+
+        const result = await this.videoProcessor.loadFile(file);
+
+        if (result.success) {
+            const buffer = this.videoProcessor.audioBuffer;
+            const duration = TimeUtils.formatDuration(buffer.duration * 1000);
+            const size = TimeUtils.formatBytes ? TimeUtils.formatBytes(file.size) : `${Math.round(file.size / 1024 / 1024 * 100) / 100} MB`;
+
+            fileDetailsEl.textContent = `${duration} | ${buffer.numberOfChannels} ch | ${buffer.sampleRate} Hz | ${size}`;
+
+            if (videoControls) videoControls.style.display = 'block';
+        } else {
+            fileDetailsEl.textContent = `Error: ${result.error}`;
+            alert(`Failed to load video: ${result.error}`);
+        }
+    }
+
+    /**
+     * Process Video Conversion
+     */
+    async processVideoConversion() {
+        if (!this.videoProcessor.audioBuffer) return;
+
+        const btn = document.getElementById('btnVideoConvert');
+        const progressContainer = document.getElementById('videoProgressContainer');
+        const progressBar = document.getElementById('videoProgressFill');
+        const progressText = document.getElementById('videoProgressText');
+
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = typeof i18n !== 'undefined' ? i18n.t('processing_wait') : 'Processing...';
+
+        if (progressContainer) {
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+        }
+
+        try {
+            await new Promise(resolve => setTimeout(resolve, 50)); // Yield UI
+
+            if (progressContainer) progressBar.style.width = '30%';
+
+            const isMp3 = document.getElementById('videoExportMp3').checked;
+            const fileNameEl = document.getElementById('videoFileName');
+            let filename = fileNameEl.textContent || 'video_audio';
+            filename = filename.replace(/\.[^/.]+$/, ""); // Remove extension
+
+            if (isMp3) {
+                if (progressContainer) {
+                    progressText.textContent = "Encoding MP3...";
+                    progressBar.style.width = '50%';
+                }
+                // Allow UI update
+                await new Promise(resolve => setTimeout(resolve, 50));
+
+                const blob = this.videoProcessor.audioBufferToMp3(this.videoProcessor.audioBuffer);
+                this.downloadBlob(blob, `${filename}.mp3`);
+            } else {
+                if (progressContainer) progressText.textContent = "Encoding WAV...";
+                const blob = this.videoProcessor.audioBufferToWav(this.videoProcessor.audioBuffer);
+                this.downloadBlob(blob, `${filename}.wav`);
+            }
+
+            if (progressContainer) {
+                progressBar.style.width = '100%';
+                progressText.textContent = typeof i18n !== 'undefined' ? i18n.t('convert_success') : 'Success!';
+            }
+
+        } catch (error) {
+            console.error(error);
+            alert('Conversion failed: ' + error.message);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+            setTimeout(() => {
+                if (progressContainer) progressContainer.style.display = 'none';
+            }, 3000);
+        }
+    }
 
     /**
      * Setup Help Listeners

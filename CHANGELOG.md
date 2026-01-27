@@ -2,7 +2,16 @@
 
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
-## [v1.5.9] - 2026-01-26
+
+## [v1.6.0] - 2026-01-26
+
+### Added
+- **Video to Audio**: New feature to convert video files (MP4, MOV, etc.) to WAV or MP3 audio directly in the browser.
+- **UI Structure**: Restructured the application into three distinct, easy-to-use sections: "Audio Splitter", "Audio Merger", and "Video Converter".
+
+### Changed
+- **Layout**: Main functionality screens are now stacked top-to-bottom with clear section headers for better navigation.
+
 
 ### Added
 - **Merge Improvements**:

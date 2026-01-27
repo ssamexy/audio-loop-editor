@@ -108,15 +108,48 @@ body {
     border-radius: 8px;
     padding: 25px;
     margin-bottom: 20px;
-    box-shadow: var(--shadow);
+    /* Box shadow removed here to avoid nested card look issues, controlled by feature-block now or kept minimal */
+    border: 1px solid var(--border-color);
 }
 
 .section h2 {
-    font-size: 1.5rem;
-    margin-bottom: 20px;
+    font-size: 1.3rem;
+    margin-bottom: 15px;
     color: var(--text-color);
-    border-bottom: 2px solid var(--primary-color);
-    padding-bottom: 10px;
+    border-bottom: 2px solid var(--bg-color);
+    padding-bottom: 8px;
+}
+
+/* ===== Feature Blocks (New Top Level layout) ===== */
+.feature-block {
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 40px;
+    /* More space between main features */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    /* Conspicuous shadow */
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.feature-title {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 25px;
+    font-size: 1.4rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Add padding to the content area of feature block */
+.feature-block .section {
+    margin: 20px;
+    box-shadow: none;
+    /* Flat inside */
+    background: var(--bg-color);
+    /* Slight contrast inside white feature block */
 }
 
 /* ===== File Upload ===== */
@@ -127,6 +160,8 @@ body {
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
+    background: white;
+    /* Ensure upload area is white */
 }
 
 .upload-area:hover {

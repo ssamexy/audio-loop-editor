@@ -20,9 +20,12 @@
 - ⚡ **自動切分** - 一鍵將音訊平均分割成多段
 - 📥 **JSON 匯入/匯出** - 儲存與載入分段設定
 - 💾 **批次匯出** - 一次下載所有剪輯片段 (WAV/MP3)
+- 🔗 **音訊合併** - 將多個音訊檔案合併為一個檔案
+- 🎞️ **影片轉音訊** - 直接將影片 (MP4/MOV) 轉為 WAV/MP3 音訊
 - 🔄 **循環播放** - 段落循環練習功能
 - 🌐 **雙語介面** - 支援繁體中文與英文
 - 🔒 **完全離線** - 所有處理在瀏覽器完成，不上傳任何檔案
+
 
 ### 🚀 線上使用
 
@@ -68,9 +71,12 @@
 - ⚡ **Auto Split** - One-click split audio into equal parts
 - 📥 **JSON Import/Export** - Save and load segment settings
 - 💾 **Batch Export** - Download all segments at once (WAV/MP3)
+- 🔗 **Audio Merging** - Combine multiple audio files into one
+- 🎞️ **Video to Audio** - Convert video files (MP4/MOV) to WAV/MP3 audio directly
 - 🔄 **Loop Playback** - Segment loop practice mode
 - 🌐 **Bilingual UI** - Supports Traditional Chinese and English
 - 🔒 **Fully Offline** - All processing done in browser, no file uploads
+
 
 ### 🚀 Try It Online
 
