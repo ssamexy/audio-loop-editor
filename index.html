@@ -17,230 +17,303 @@
             <h1 data-i18n="app_title">🎵 Audio Loop Editor</h1>
             <p class="subtitle" data-i18n="app_subtitle">音訊分段剪輯與循環練習工具 - 支援毫秒精度、多段剪輯、試播放</p>
             <div class="version">v1.6.0</div>
-            <button id="btnHelp" class="help-btn" title="Help">❓</button>
         </header>
 
         <!-- Main Content -->
-        <main class="main-content">
-            <!-- Feature 1: Splitter -->
-            <div class="feature-block">
-                <h2 class="feature-title" data-i18n="feature_split_title">✂️ 音樂分段剪輯</h2>
+        <!-- Main Content Wrapper -->
+        <div class="main-wrapper">
+            <!-- Sidebar Navigation -->
+            <nav class="side-nav">
+                <a href="#splitter" class="nav-item active" data-target="splitter">
+                    <span class="nav-icon">✂️</span>
+                    <span class="nav-text" data-i18n="nav_splitter">剪輯</span>
+                </a>
+                <a href="#merger" class="nav-item" data-target="merger">
+                    <span class="nav-icon">🔗</span>
+                    <span class="nav-text" data-i18n="nav_merger">合併</span>
+                </a>
+                <a href="#video-converter" class="nav-item" data-target="video-converter">
+                    <span class="nav-icon">🎞️</span>
+                    <span class="nav-text" data-i18n="nav_video_converter">影片轉檔</span>
+                </a>
+                <a href="#audio-converter" class="nav-item" data-target="audio-converter">
+                    <span class="nav-icon">🎵</span>
+                    <span class="nav-text" data-i18n="nav_audio_converter">音訊轉檔</span>
+                </a>
+                <div class="nav-divider"></div>
+                <button id="btnSideHelp" class="nav-item help-item">
+                    <span class="nav-icon">❓</span>
+                    <span class="nav-text" data-i18n="manual_title">使用說明</span>
+                </button>
+            </nav>
 
-                <!-- File Upload Section -->
-                <section class="section file-upload-section">
-                    <div class="section-header-row">
-                        <h2 data-i18n="select_audio">📁 選擇音訊檔案</h2>
-                        <button id="btnPlayMain" class="btn btn-primary btn-play-main" data-i18n="play_main"
-                            data-i18n-title="play_main" title="播放主音訊" style="display: none;">
-                            ▶ 播放
-                        </button>
-                        <div class="lang-switcher">
-                            <button class="lang-btn" onclick="i18n.setLang('zh-TW')">中文</button>
-                            <button class="lang-btn" onclick="i18n.setLang('en')">EN</button>
-                        </div>
-                    </div>
-                    <div class="upload-area" id="uploadArea">
-                        <input type="file" id="fileInput" accept="audio/*" hidden>
-                        <div class="upload-prompt">
-                            <svg class="upload-icon" viewBox="0 0 24 24" width="48" height="48">
-                                <path fill="currentColor" d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" />
-                            </svg>
-                            <p data-i18n="upload_prompt">點擊或拖曳音訊檔案到此處</p>
-                            <p class="upload-hint" data-i18n="upload_hint">支援 MP3, WAV, OGG, M4A 等格式</p>
-                            <p class="upload-warning" data-i18n="memory_warning">⚠️ 提醒：音訊檔案越大，記憶體佔用越多</p>
-                        </div>
-                        <div class="file-info" id="fileInfo" style="display: none;">
-                            <div class="file-name" id="fileName"></div>
-                            <div class="file-details" id="fileDetails"></div>
-                        </div>
-                    </div>
-                    <!-- Hidden audio element for playback -->
-                    <audio id="audioPlayer" style="display: none;"></audio>
-                </section>
+            <main class="main-content">
+                <!-- Feature 1: Splitter -->
+                <div id="splitter" class="feature-block">
+                    <h2 class="feature-title" data-i18n="feature_split_title">✂️ 音樂分段剪輯</h2>
 
-                <!-- Settings Section -->
-                <section class="section settings-section" id="settingsSection" style="display: none;">
-                    <h2 data-i18n="settings">⚙️ 設定</h2>
-                    <div class="settings-grid">
-                        <div class="setting-item">
-                            <label for="stepSize" data-i18n="step_size">時間微調刻度 (秒):</label>
-                            <input type="number" id="stepSize" value="1" min="0.1" max="60" step="1">
-                            <div class="preset-buttons">
-                                <button class="btn-preset" data-step="500">0.5s</button>
-                                <button class="btn-preset" data-step="1000">1s</button>
-                                <button class="btn-preset" data-step="2000">2s</button>
+                    <!-- File Upload Section -->
+                    <section class="section file-upload-section">
+                        <div class="section-header-row">
+                            <h2 data-i18n="select_audio">📁 選擇音訊檔案</h2>
+                            <button id="btnPlayMain" class="btn btn-primary btn-play-main" data-i18n="play_main"
+                                data-i18n-title="play_main" title="播放主音訊" style="display: none;">
+                                ▶ 播放
+                            </button>
+                            <div class="lang-switcher">
+                                <button class="lang-btn" onclick="i18n.setLang('zh-TW')">中文</button>
+                                <button class="lang-btn" onclick="i18n.setLang('en')">EN</button>
                             </div>
                         </div>
-                        <div class="setting-item">
-                            <label data-i18n="main_tools">主音樂工具:</label>
-                            <div class="main-tools-buttons">
-                                <button class="btn btn-secondary" id="btnSplitMainAtCursor"
-                                    data-i18n="split_main_cursor">📍
-                                    主音樂二分</button>
-                                <button class="btn btn-secondary" id="btnMarkSegment" data-i18n="mark_start">🚩
-                                    標註開始</button>
+                        <div class="upload-area" id="uploadArea">
+                            <input type="file" id="fileInput" accept="audio/*" hidden>
+                            <div class="upload-prompt">
+                                <svg class="upload-icon" viewBox="0 0 24 24" width="48" height="48">
+                                    <path fill="currentColor" d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" />
+                                </svg>
+                                <p data-i18n="upload_prompt">點擊或拖曳音訊檔案到此處</p>
+                                <p class="upload-hint" data-i18n="upload_hint">支援 MP3, WAV, OGG, M4A 等格式</p>
+                                <p class="upload-warning" data-i18n="memory_warning">⚠️ 提醒：音訊檔案越大，記憶體佔用越多</p>
                             </div>
-                            <div id="markInfo" class="mark-info"
-                                style="display:none; color: var(--primary-color); margin-top: 5px; font-weight: bold;">
-                            </div>
-                        </div>
-                        <div class="setting-item">
-                            <label data-i18n="auto_split">自動切分:</label>
-                            <div class="auto-split-buttons">
-                                <button class="btn-split" data-segments="2">2 <span
-                                        data-i18n="segments">段</span></button>
-                                <button class="btn-split" data-segments="3">3 <span
-                                        data-i18n="segments">段</span></button>
-                                <button class="btn-split" data-segments="4">4 <span
-                                        data-i18n="segments">段</span></button>
-                                <button class="btn-split" data-segments="5">5 <span
-                                        data-i18n="segments">段</span></button>
-                                <button class="btn-split" data-segments="6">6 <span
-                                        data-i18n="segments">段</span></button>
-                                <button class="btn-split" id="btnCustomSplit" data-i18n="other">其他...</button>
+                            <div class="file-info" id="fileInfo" style="display: none;">
+                                <div class="file-name" id="fileName"></div>
+                                <div class="file-details" id="fileDetails"></div>
                             </div>
                         </div>
-                    </div>
-                </section>
+                        <!-- Hidden audio element for playback -->
+                        <audio id="audioPlayer" style="display: none;"></audio>
+                    </section>
 
-                <!-- Segments Section -->
-                <section class="section segments-section" id="segmentsSection" style="display: none;">
-                    <h2 data-i18n="segment_list">📋 分段列表</h2>
-                    <div class="segments-header">
-                        <div class="segment-col-id" data-i18n="id">編號</div>
-                        <div class="segment-col-name" data-i18n="segment_name">段落名稱</div>
-                        <div class="segment-col-time" data-i18n="start_time">開始時間</div>
-                        <div class="segment-col-time" data-i18n="end_time">結束時間</div>
-                        <div class="segment-col-actions" data-i18n="actions">操作</div>
-                    </div>
-                    <div class="segments-list" id="segmentsList">
-                        <!-- Segments will be added here dynamically -->
-                    </div>
-                    <div class="segments-controls">
-                        <button class="btn btn-primary" id="btnAddSegment" data-i18n="add_segment">➕ 新增段落</button>
-                        <button class="btn btn-secondary" id="btnImportJSON" data-i18n="import_settings">📥
-                            匯入段落設定</button>
-                        <button class="btn btn-secondary" id="btnExportJSON" data-i18n="export_settings">📤
-                            匯出段落設定</button>
-                        <button class="btn btn-danger" id="btnClearAll" data-i18n="clear_all">🗑 清除全部</button>
-                    </div>
-                </section>
+                    <!-- Settings Section -->
+                    <section class="section settings-section" id="settingsSection" style="display: none;">
+                        <h2 data-i18n="settings">⚙️ 設定</h2>
+                        <div class="settings-grid">
+                            <div class="setting-item">
+                                <label for="stepSize" data-i18n="step_size">時間微調刻度 (秒):</label>
+                                <input type="number" id="stepSize" value="1" min="0.1" max="60" step="1">
+                                <div class="preset-buttons">
+                                    <button class="btn-preset" data-step="500">0.5s</button>
+                                    <button class="btn-preset" data-step="1000">1s</button>
+                                    <button class="btn-preset" data-step="2000">2s</button>
+                                </div>
+                            </div>
+                            <div class="setting-item">
+                                <label data-i18n="main_tools">主音樂工具:</label>
+                                <div class="main-tools-buttons">
+                                    <button class="btn btn-secondary" id="btnSplitMainAtCursor"
+                                        data-i18n="split_main_cursor">📍
+                                        主音樂二分</button>
+                                    <button class="btn btn-secondary" id="btnMarkSegment" data-i18n="mark_start">🚩
+                                        標註開始</button>
+                                </div>
+                                <div id="markInfo" class="mark-info"
+                                    style="display:none; color: var(--primary-color); margin-top: 5px; font-weight: bold;">
+                                </div>
+                            </div>
+                            <div class="setting-item">
+                                <label data-i18n="auto_split">自動切分:</label>
+                                <div class="auto-split-buttons">
+                                    <button class="btn-split" data-segments="2">2 <span
+                                            data-i18n="segments">段</span></button>
+                                    <button class="btn-split" data-segments="3">3 <span
+                                            data-i18n="segments">段</span></button>
+                                    <button class="btn-split" data-segments="4">4 <span
+                                            data-i18n="segments">段</span></button>
+                                    <button class="btn-split" data-segments="5">5 <span
+                                            data-i18n="segments">段</span></button>
+                                    <button class="btn-split" data-segments="6">6 <span
+                                            data-i18n="segments">段</span></button>
+                                    <button class="btn-split" id="btnCustomSplit" data-i18n="other">其他...</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
-                <!-- Export Section -->
-                <section class="section export-section" id="exportSection" style="display: none;">
-                    <h2 data-i18n="export_title">💾 匯出設定</h2>
-                    <div class="export-options">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="exportMp3" checked>
-                            <span data-i18n="export_mp3">輸出為 MP3 (取消勾選則為 WAV)</span>
-                        </label>
-                        <p class="export-note" data-i18n="mp3_slow_note">💡 MP3 編碼需要較長時間，這是正常的</p>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="downloadZip" checked>
-                            <span data-i18n="download_zip">打包成 ZIP (取消勾選則個別下載)</span>
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="keepOriginal" checked>
-                            <span data-i18n="keep_original">同時保留完整版本</span>
-                        </label>
-                    </div>
-                    <div class="export-controls">
-                        <button class="btn btn-success btn-large" id="btnProcess" data-i18n="start_process">
-                            🎵 開始剪輯
-                        </button>
-                    </div>
-                    <div class="progress-container" id="progressContainer" style="display: none;">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="progressFill"></div>
+                    <!-- Segments Section -->
+                    <section class="section segments-section" id="segmentsSection" style="display: none;">
+                        <h2 data-i18n="segment_list">📋 分段列表</h2>
+                        <div class="segments-header">
+                            <div class="segment-col-id" data-i18n="id">編號</div>
+                            <div class="segment-col-name" data-i18n="segment_name">段落名稱</div>
+                            <div class="segment-col-time" data-i18n="start_time">開始時間</div>
+                            <div class="segment-col-time" data-i18n="end_time">結束時間</div>
+                            <div class="segment-col-actions" data-i18n="actions">操作</div>
                         </div>
-                        <div class="progress-text" id="progressText" data-i18n="preparing">準備中...</div>
-                    </div>
-                </section>
-            </div>
+                        <div class="segments-list" id="segmentsList">
+                            <!-- Segments will be added here dynamically -->
+                        </div>
+                        <div class="segments-controls">
+                            <button class="btn btn-primary" id="btnAddSegment" data-i18n="add_segment">➕ 新增段落</button>
+                            <button class="btn btn-secondary" id="btnImportJSON" data-i18n="import_settings">📥
+                                匯入段落設定</button>
+                            <button class="btn btn-secondary" id="btnExportJSON" data-i18n="export_settings">📤
+                                匯出段落設定</button>
+                            <button class="btn btn-danger" id="btnClearAll" data-i18n="clear_all">🗑 清除全部</button>
+                        </div>
+                    </section>
 
-            <!-- Feature 2: Merge -->
-            <div class="feature-block">
-                <h2 class="feature-title" data-i18n="feature_merge_title">🔗 音樂合併工具</h2>
-                <section class="section merge-section" id="mergeSection">
-                    <h2 data-i18n="merge_title">🔗 合併音訊</h2>
-                    <div class="merge-container">
-                        <div class="merge-upload-area" id="mergeUploadArea">
-                            <input type="file" id="mergeFileInput" accept="audio/*" multiple hidden>
-                            <p data-i18n="merge_upload_prompt">點擊或拖曳多個音訊檔案到此處</p>
-                        </div>
-                        <div class="merge-list" id="mergeList">
-                            <!-- Merged files list -->
-                        </div>
-                        <div class="merge-controls">
-                            <input type="text" id="mergeFilename" class="merge-filename-input" placeholder="合併檔名 (無副檔名)"
-                                data-i18n-placeholder="filename_placeholder">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="mergeExportMp3" checked>
-                                <span data-i18n="export_mp3">輸出為 MP3</span>
-                            </label>
-                            <button class="btn btn-secondary" id="btnMergePreview" data-i18n="merge_preview">▶
-                                試聽</button>
-                            <button class="btn btn-primary" id="btnMergeProcess" data-i18n="merge_process">🔗
-                                合併並匯出</button>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <!-- Feature 3: Video Converter (New) -->
-            <div class="feature-block">
-                <h2 class="feature-title" data-i18n="feature_converter_title">🎞️ 影片轉音訊工具</h2>
-                <section class="section video-convert-section">
-                    <h2 data-i18n="video_convert_title">🎞️ 影片轉音訊</h2>
-                    <div class="upload-area" id="videoUploadArea">
-                        <input type="file" id="videoFileInput" accept="video/*, .mkv" hidden>
-                        <div class="upload-prompt">
-                            <svg class="upload-icon" viewBox="0 0 24 24" width="48" height="48">
-                                <path fill="currentColor"
-                                    d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
-                            </svg>
-                            <p data-i18n="video_upload_prompt">點擊或拖曳影片檔案到此處</p>
-                            <p class="upload-hint" data-i18n="video_file_too_large">⚠️ 影片檔案較大，解碼可能需要一些時間</p>
-                        </div>
-                        <div class="file-info" id="videoFileInfo" style="display: none;">
-                            <div class="file-name" id="videoFileName"></div>
-                            <div class="file-details" id="videoFileDetails"></div>
-                        </div>
-                    </div>
-
-                    <div class="video-controls" id="videoControls" style="display: none; margin-top: 20px;">
+                    <!-- Export Section -->
+                    <section class="section export-section" id="exportSection" style="display: none;">
+                        <h2 data-i18n="export_title">💾 匯出設定</h2>
                         <div class="export-options">
                             <label class="checkbox-label">
-                                <input type="checkbox" id="videoExportMp3" checked>
-                                <span data-i18n="export_mp3">輸出為 MP3</span>
+                                <input type="checkbox" id="exportMp3" checked>
+                                <span data-i18n="export_mp3">輸出為 MP3 (取消勾選則為 WAV)</span>
+                            </label>
+                            <p class="export-note" data-i18n="mp3_slow_note">💡 MP3 編碼需要較長時間，這是正常的</p>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="downloadZip" checked>
+                                <span data-i18n="download_zip">打包成 ZIP (取消勾選則個別下載)</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="keepOriginal" checked>
+                                <span data-i18n="keep_original">同時保留完整版本</span>
                             </label>
                         </div>
-                        <button class="btn btn-primary btn-large" id="btnVideoConvert" data-i18n="convert_process">🔄
-                            開始轉換</button>
-                        <div class="progress-container" id="videoProgressContainer"
-                            style="display: none; margin-top: 15px;">
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="videoProgressFill"></div>
-                            </div>
-                            <div class="progress-text" id="videoProgressText" data-i18n="preparing">準備中...</div>
+                        <div class="export-controls">
+                            <button class="btn btn-success btn-large" id="btnProcess" data-i18n="start_process">
+                                🎵 開始剪輯
+                            </button>
                         </div>
-                    </div>
-                </section>
-            </div>
-        </main>
+                        <div class="progress-container" id="progressContainer" style="display: none;">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                            <div class="progress-text" id="progressText" data-i18n="preparing">準備中...</div>
+                        </div>
+                    </section>
+                    </section>
+                </div>
 
-        <!-- Footer -->
-        <footer class="footer">
-            <p>
-                🎵 <strong>Audio Loop Editor</strong> - <span data-i18n="footer_desc">專為音樂練習設計的分段剪輯工具</span>
-            </p>
-            <p>
-                <a href="https://github.com/ssamexy/audio-loop-editor" target="_blank">GitHub</a> |
-                <a href="./DISCLAIMER.md" target="_blank" data-i18n="disclaimer">免責聲明</a> |
-                <span data-i18n="footer_privacy">所有處理都在您的瀏覽器中完成，不會上傳任何檔案</span>
-            </p>
-            <p>&copy; 2026 ssamexy | MIT License</p>
-        </footer>
+                <!-- Feature 2: Merge -->
+                <div id="merger" class="feature-block">
+                    <h2 class="feature-title" data-i18n="feature_merge_title">🔗 音樂合併工具</h2>
+                    <section class="section merge-section" id="mergeSection">
+                        <h2 data-i18n="merge_title">🔗 合併音訊</h2>
+                        <div class="merge-container">
+                            <div class="merge-upload-area" id="mergeUploadArea">
+                                <input type="file" id="mergeFileInput" accept="audio/*" multiple hidden>
+                                <p data-i18n="merge_upload_prompt">點擊或拖曳多個音訊檔案到此處</p>
+                            </div>
+                            <div class="merge-list" id="mergeList">
+                                <!-- Merged files list -->
+                            </div>
+                            <div class="merge-controls">
+                                <input type="text" id="mergeFilename" class="merge-filename-input"
+                                    placeholder="合併檔名 (無副檔名)" data-i18n-placeholder="filename_placeholder">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="mergeExportMp3" checked>
+                                    <span data-i18n="export_mp3">輸出為 MP3</span>
+                                </label>
+                                <button class="btn btn-secondary" id="btnMergePreview" data-i18n="merge_preview">▶
+                                    試聽</button>
+                                <button class="btn btn-primary" id="btnMergeProcess" data-i18n="merge_process">🔗
+                                    合併並匯出</button>
+                            </div>
+                        </div>
+                    </section>
+                    </section>
+                </div>
+
+                <!-- Feature 3: Video Converter -->
+                <div id="video-converter" class="feature-block">
+                    <h2 class="feature-title" data-i18n="feature_converter_title">🎞️ 影片轉音訊工具</h2>
+                    <section class="section video-convert-section">
+                        <h2 data-i18n="video_convert_title">🎞️ 影片轉音訊</h2>
+                        <div class="upload-area" id="videoUploadArea">
+                            <input type="file" id="videoFileInput" accept="video/*, .mkv" hidden>
+                            <div class="upload-prompt">
+                                <svg class="upload-icon" viewBox="0 0 24 24" width="48" height="48">
+                                    <path fill="currentColor"
+                                        d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
+                                </svg>
+                                <p data-i18n="video_upload_prompt">點擊或拖曳影片檔案到此處</p>
+                                <p class="upload-hint" data-i18n="video_file_too_large">⚠️ 影片檔案較大，解碼可能需要一些時間</p>
+                            </div>
+                            <div class="file-info" id="videoFileInfo" style="display: none;">
+                                <div class="file-name" id="videoFileName"></div>
+                                <div class="file-details" id="videoFileDetails"></div>
+                            </div>
+                        </div>
+
+                        <div class="video-controls" id="videoControls" style="display: none; margin-top: 20px;">
+                            <div class="export-options">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="videoExportMp3" checked>
+                                    <span data-i18n="export_mp3">輸出為 MP3</span>
+                                </label>
+                            </div>
+                            <button class="btn btn-primary btn-large" id="btnVideoConvert"
+                                data-i18n="convert_process">🔄
+                                開始轉換</button>
+                            <div class="progress-container" id="videoProgressContainer"
+                                style="display: none; margin-top: 15px;">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="videoProgressFill"></div>
+                                </div>
+                                <div class="progress-text" id="videoProgressText" data-i18n="preparing">準備中...</div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+                </section>
+        </div>
+
+        <!-- Feature 4: Audio Converter (New) -->
+        <div id="audio-converter" class="feature-block">
+            <h2 class="feature-title" data-i18n="feature_audio_converter_title">🎵 音訊格式轉換工具</h2>
+            <section class="section audio-convert-section">
+                <h2 data-i18n="audio_convert_title">🎵 音訊格式轉換</h2>
+                <div class="upload-area" id="audioConvertUploadArea">
+                    <input type="file" id="audioConvertFileInput" accept="audio/*" hidden>
+                    <div class="upload-prompt">
+                        <svg class="upload-icon" viewBox="0 0 24 24" width="48" height="48">
+                            <path fill="currentColor"
+                                d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z" />
+                        </svg>
+                        <p data-i18n="audio_convert_upload_prompt">點擊或拖曳音訊檔案到此處</p>
+                        <p class="upload-hint" data-i18n="upload_hint">支援 MP3, WAV, OGG, M4A 等格式</p>
+                    </div>
+                    <div class="file-info" id="audioConvertFileInfo" style="display: none;">
+                        <div class="file-name" id="audioConvertFileName"></div>
+                        <div class="file-details" id="audioConvertFileDetails"></div>
+                    </div>
+                </div>
+
+                <div class="audio-convert-controls" id="audioConvertControls" style="display: none; margin-top: 20px;">
+                    <div class="export-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="audioConvertExportMp3" checked>
+                            <span data-i18n="export_mp3">輸出為 MP3</span>
+                        </label>
+                    </div>
+                    <button class="btn btn-primary btn-large" id="btnAudioConvertProcess" data-i18n="convert_process">🔄
+                        開始轉換</button>
+                    <div class="progress-container" id="audioConvertProgressContainer"
+                        style="display: none; margin-top: 15px;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="audioConvertProgressFill"></div>
+                        </div>
+                        <div class="progress-text" id="audioConvertProgressText" data-i18n="preparing">準備中...</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>
+            🎵 <strong>Audio Loop Editor</strong> - <span data-i18n="footer_desc">專為音樂練習設計的分段剪輯工具</span>
+        </p>
+        <p>
+            <a href="https://github.com/ssamexy/audio-loop-editor" target="_blank">GitHub</a> |
+            <a href="./DISCLAIMER.md" target="_blank" data-i18n="disclaimer">免責聲明</a> |
+            <span data-i18n="footer_privacy">所有處理都在您的瀏覽器中完成，不會上傳任何檔案</span>
+        </p>
+        <p>&copy; 2026 ssamexy | MIT License</p>
+    </footer>
     </div>
 
     <!-- User Manual Modal -->

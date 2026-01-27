@@ -29,9 +29,90 @@ body {
 
 /* ===== Container ===== */
 .container {
-    max-width: 1200px;
+    max-width: 1400px;
+    /* Increased to accommodate sidebar */
     margin: 0 auto;
     padding: 20px;
+}
+
+/* ===== Layout Wrapper (Sidebar + Content) ===== */
+.main-wrapper {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+.main-content {
+    flex: 1;
+    min-width: 0;
+    /* Prevents overflow issues */
+}
+
+/* ===== Sidebar Navigation ===== */
+.side-nav {
+    width: 200px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 15px;
+    position: sticky;
+    top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    color: var(--text-color);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+    cursor: pointer;
+    background: none;
+    text-align: left;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.nav-item:hover {
+    background-color: var(--bg-color);
+    color: var(--primary-color);
+}
+
+.nav-item.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3);
+}
+
+.nav-icon {
+    font-size: 1.2rem;
+}
+
+.nav-text {
+    font-weight: 500;
+}
+
+.nav-divider {
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 5px 0;
+}
+
+.help-item {
+    color: var(--primary-color);
+    margin-top: auto;
+    /* Push to bottom if fixed height */
+}
+
+.help-item:hover {
+    background-color: #eef2ff;
 }
 
 /* ===== Header ===== */
@@ -698,6 +779,39 @@ body {
 @media (max-width: 768px) {
     .header h1 {
         font-size: 1.8rem;
+    }
+
+    /* Change layout to column on small screens */
+    .main-wrapper {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .side-nav {
+        width: 100%;
+        position: static;
+        /* No longer sticky on mobile */
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 10px;
+        justify-content: center;
+    }
+
+    .nav-item {
+        flex: 1;
+        min-width: 100px;
+        /* Ensure buttons don't get too small */
+        justify-content: center;
+        padding: 10px;
+    }
+
+    .nav-text {
+        font-size: 0.9rem;
+    }
+
+    /* Hide divider on mobile row layout */
+    .nav-divider {
+        display: none;
     }
 
     .settings-grid {

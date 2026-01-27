@@ -37,6 +37,8 @@ class AppController {
         this.setupInstances();
         this.setupGlobalListeners();
         this.setupVideoConverterListeners();
+        this.setupAudioConverterListeners();
+        this.setupSidebarNav();
 
         // Initialize i18n if available
         if (typeof i18n !== 'undefined' && i18n.init) {
@@ -1353,6 +1355,67 @@ class AppController {
     }
 
     /**
+     * Setup Sidebar Navigation
+     */
+    setupSidebarNav() {
+        // Sticky/Smooth scroll behavior
+        document.querySelectorAll('.side-nav a.nav-item').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                // Update active state
+                document.querySelectorAll('.side-nav a.nav-item').forEach(a => a.classList.remove('active'));
+                this.classList.add('active');
+
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100, // Offset for header
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Update active state on scroll
+        window.addEventListener('scroll', () => {
+            const scrollPos = window.scrollY + 150; // Offset
+
+            document.querySelectorAll('.feature-block').forEach(block => {
+                const id = block.getAttribute('id');
+                if (!id) return;
+
+                if (block.offsetTop <= scrollPos && (block.offsetTop + block.offsetHeight) > scrollPos) {
+                    document.querySelectorAll('.side-nav a.nav-item').forEach(a => {
+                        a.classList.remove('active');
+                        if (a.getAttribute('href') === '#' + id) {
+                            a.classList.add('active');
+                        }
+                    });
+                }
+            });
+        });
+
+        // Side Help Button
+        const btnSideHelp = document.getElementById('btnSideHelp');
+        if (btnSideHelp) {
+            btnSideHelp.addEventListener('click', () => {
+                // Manually trigger modal open similar to main help button
+                const modal = document.getElementById('manualModal');
+                const content = document.getElementById('manualContent');
+
+                content.innerHTML = typeof i18n !== 'undefined' ? i18n.t('manual_content') : 'Loading...';
+                const titleEl = document.createElement('h2');
+                titleEl.textContent = typeof i18n !== 'undefined' ? i18n.t('manual_title') : 'User Manual';
+                content.prepend(titleEl);
+                modal.style.display = 'block';
+            });
+        }
+    }
+
+    /**
      * Handle Video File Load
      * @param {File} file 
      */
@@ -1446,6 +1509,159 @@ class AppController {
                 if (progressContainer) progressContainer.style.display = 'none';
             }, 3000);
         }
+    }
+
+    /**
+     * Setup Audio Converter Listeners
+     */
+    setupAudioConverterListeners() {
+        const uploadArea = document.getElementById('audioConvertUploadArea');
+        const fileInput = document.getElementById('audioConvertFileInput');
+        const btnConvert = document.getElementById('btnAudioConvertProcess');
+
+        if (!uploadArea || !fileInput) return;
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                this.handleAudioConvertFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                this.handleAudioConvertFile(e.target.files[0]);
+            }
+        });
+
+        if (btnConvert) {
+            btnConvert.addEventListener('click', () => this.processAudioConversion());
+        }
+    }
+
+    /**
+     * Handle Audio Convert File Load
+     * @param {File} file 
+     */
+    async handleAudioConvertFile(file) {
+        const fileNameEl = document.getElementById('audioConvertFileName');
+        const fileDetailsEl = document.getElementById('audioConvertFileDetails');
+        const fileInfoEl = document.getElementById('audioConvertFileInfo');
+        const controls = document.getElementById('audioConvertControls');
+
+        if (!fileNameEl || !fileDetailsEl) return;
+
+        // Show loading state
+        fileNameEl.textContent = file.name;
+        fileDetailsEl.textContent = typeof i18n !== 'undefined' ? i18n.t('loading') : 'Loading...';
+        fileInfoEl.style.display = 'block';
+
+        const result = await this.audioProcessor.loadFile(file); // Reuse audioProcessor for conversion
+
+        if (result.success) {
+            const buffer = this.audioProcessor.audioBuffer;
+            const duration = TimeUtils.formatDuration(buffer.duration * 1000);
+            const size = TimeUtils.formatBytes ? TimeUtils.formatBytes(file.size) : `${Math.round(file.size / 1024 / 1024 * 100) / 100} MB`;
+
+            fileDetailsEl.textContent = `${duration} | ${buffer.numberOfChannels} ch | ${buffer.sampleRate} Hz | ${size}`;
+
+            if (controls) controls.style.display = 'block';
+        } else {
+            fileDetailsEl.textContent = `Error: ${result.error}`;
+            alert(`Failed to load audio: ${result.error}`);
+        }
+    }
+
+    /**
+     * Process Audio Conversion
+     */
+    async processAudioConversion() {
+        if (!this.audioProcessor.audioBuffer) return;
+
+        const btn = document.getElementById('btnAudioConvertProcess');
+        const progressContainer = document.getElementById('audioConvertProgressContainer');
+        const progressBar = document.getElementById('audioConvertProgressFill');
+        const progressText = document.getElementById('audioConvertProgressText');
+
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = typeof i18n !== 'undefined' ? i18n.t('processing_wait') : 'Processing...';
+
+        if (progressContainer) {
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+        }
+
+        try {
+            await new Promise(resolve => setTimeout(resolve, 50)); // Yield UI
+
+            if (progressContainer) progressBar.style.width = '30%';
+
+            const isMp3 = document.getElementById('audioConvertExportMp3').checked;
+            const fileNameEl = document.getElementById('audioConvertFileName');
+            let filename = fileNameEl.textContent || 'converted_audio';
+            filename = filename.replace(/\.[^/.]+$/, ""); // Remove extension
+
+            if (isMp3) {
+                if (progressContainer) {
+                    progressText.textContent = "Encoding MP3...";
+                    progressBar.style.width = '50%';
+                }
+                // Allow UI update
+                await new Promise(resolve => setTimeout(resolve, 50));
+
+                const blob = this.audioProcessor.audioBufferToMp3(this.audioProcessor.audioBuffer);
+                this.downloadBlob(blob, `${filename}.mp3`);
+            } else {
+                if (progressContainer) progressText.textContent = "Encoding WAV...";
+                const blob = this.audioProcessor.audioBufferToWav(this.audioProcessor.audioBuffer);
+                this.downloadBlob(blob, `${filename}.wav`);
+            }
+
+            if (progressContainer) {
+                progressBar.style.width = '100%';
+                progressText.textContent = typeof i18n !== 'undefined' ? i18n.t('convert_success') : 'Success!';
+            }
+
+        } catch (error) {
+            console.error(error);
+            alert('Conversion failed: ' + error.message);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+            setTimeout(() => {
+                if (progressContainer) progressContainer.style.display = 'none';
+            }, 3000);
+        }
+    }
+
+    /**
+     * Download Blob
+     * @param {Blob} blob 
+     * @param {string} filename 
+     */
+    downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 
     /**
