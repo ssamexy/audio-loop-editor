@@ -3,6 +3,13 @@
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
 
+## [v1.7.6] - 2026-01-27
+
+### Fixed
+- **README**: Removed descriptions and technical details regarding "Waveform Visualization" as it is not yet implemented.
+- **I18n**: Fixed missing localization for the merge filename input field.
+- **Manual**: Removed misleading waveform references from the in-app user manual.
+
 ## [v1.7.5] - 2026-01-27
 
 ### Fixed

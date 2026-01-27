@@ -83,7 +83,7 @@ const i18n = {
                 <ul>
                     <li><strong>核心功能</strong>：這是本工具最精華的部分，提供毫秒級的音訊標註與分段。</li>
                     <li><strong>載入音訊</strong>：點擊或拖曳 MP3/WAV 檔案至上傳區。</li>
-                    <li><strong>精確剪輯</strong>：使用波形圖下方的「標註開始」按鈕記錄當前播放位置。</li>
+                    <li><strong>精確剪輯</strong>：使用「標註開始」按鈕記錄當前播放位置。</li>
                     <li><strong>時間微調</strong>：使用 +/- 按鈕進行毫秒級微調，步進大小可在設定中調整。</li>
                     <li><strong>自動切分</strong>：支援將音訊等分為 2-6 段，或點擊「其他」自訂數量。</li>
                     <li><strong>子段落</strong>：點擊「+子」按鈕，可依播放位置或時間單位快速建立階層式段落。</li>
@@ -317,7 +317,7 @@ const i18n = {
                 <ul>
                     <li><strong>Main Feature</strong>: This is the core of our tool, offering millisecond-precision audio marking and segmenting.</li>
                     <li><strong>Load Audio</strong>: Drag and drop MP3/WAV files to start.</li>
-                    <li><strong>Precise Editing</strong>: Use "Mark Start" with the waveform for millisecond precision.</li>
+                    <li><strong>Precise Editing</strong>: Use "Mark Start" to record the current playback position for millisecond precision.</li>
                     <li><strong>Time Fine-tuning</strong>: Use +/- buttons (Step size adjustable in Settings).</li>
                     <li><strong>Auto Split</strong>: Divide audio into 2-6 parts or custom amounts.</li>
                     <li><strong>Sub-segments</strong>: Create hierarchical sections via current position or time units.</li>

@@ -16,7 +16,6 @@
 - 🎯 **毫秒精度剪輯** - 精確到毫秒的時間控制 (`MM:SS.mmm`)
 - 📋 **多段落管理** - 支援多段落同時編輯與階層式子段落
 - ▶️ **即時試播放** - 點擊播放按鈕即可預覽每個片段
-- 📊 **波形視覺化** - 直觀的音訊波形顯示
 - ⚡ **自動切分** - 一鍵將音訊平均分割成多段
 - 📥 **JSON 匯入/匯出** - 儲存與載入分段設定
 - 💾 **批次匯出** - 一次下載所有剪輯片段 (WAV/MP3)
@@ -67,7 +66,6 @@
 - 🎯 **Millisecond Precision** - Accurate time control down to milliseconds (`MM:SS.mmm`)
 - 📋 **Multi-segment Management** - Edit multiple segments with hierarchical sub-segments
 - ▶️ **Instant Preview** - Click play to preview each segment
-- 📊 **Waveform Visualization** - Intuitive audio waveform display
 - ⚡ **Auto Split** - One-click split audio into equal parts
 - 📥 **JSON Import/Export** - Save and load segment settings
 - 💾 **Batch Export** - Download all segments at once (WAV/MP3)
@@ -109,7 +107,6 @@ Visit: **[https://ssamexy.github.io/audio-loop-editor/](https://ssamexy.github.i
 ## 🔧 Technical Details
 
 - **Web Audio API** - Audio processing and playback
-- **Canvas API** - Waveform visualization
 - **File API** - File reading and downloading
 - **Client-side Only** - No server required
 
