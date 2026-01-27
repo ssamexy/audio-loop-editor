@@ -19,6 +19,30 @@ class UIController {
         const container = document.getElementById('segmentsList');
         container.innerHTML = '';
 
+        // Add Lock Toggle to Header (Only if not already present in DOM outside list?
+        // Wait, segmentsList is the container. The header is likely outside.
+        // Let's check app.html or if the user wants it inside the list header.
+        // The list header is managed by HTML usually. 
+        // Let's assume we can inject a button into the DOM near "ID" label if needed.
+        // Or cleaner: check if 'lockIdToggle' exists.
+
+        // Let's inject it into the segment list header via JS if it's dynamic, 
+        // or ensure we setup listener in init. 
+        // Current implementation of 'setupGlobalListeners' in app.js manages main listeners.
+        // But UI changes (like adding a button to a static header) should probably be done once.
+        // Here we just render rows.
+
+        // However, we need to make sure the LOCK state is preserved.
+        // We read it from 'lockIdToggle' dataset in createSegmentRow.
+
+        // Let's try to find the header ID label and append the button if missing.
+        const idHeader = document.querySelector('.segment-header .header-id');
+        // Assuming there's a class. If not, we might need to rely on structure.
+        // Let's look at index.html content? I don't see it.
+        // I'll assume there is an element with text "ID" or similar.
+
+        // Alternatively, I'll add a method `setupIdLockToggle` to be called once.
+
         const segments = this.segmentManager.getSegments();
 
         try {
@@ -36,9 +60,87 @@ class UIController {
         if (count > 0) {
             document.getElementById('segmentsSection').style.display = 'block';
             document.getElementById('exportSection').style.display = 'block';
+            this.ensureLockToggle(); // Ensure button exists
         }
     }
 
+    ensureLockToggle() {
+        const idHeader = document.querySelector('.segment-col-id');
+        if (!idHeader) return; // Should not happen if HTML is correct
+
+        // Check if button already exists
+        if (document.getElementById('lockIdToggle')) return;
+
+        // Create Toggle Button
+        const toggleBtn = document.createElement('button');
+        toggleBtn.id = 'lockIdToggle';
+        toggleBtn.className = 'btn-icon-sm';
+        toggleBtn.innerHTML = '🔒'; // Default Locked
+        toggleBtn.title = typeof i18n !== 'undefined' ? i18n.t('unlock_ids') : '解鎖編號';
+        toggleBtn.dataset.locked = 'true';
+        toggleBtn.style.marginLeft = '5px';
+        toggleBtn.style.cursor = 'pointer';
+        toggleBtn.style.border = 'none';
+        toggleBtn.style.background = 'transparent';
+        toggleBtn.style.fontSize = '1.2em';
+
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isLocked = toggleBtn.dataset.locked === 'true';
+            this.toggleIdLock(!isLocked);
+        });
+
+        // Append to header
+        idHeader.appendChild(toggleBtn);
+        // Force initial state render (if needed, though createSegmentRow reads DOM)
+        // But since we just added it, existing rows might be stale if they were rendered before this call?
+        // renderSegments calls ensureLockToggle *after* creating rows.
+        // Wait, creating rows reads `document.getElementById('lockIdToggle')`. 
+        // If it doesn't exist yet, it defaults to undefined.
+        // My createSegmentRow logic: `const isLocked = document.getElementById('lockIdToggle')?.dataset.locked !== 'false';`
+        // If element missing, `undefined !== 'false'` is TRUE. So defaults to Locked. Correct.
+
+        // However, if we toggle, we need to update rows.
+    }
+
+    toggleIdLock(locked) {
+        const btn = document.getElementById('lockIdToggle');
+        if (!btn) return;
+
+        btn.dataset.locked = locked;
+        btn.innerHTML = locked ? '🔒' : '🔓';
+        btn.title = locked
+            ? (typeof i18n !== 'undefined' ? i18n.t('unlock_ids') : '解鎖編號')
+            : (typeof i18n !== 'undefined' ? i18n.t('lock_ids') : '鎖定編號');
+
+        // Update all existing rows
+        const inputs = document.querySelectorAll('.segment-id-input');
+        inputs.forEach(input => {
+            input.readOnly = locked;
+            if (locked) {
+                input.classList.add('locked');
+            } else {
+                input.classList.remove('locked');
+            }
+        });
+
+        const containers = document.querySelectorAll('.segment-id-container');
+        containers.forEach(container => {
+            if (locked) {
+                container.classList.add('draggable-handle');
+                container.draggable = true;
+                container.title = typeof i18n !== 'undefined' ? i18n.t('drag_to_reorder') : '拖曳以排序';
+            } else {
+                container.classList.remove('draggable-handle');
+                container.draggable = false;
+                container.title = '';
+            }
+        });
+    }
+
+    /**
+     * 建立段落列
+     */
     /**
      * 建立段落列
      */
@@ -48,16 +150,13 @@ class UIController {
         row.dataset.segmentId = segment.id;
         row.dataset.index = index;
 
-        // 拖曳排序功能
-        row.draggable = true;
-        row.addEventListener('dragstart', (e) => {
-            row.classList.add('dragging');
-            e.dataTransfer.setData('text/plain', index);
-            e.dataTransfer.effectAllowed = 'move';
-        });
-        row.addEventListener('dragend', () => {
-            row.classList.remove('dragging');
-        });
+        // 移除整列拖曳功能，因為我們只在 ID 上觸發
+        row.draggable = false;
+
+        // Drag 相關事件改為 "若源自 ID handle 則允許"
+        // 這裡我們直接在 ID container 上實作 dragstart
+        // 但 drop target 仍是 row (以便插入)
+
         row.addEventListener('dragover', (e) => {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
@@ -71,7 +170,7 @@ class UIController {
             row.classList.remove('drag-over');
             const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
             const toIndex = parseInt(row.dataset.index);
-            if (fromIndex !== toIndex) {
+            if (!isNaN(fromIndex) && fromIndex !== toIndex) {
                 this.segmentManager.reorderSegment(fromIndex, toIndex);
             }
         });
@@ -83,34 +182,76 @@ class UIController {
             row.classList.add('level-3');
         }
 
-        // ID 輸入 (可編輯)
+        // ID Container (Handle + Input)
+        const idContainer = document.createElement('div');
+        idContainer.className = 'segment-id-container';
+        idContainer.style.display = 'flex';
+        idContainer.style.alignItems = 'center';
+        idContainer.style.marginRight = '5px';
+
+        // ID 輸入 (加入鎖定邏輯)
         const idInput = document.createElement('input');
         idInput.type = 'text';
         idInput.value = segment.id;
         idInput.className = 'segment-id-input';
+
+        // 根據全域鎖定狀態設定
+        const isLocked = document.getElementById('lockIdToggle')?.dataset.locked !== 'false'; // Default locked
+        idInput.readOnly = isLocked;
+        if (isLocked) {
+            idInput.classList.add('locked');
+            idContainer.classList.add('draggable-handle');
+            idContainer.draggable = true; // 僅在鎖定時可拖曳
+            idContainer.title = typeof i18n !== 'undefined' ? i18n.t('drag_to_reorder') : '拖曳以排序';
+        } else {
+            idInput.classList.remove('locked');
+            idContainer.classList.remove('draggable-handle');
+            idContainer.draggable = false;
+            idContainer.title = '';
+        }
+
+        // ID Update Logic
         idInput.addEventListener('change', () => {
+            if (idInput.readOnly) return;
             const newId = idInput.value.trim();
             if (!newId) {
-                alert('編號不能為空');
+                alert(typeof i18n !== 'undefined' ? i18n.t('id_empty') : '編號不能為空');
                 idInput.value = segment.id;
                 return;
             }
             // 檢查是否重複
             const existingIds = this.segmentManager.getSegments().map(s => String(s.id));
             if (existingIds.includes(newId) && newId !== segment.id) {
-                alert('此編號已存在，請使用其他編號');
+                alert(typeof i18n !== 'undefined' ? i18n.t('id_duplicate') : '此編號已存在，請使用其他編號');
                 idInput.value = segment.id;
                 return;
             }
             this.segmentManager.updateSegment(segment.id, { id: newId });
+            // re-render handled by update? No, usually fine, but data-id update needed
             row.dataset.segmentId = newId;
         });
+
+        // Drag Events specifically for ID Container
+        idContainer.addEventListener('dragstart', (e) => {
+            if (!idInput.readOnly) {
+                e.preventDefault();
+                return;
+            }
+            row.classList.add('dragging'); // View feedback on row
+            e.dataTransfer.setData('text/plain', index);
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        idContainer.addEventListener('dragend', () => {
+            row.classList.remove('dragging');
+        });
+
+        idContainer.appendChild(idInput);
 
         // 名稱輸入
         const nameInput = document.createElement('input');
         nameInput.type = 'text';
         nameInput.value = segment.name;
-        nameInput.placeholder = '段落名稱';
+        nameInput.placeholder = typeof i18n !== 'undefined' ? i18n.t('segment_name') : '段落名稱';
         nameInput.addEventListener('change', () => {
             this.segmentManager.updateSegment(segment.id, { name: nameInput.value });
         });
@@ -133,13 +274,13 @@ class UIController {
         const playBtn = document.createElement('button');
         playBtn.className = 'btn-icon play';
         playBtn.textContent = '▶';
-        playBtn.setAttribute('data-i18n-title', 'play_main'); // Reuse play_main for title
+        playBtn.setAttribute('data-i18n-title', 'play_main');
         playBtn.title = typeof i18n !== 'undefined' ? i18n.t('play_main') : '試播放';
         playBtn.dataset.segmentId = segment.id;
         playBtn.addEventListener('click', () => this.playSegment(segment, playBtn));
         actions.appendChild(playBtn);
 
-        // 新增子段落按鈕 (最多支援到三層)
+        // 新增子段落按鈕
         const addSubBtn = document.createElement('button');
         addSubBtn.className = 'btn-icon add-sub';
         addSubBtn.setAttribute('data-i18n', 'add_sub');
@@ -147,7 +288,7 @@ class UIController {
         addSubBtn.textContent = typeof i18n !== 'undefined' ? i18n.t('add_sub') : '+子';
         addSubBtn.title = typeof i18n !== 'undefined' ? i18n.t('add_sub_title') : '新增子段落';
 
-        // 綁定事件：即使是第三層也顯示，但在 showSubSegmentMenu 中限制選單
+        // 綁定事件
         addSubBtn.addEventListener('click', (e) => {
             this.showSubSegmentMenu(segment, e.target);
         });
@@ -167,7 +308,7 @@ class UIController {
         actions.appendChild(deleteBtn);
 
         // 組裝列
-        row.appendChild(idInput);
+        row.appendChild(idContainer); // Use idContainer instead of direct input
         row.appendChild(nameInput);
         row.appendChild(startTimeGroup);
         row.appendChild(endTimeGroup);

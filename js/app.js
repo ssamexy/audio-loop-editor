@@ -544,12 +544,30 @@ class AppController {
         const segmentOnlyCheckbox = document.getElementById('segmentOnlyMode');
         if (segmentOnlyCheckbox) {
             segmentOnlyCheckbox.addEventListener('change', () => {
+                const audioPlayer = document.getElementById('audioPlayer');
+
                 if (segmentOnlyCheckbox.checked && this.state.currentSegmentRange) {
+                    // Switch to Segment Mode
                     const segmentDuration = this.state.currentSegmentRange.endMs - this.state.currentSegmentRange.startMs;
                     totalTimeEl.textContent = TimeUtils.formatTimeSeconds(segmentDuration);
+
+                    // Recalculate progress relative to segment
+                    const currentMs = audioPlayer.currentTime * 1000;
+                    const relativeMs = currentMs - this.state.currentSegmentRange.startMs;
+                    // Note: audioPlayer might be outside segment if paused, so clamp display
+                    const progress = Math.max(0, Math.min(100, (relativeMs / segmentDuration) * 100));
+                    seekBar.value = progress;
+                    currentTimeEl.textContent = TimeUtils.formatTimeSeconds(Math.max(0, relativeMs));
+
                 } else {
+                    // Switch to Global Mode
                     if (audioPlayer.duration) {
                         totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
+
+                        // Recalculate progress relative to total
+                        const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                        seekBar.value = progress;
+                        currentTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.currentTime * 1000);
                     }
                 }
             });

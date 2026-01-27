@@ -90,13 +90,66 @@ class SegmentManager {
     /**
      * 重新排序段落
      */
+    /**
+     * 重新排序段落
+     */
     reorderSegment(fromIndex, toIndex) {
         if (fromIndex < 0 || fromIndex >= this.segments.length) return;
         if (toIndex < 0 || toIndex >= this.segments.length) return;
 
         const [removed] = this.segments.splice(fromIndex, 1);
         this.segments.splice(toIndex, 0, removed);
+
+        this.renumberAll();
         this._notifyChange();
+    }
+
+    /**
+     * 重新編號所有段落 (保持層級結構)
+     */
+    renumberAll() {
+        let mainCounter = 0;
+        let currentMainId = null;
+        let subCounters = {};
+
+        this.segments.forEach(segment => {
+            const oldId = String(segment.id);
+            const level = oldId.split('-').length;
+
+            if (level === 1 || currentMainId === null) {
+                // 主段落 (或列表開頭的子段落被迫變為主段落)
+                mainCounter++;
+                const newId = String(mainCounter);
+                if (segment.id !== newId) {
+                    segment.id = newId;
+                }
+                currentMainId = newId;
+                subCounters[currentMainId] = 0;
+            } else {
+                // 子段落
+                subCounters[currentMainId]++;
+                // 支援多層級：這裡簡化為皆依附於最近的主段落
+                // 若原為 1-1-1 (Level 3), 在此簡易邏輯下可能變為 Main-N (Level 2)
+                // 若需嚴格支援多層級，需遞迴或 stack，但依需求與現有兩層為主，這足以應付
+                // 我們嘗試保留原來的相對層級嗎？
+                // 簡單起見，將所有 "非 Level 1" 都視為 "Level 2" 依附於 currentMain
+                // 除非我們想支援 3 層。
+                // 檢查原始 Level
+                if (level >= 3) {
+                    // 嘗試保留 3 層? logic gets complex. 
+                    // 讓我們先統一由 Main 重新計數，變成 2 層結構 (Main - Sub)
+                    // 或是維持字尾?
+                    // 為了符合 "Auto Renumber" 預期，重列為 1, 1-1, 1-2... 是最乾淨的
+                    const newId = `${currentMainId}-${subCounters[currentMainId]}`;
+                    segment.id = newId;
+                } else {
+                    const newId = `${currentMainId}-${subCounters[currentMainId]}`;
+                    segment.id = newId;
+                }
+            }
+
+            //Update Name if it was default name? No, keep user name.
+        });
     }
 
     /**
@@ -105,7 +158,9 @@ class SegmentManager {
     replaceSegment(id, newSegments) {
         const index = this.segments.findIndex(s => s.id === id);
         if (index >= 0) {
-            // 確保新段落有 ID
+            // 暫時給予臨時 ID，notifyChange 後若有 renumber 需求...
+            // 但 replaceSegment 通常發生在中間，ID 可能會衝突
+            // 這裡我們不自動 renumber，保持 create logic
             newSegments.forEach(s => {
                 if (!s.id) s.id = String(this.nextId++);
             });

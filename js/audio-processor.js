@@ -126,8 +126,14 @@ class AudioProcessor {
     async trimSegment(startMs, endMs) {
         if (!this.audioBuffer) return null;
 
-        const startSample = Math.floor((startMs / 1000) * this.audioBuffer.sampleRate);
-        const endSample = Math.floor((endMs / 1000) * this.audioBuffer.sampleRate);
+        let startSample = Math.floor((startMs / 1000) * this.audioBuffer.sampleRate);
+        let endSample = Math.floor((endMs / 1000) * this.audioBuffer.sampleRate);
+
+        // Validation
+        if (startSample < 0) startSample = 0;
+        if (endSample > this.audioBuffer.length) endSample = this.audioBuffer.length;
+        if (startSample >= endSample) return null;
+
         const length = endSample - startSample;
 
         const numberOfChannels = this.audioBuffer.numberOfChannels;
@@ -317,7 +323,10 @@ class AudioProcessor {
                     // 優先使用非同步 Worker 版本
                     blob = await this.audioBufferToMp3Async(trimmedBuffer, (progress) => {
                         if (onProgress) {
-                            onProgress(i + 1, segments.length, `處理段落 ${segment.id} (MP3 壓縮: ${progress}%)...`);
+                            const msg = typeof i18n !== 'undefined'
+                                ? i18n.t('processing_segment_mp3', { id: segment.id, progress: progress })
+                                : `處理段落 ${segment.id} (MP3 壓縮: ${progress}%)...`;
+                            onProgress(i + 1, segments.length, msg);
                         }
                     });
                 } else {

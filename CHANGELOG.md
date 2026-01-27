@@ -3,17 +3,19 @@
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
 
-## [v1.7.7] - 2026-01-27
+## [v1.8.0] - 2026-01-27
 
-### Fixed
-- **I18n**: Added missing translation for the "Merge and Export" button.
-- **Manual**: Performed a comprehensive audit to remove all remaining misleading "Waveform Visualization" references from the in-app user manual.
+### Added (Web/GUI)
+- **ID 鎖定功能 (ID Lock)**：新增編號鎖定開關，預設為唯讀以防止誤改，並在鎖定時作為拖曳排序手把。
 
-## [v1.7.7] - 2026-01-27
+### Changed (Web)
+- **拖曳排序優化**：限制僅能透過 ID 欄位進行拖曳排序，縮小觸發範圍以提升操作精確度。
+- **自動重新編號 (Auto-Renumbering)**：拖曳排序後會自動依序重新編號，保持列表整潔。
+- **播放進度條修正**：修正「僅段落」模式切換時進度條未即時更新至全域時間的問題。
 
-### Fixed
-- **I18n**: Added missing translation for the "Merge and Export" button, ensuring consistent Title Case style.
-- **Manual**: Performed a comprehensive audit to remove all remaining misleading "Waveform Visualization" references from the in-app user manual.
+### Fixed (Web)
+- **下載 Bug 修復**：修復未勾選「同時保留完整版本」時，第一段下載檔案可能內容錯誤的問題。
+- **語系補強 (i18n)**：補齊「處理段落中...」等漏掉的翻譯字串。
 
 ## [v1.7.6] - 2026-01-27
 

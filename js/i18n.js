@@ -189,7 +189,11 @@ const i18n = {
             'move_to_range': '請先將播放位置移動到此段落範圍內',
             'unit_invalid': '時長需大於 0 且小於段落總長',
             'even_invalid': '請輸入 2-20 之間的數字',
-            'split_invalid': '請輸入 2-100 之間的數字'
+            'split_invalid': '請輸入 2-100 之間的數字',
+            'unlock_ids': '解鎖編號',
+            'lock_ids': '鎖定編號',
+            'drag_to_reorder': '拖曳以排序',
+            'processing_segment_mp3': '處理段落 {id} (MP3 壓縮: {progress}%)...'
         },
         'en': {
             // Header
@@ -371,7 +375,11 @@ const i18n = {
             'move_to_range': 'Move playback position to this segment range first',
             'unit_invalid': 'Duration must be greater than 0 and less than total length',
             'even_invalid': 'Enter a number between 2-20',
-            'split_invalid': 'Enter a number between 2-100'
+            'split_invalid': 'Enter a number between 2-100',
+            'unlock_ids': 'Unlock IDs',
+            'lock_ids': 'Lock IDs',
+            'drag_to_reorder': 'Drag to reorder',
+            'processing_segment_mp3': 'Processing segment {id} (MP3 compression: {progress}%)...'
         }
     },
 
