@@ -426,6 +426,16 @@ const i18n = {
             const key = el.getAttribute('data-i18n-title');
             el.title = this.t(key);
         });
+
+        // Update active state of language buttons
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            const langCode = btn.getAttribute('onclick').match(/'([^']+)'/)[1];
+            if (langCode === this.currentLang) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
     }
 };
 
