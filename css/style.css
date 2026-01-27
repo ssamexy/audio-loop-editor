@@ -25,6 +25,9 @@ body {
     background-color: var(--bg-color);
     color: var(--text-color);
     line-height: 1.6;
+    overflow-x: hidden;
+    /* Prevent horizontal scroll on mobile */
+    width: 100%;
 }
 
 /* ===== Container ===== */
@@ -883,7 +886,17 @@ body {
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
     .header h1 {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
+        /* Smaller on mobile */
+    }
+
+    .subtitle {
+        font-size: 0.9rem;
+    }
+
+    .container {
+        padding: 10px;
+        /* Reduce padding on mobile */
     }
 
     /* Change layout to column on small screens */
@@ -903,11 +916,12 @@ body {
     }
 
     .nav-item {
-        flex: 1;
-        min-width: 100px;
-        /* Ensure buttons don't get too small */
+        flex: 1 1 calc(50% - 10px);
+        /* 2 items per row on mobile */
+        min-width: 0;
         justify-content: center;
-        padding: 10px;
+        padding: 8px 10px;
+        font-size: 0.9rem;
     }
 
     .nav-text {
@@ -1283,28 +1297,7 @@ body.player-active {
     padding-bottom: 0;
 }
 
-/* ===== Language Switcher ===== */
-.lang-switcher {
-    margin-left: auto;
-    display: flex;
-    gap: 5px;
-}
-
-.lang-btn {
-    padding: 4px 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background: var(--card-bg);
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: all 0.2s;
-}
-
-.lang-btn:hover {
-    background: var(--primary-color);
-    color: white;
-    border-color: var(--primary-color);
-}
+/* Secondary switcher - removed as redundant to header switcher */
 
 /* ===== Floating Checkbox ===== */
 .floating-checkbox-label {
