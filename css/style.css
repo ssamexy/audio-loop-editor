@@ -198,9 +198,9 @@ body {
 }
 
 .lang-btn {
-    background: rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.6);
     padding: 5px 12px;
     border-radius: 6px;
     cursor: pointer;
@@ -210,8 +210,9 @@ body {
 }
 
 .lang-btn:hover {
-    background: rgba(255, 255, 255, 0.25);
-    border-color: white;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.5);
 }
 
 .lang-btn.active {
@@ -219,7 +220,7 @@ body {
     color: #764ba2;
     border-color: white;
     font-weight: bold;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .main-tools-buttons {
