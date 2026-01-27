@@ -3,6 +3,18 @@
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
 
+## [v1.7.7] - 2026-01-27
+
+### Fixed
+- **I18n**: Added missing translation for the "Merge and Export" button.
+- **Manual**: Performed a comprehensive audit to remove all remaining misleading "Waveform Visualization" references from the in-app user manual.
+
+## [v1.7.7] - 2026-01-27
+
+### Fixed
+- **I18n**: Added missing translation for the "Merge and Export" button, ensuring consistent Title Case style.
+- **Manual**: Performed a comprehensive audit to remove all remaining misleading "Waveform Visualization" references from the in-app user manual.
+
 ## [v1.7.6] - 2026-01-27
 
 ### Fixed

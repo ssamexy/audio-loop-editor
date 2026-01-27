@@ -54,6 +54,8 @@ const i18n = {
             'merge_error_min_files': '請至少選擇兩個音訊檔案',
             'merge_error_min_files': '請至少選擇兩個音訊檔案',
             'preview_segment': '試聽片段',
+            'merge_process': '🔗 合併並匯出',
+            'merge_process': '🔗 合併並匯出',
 
             // Video Converter
             'video_convert_title': '🎞️ 影片轉音訊',
@@ -288,6 +290,8 @@ const i18n = {
             'filename_placeholder': 'Filename (no ext)',
             'merge_error_min_files': 'Please select at least two audio files',
             'preview_segment': 'Preview Segment',
+            'merge_process': '🔗 Merge and Export',
+            'merge_process': '🔗 Merge and Export',
 
             // Video Converter
             'video_convert_title': '🎞️ Video to Audio',
