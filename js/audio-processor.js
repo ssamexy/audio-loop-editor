@@ -210,47 +210,87 @@ class AudioProcessor {
     }
 
     /**
-     * 將 AudioBuffer 轉換為 MP3 Blob (使用 lamejs)
+     * 將 AudioBuffer 轉換為 MP3 Blob (非同步，使用 Web Worker)
+     */
+    audioBufferToMp3Async(buffer, onProgress) {
+        return new Promise((resolve, reject) => {
+            const channels = buffer.numberOfChannels;
+            const sampleRate = buffer.sampleRate;
+            const kbps = 128;
+
+            const convertToInt16 = (float32Array) => {
+                const int16Array = new Int16Array(float32Array.length);
+                for (let i = 0; i < float32Array.length; i++) {
+                    const s = Math.max(-1, Math.min(1, float32Array[i]));
+                    int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+                }
+                return int16Array;
+            };
+
+            const left = convertToInt16(buffer.getChannelData(0));
+            const right = channels > 1 ? convertToInt16(buffer.getChannelData(1)) : null;
+
+            const worker = new Worker('js/mp3-worker.js');
+
+            worker.onmessage = (e) => {
+                const data = e.data;
+                if (data.type === 'progress') {
+                    if (onProgress) onProgress(data.progress);
+                } else if (data.type === 'done') {
+                    const blob = new Blob(data.mp3Data, { type: 'audio/mp3' });
+                    worker.terminate();
+                    resolve(blob);
+                } else if (data.type === 'error') {
+                    worker.terminate();
+                    reject(new Error(data.error));
+                }
+            };
+
+            worker.onerror = (err) => {
+                worker.terminate();
+                reject(err);
+            };
+
+            worker.postMessage({
+                channels,
+                sampleRate,
+                kbps,
+                leftData: left,
+                rightData: right
+            }, [left.buffer, ...(right ? [right.buffer] : [])]);
+        });
+    }
+
+    /**
+     * 將 AudioBuffer 轉換為 MP3 Blob (同步版本，備用)
      */
     audioBufferToMp3(buffer) {
+        // ... existing sync code, keep as fallback but we will prefer async ...
         const channels = buffer.numberOfChannels;
         const sampleRate = buffer.sampleRate;
-        const kbps = 128; // 位元率
-
-        // 準備 lamejs 編碼器
+        const kbps = 128;
         const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, kbps);
         const mp3Data = [];
 
-        // 將 Float32 轉為 Int16
-        const convertToInt16 = (float32Array) => {
-            const int16Array = new Int16Array(float32Array.length);
-            for (let i = 0; i < float32Array.length; i++) {
-                const s = Math.max(-1, Math.min(1, float32Array[i]));
-                int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+        const convertToInt16 = (f32) => {
+            const i16 = new Int16Array(f32.length);
+            for (let i = 0; i < f32.length; i++) {
+                const s = Math.max(-1, Math.min(1, f32[i]));
+                i16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
             }
-            return int16Array;
+            return i16;
         };
 
-        // 取得通道數據
         const left = convertToInt16(buffer.getChannelData(0));
         const right = channels > 1 ? convertToInt16(buffer.getChannelData(1)) : left;
 
-        // 分塊編碼
         const blockSize = 1152;
         for (let i = 0; i < left.length; i += blockSize) {
-            const leftChunk = left.subarray(i, i + blockSize);
-            const rightChunk = right.subarray(i, i + blockSize);
-            const mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
-            if (mp3buf.length > 0) {
-                mp3Data.push(mp3buf);
-            }
+            const mp3buf = mp3encoder.encodeBuffer(left.subarray(i, i + blockSize), right.subarray(i, i + blockSize));
+            if (mp3buf.length > 0) mp3Data.push(mp3buf);
         }
-
-        // 完成編碼
         const mp3buf = mp3encoder.flush();
-        if (mp3buf.length > 0) {
-            mp3Data.push(mp3buf);
-        }
+        if (mp3buf.length > 0) mp3Data.push(mp3buf);
 
         return new Blob(mp3Data, { type: 'audio/mp3' });
     }
@@ -273,8 +313,13 @@ class AudioProcessor {
 
                 // 根據格式選擇編碼方式
                 let blob;
-                if (format === 'mp3' && typeof lamejs !== 'undefined') {
-                    blob = this.audioBufferToMp3(trimmedBuffer);
+                if (format === 'mp3') {
+                    // 優先使用非同步 Worker 版本
+                    blob = await this.audioBufferToMp3Async(trimmedBuffer, (progress) => {
+                        if (onProgress) {
+                            onProgress(i + 1, segments.length, `處理段落 ${segment.id} (MP3 壓縮: ${progress}%)...`);
+                        }
+                    });
                 } else {
                     blob = this.audioBufferToWav(trimmedBuffer);
                 }
@@ -283,7 +328,7 @@ class AudioProcessor {
                     segment,
                     blob,
                     success: true,
-                    format: format === 'mp3' && typeof lamejs !== 'undefined' ? 'mp3' : 'wav'
+                    format: format === 'mp3' ? 'mp3' : 'wav'
                 });
             } catch (error) {
                 results.push({

@@ -16,7 +16,7 @@
         <header class="header">
             <h1 data-i18n="app_title">🎵 Audio Loop Editor</h1>
             <p class="subtitle" data-i18n="app_subtitle">音訊分段剪輯與循環練習工具 - 支援毫秒精度、多段剪輯、試播放</p>
-            <div class="version">v1.7.0</div>
+            <div class="version">v1.7.2</div>
             <div class="lang-switcher section-lang-switcher">
                 <button class="lang-btn" onclick="i18n.setLang('zh-TW')">中文</button>
                 <button class="lang-btn" onclick="i18n.setLang('en')">EN</button>
@@ -160,7 +160,9 @@
                                 <input type="checkbox" id="exportMp3" checked>
                                 <span data-i18n="export_mp3">輸出為 MP3 (取消勾選則為 WAV)</span>
                             </label>
-                            <p class="export-note" data-i18n="mp3_slow_note">💡 MP3 編碼需要較長時間，這是正常的</p>
+                            <div class="mp3-hint-container">
+                                <small class="mp3-hint" data-i18n="mp3_wait_hint">（壓縮為 MP3 需要較多時間，請耐心等待）</small>
+                            </div>
                             <label class="checkbox-label">
                                 <input type="checkbox" id="downloadZip" checked>
                                 <span data-i18n="download_zip">打包成 ZIP (取消勾選則個別下載)</span>
@@ -204,6 +206,9 @@
                                     <input type="checkbox" id="mergeExportMp3" checked>
                                     <span data-i18n="export_mp3">輸出為 MP3</span>
                                 </label>
+                                <div class="mp3-hint-container">
+                                    <small class="mp3-hint" data-i18n="mp3_wait_hint">（壓縮為 MP3 需要較多時間，請耐心等待）</small>
+                                </div>
                                 <button class="btn btn-secondary" id="btnMergePreview" data-i18n="merge_preview">▶
                                     試聽</button>
                                 <button class="btn btn-primary" id="btnMergeProcess" data-i18n="merge_process">🔗
@@ -240,6 +245,9 @@
                                     <input type="checkbox" id="videoExportMp3" checked>
                                     <span data-i18n="export_mp3">輸出為 MP3</span>
                                 </label>
+                                <div class="mp3-hint-container">
+                                    <small class="mp3-hint" data-i18n="mp3_wait_hint">（壓縮為 MP3 需要較多時間，請耐心等待）</small>
+                                </div>
                             </div>
                             <button class="btn btn-primary btn-large" id="btnVideoConvert"
                                 data-i18n="convert_process">🔄
@@ -282,6 +290,9 @@
                                     <input type="checkbox" id="audioConvertExportMp3" checked>
                                     <span data-i18n="export_mp3">輸出為 MP3</span>
                                 </label>
+                                <div class="mp3-hint-container">
+                                    <small class="mp3-hint" data-i18n="mp3_wait_hint">（壓縮為 MP3 需要較多時間，請耐心等待）</small>
+                                </div>
                             </div>
                             <button class="btn btn-primary btn-large" id="btnAudioConvertProcess"
                                 data-i18n="convert_process">🔄
@@ -326,44 +337,52 @@
 
     <!-- Floating Player Bar -->
     <div class="floating-player-bar" id="floatingPlayerBar" style="display: none;">
-        <div class="floating-player-controls">
-            <button id="btnPlayPause" class="btn-player" title="播放/暫停">▶</button>
-            <button id="btnRewind" class="btn-player" title="倒退">⏪</button>
-            <button id="btnForward" class="btn-player" title="前進">⏩</button>
-            <button id="btnLoop" class="btn-player" title="循環播放">🔁</button>
-        </div>
+        <!-- Row 1: Seekbar and Time -->
         <div class="floating-player-seekbar">
             <input type="range" id="seekBar" class="seek-bar" min="0" max="100" value="0">
             <div class="floating-player-time">
                 <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
             </div>
         </div>
-        <div class="floating-player-speed">
-            <select id="seekStep" class="speed-select" title="快進/退 (秒)" data-i18n-title="seek_setting">
-                <option value="2">2s</option>
-                <option value="5">5s</option>
-                <option value="10" selected>10s</option>
-                <option value="20">20s</option>
-                <option value="30">30s</option>
-                <option value="60">60s</option>
-            </select>
-            <select id="playbackSpeed" class="speed-select" title="播放速度">
-                <option value="0.5">x0.5</option>
-                <option value="0.75">x0.75</option>
-                <option value="1" selected>x1</option>
-                <option value="1.25">x1.25</option>
-                <option value="1.5">x1.5</option>
-                <option value="2">x2</option>
-            </select>
+
+        <!-- Row 2: Controls and Info -->
+        <div class="floating-player-controls">
+            <button id="btnPlayPause" class="btn-player" title="播放/暫停">▶</button>
+            <button id="btnRewind" class="btn-player" title="倒退">⏪</button>
+            <button id="btnForward" class="btn-player" title="前進">⏩</button>
+            <button id="btnLoop" class="btn-player" title="循環播放">🔁</button>
+
+            <div class="floating-player-info" id="floatingPlayerInfo">
+                主音訊
+            </div>
         </div>
-        <div class="floating-player-mode">
-            <label class="floating-checkbox-label">
-                <input type="checkbox" id="segmentOnlyMode" checked>
-                <span data-i18n="segment_only">僅段落</span>
-            </label>
-        </div>
-        <div class="floating-player-info" id="floatingPlayerInfo">
-            主音訊
+
+        <!-- Row 3: Settings Group -->
+        <div class="floating-settings-row">
+            <div class="floating-player-speed">
+                <select id="seekStep" class="speed-select" title="快進/退 (秒)" data-i18n-title="seek_setting">
+                    <option value="2">2s</option>
+                    <option value="5">5s</option>
+                    <option value="10" selected>10s</option>
+                    <option value="20">20s</option>
+                    <option value="30">30s</option>
+                    <option value="60">60s</option>
+                </select>
+                <select id="playbackSpeed" class="speed-select" title="播放速度">
+                    <option value="0.5">x0.5</option>
+                    <option value="0.75">x0.75</option>
+                    <option value="1" selected>x1</option>
+                    <option value="1.25">x1.25</option>
+                    <option value="1.5">x1.5</option>
+                    <option value="2">x2</option>
+                </select>
+            </div>
+            <div class="floating-player-mode">
+                <label class="floating-checkbox-label">
+                    <input type="checkbox" id="segmentOnlyMode" checked>
+                    <span data-i18n="segment_only">僅段落</span>
+                </label>
+            </div>
         </div>
     </div>
 

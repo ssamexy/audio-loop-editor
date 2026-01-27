@@ -62,6 +62,7 @@ const i18n = {
             'convert_process': '🔄 開始轉換',
             'convert_success': '轉換成功！',
             'video_file_too_large': '⚠️ 影片檔案較大，解碼可能需要一些時間，請耐心等待',
+            'mp3_wait_hint': '（壓縮為 MP3 需要較多時間，請耐心等待）',
 
             // Feature Sections
             'feature_split_title': '✂️ 音樂分段剪輯 ★ 強力推薦',
@@ -295,6 +296,7 @@ const i18n = {
             'convert_process': '🔄 Start Conversion',
             'convert_success': 'Conversion Successful!',
             'video_file_too_large': '⚠️ Video files may be large, decoding might take time.',
+            'mp3_wait_hint': '(MP3 encoding takes more time, please wait patiently)',
 
             // Feature Sections
             'feature_split_title': '✂️ Audio Splitter ★ Flagship',

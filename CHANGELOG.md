@@ -3,6 +3,23 @@
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
 
+## [v1.7.2] - 2026-01-27
+
+### Fixed
+- **Responsiveness**: Standardized layout behavior across all sections. The "Splitter" section now switches to a **Card Layout** on mobile devices to prevent content cutoff. Video/Audio converter controls now wrap properly on smaller screens.
+
+## [v1.7.1] - 2026-01-27
+
+### Fixed
+- **Mobile Layout**: Fixed issue where header and section titles were cut off on the right side on mobile devices by adjusting container padding and overflow handling.
+
+## [v1.7.0] - 2026-01-27
+
+### Optimized
+- **MP3 Export**: Moved MP3 encoding process to a Web Worker, preventing the browser from freezing ("Page Not Responding") during large file exports.
+- **Mobile UX**: Redesigned the floating player bar for mobile devices to be ultra-compact (2 rows), significantly increasing visible content area.
+- **User Feedback**: Added "Please wait" hints for MP3 export to manage user expectations.
+
 ## [v1.6.0] - 2026-01-26
 
 ### Added

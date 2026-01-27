@@ -1288,8 +1288,10 @@ class AppController {
                 // Remove extension if user added it, to avoid .mp3.mp3
                 outputFilename = outputFilename.replace(/\.(mp3|wav)$/i, '');
 
-                if (isMp3 && typeof lamejs !== 'undefined') {
-                    const mp3Blob = this.audioProcessor.audioBufferToMp3(mergedBuffer);
+                if (isMp3) {
+                    const mp3Blob = await this.audioProcessor.audioBufferToMp3Async(mergedBuffer, (progress) => {
+                        btn.textContent = `${typeof i18n !== 'undefined' ? i18n.t('processing_wait') : '處理中...'} (${progress}%)`;
+                    });
                     this.downloadBlob(mp3Blob, `${outputFilename}.mp3`);
                 } else {
                     const wavBlob = this.audioProcessor.audioBufferToWav(mergedBuffer);
@@ -1463,12 +1465,14 @@ class AppController {
             if (isMp3) {
                 if (progressContainer) {
                     progressText.textContent = "Encoding MP3...";
-                    progressBar.style.width = '50%';
                 }
-                // Allow UI update
-                await new Promise(resolve => setTimeout(resolve, 50));
 
-                const blob = this.videoProcessor.audioBufferToMp3(this.videoProcessor.audioBuffer);
+                const blob = await this.videoProcessor.audioBufferToMp3Async(this.videoProcessor.audioBuffer, (progress) => {
+                    if (progressContainer) {
+                        progressBar.style.width = `${30 + (progress * 0.7)}%`;
+                        progressText.textContent = `Encoding MP3 (${progress}%)...`;
+                    }
+                });
                 this.downloadBlob(blob, `${filename}.mp3`);
             } else {
                 if (progressContainer) progressText.textContent = "Encoding WAV...";
@@ -1600,12 +1604,14 @@ class AppController {
             if (isMp3) {
                 if (progressContainer) {
                     progressText.textContent = "Encoding MP3...";
-                    progressBar.style.width = '50%';
                 }
-                // Allow UI update
-                await new Promise(resolve => setTimeout(resolve, 50));
 
-                const blob = this.audioProcessor.audioBufferToMp3(this.audioProcessor.audioBuffer);
+                const blob = await this.audioProcessor.audioBufferToMp3Async(this.audioProcessor.audioBuffer, (progress) => {
+                    if (progressContainer) {
+                        progressBar.style.width = `${30 + (progress * 0.7)}%`;
+                        progressText.textContent = `Encoding MP3 (${progress}%)...`;
+                    }
+                });
                 this.downloadBlob(blob, `${filename}.mp3`);
             } else {
                 if (progressContainer) progressText.textContent = "Encoding WAV...";
