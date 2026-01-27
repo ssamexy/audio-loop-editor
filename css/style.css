@@ -91,6 +91,51 @@ body {
     box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3);
 }
 
+/* Flagship Highlight */
+.side-nav a[href="#splitter"].nav-item {
+    border: 1px solid rgba(118, 75, 162, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.side-nav a[href="#splitter"].nav-item::after {
+    content: "Flagship";
+    position: absolute;
+    top: 5px;
+    right: -15px;
+    background: #ff4757;
+    color: white;
+    font-size: 0.6rem;
+    padding: 2px 15px;
+    transform: rotate(45deg);
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.side-nav a[href="#splitter"].nav-item.active::after {
+    background: #ffffff;
+    color: #764ba2;
+}
+
+.feature-title.flagship-title {
+    border-left: 5px solid #ff4757;
+    padding-left: 15px;
+    position: relative;
+}
+
+.flagship-badge {
+    display: inline-block;
+    background: #ff4757;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    vertical-align: middle;
+    margin-left: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
 .nav-icon {
     font-size: 1.2rem;
 }

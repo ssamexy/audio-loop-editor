@@ -64,7 +64,7 @@ const i18n = {
             'video_file_too_large': '⚠️ 影片檔案較大，解碼可能需要一些時間，請耐心等待',
 
             // Feature Sections
-            'feature_split_title': '✂️ 音樂分段剪輯',
+            'feature_split_title': '✂️ 音樂分段剪輯 ★ 強力推薦',
             'feature_merge_title': '🔗 音樂合併工具',
             'feature_converter_title': '🎞️ 影片轉音訊工具',
             'feature_audio_converter_title': '🎵 音訊格式轉換工具',
@@ -78,8 +78,9 @@ const i18n = {
             // Manual
             'manual_title': '📖 使用說明',
             'manual_content': `
-                <h3>1. 音樂分段剪輯 (Audio Splitter)</h3>
+                <h3>1. 音樂分段剪輯 (Audio Splitter) ⭐ 核心主要功能</h3>
                 <ul>
+                    <li><strong>核心功能</strong>：這是本工具最精華的部分，提供毫秒級的音訊標註與分段。</li>
                     <li><strong>載入音訊</strong>：點擊或拖曳 MP3/WAV 檔案至上傳區。</li>
                     <li><strong>精確剪輯</strong>：使用波形圖下方的「標註開始」按鈕記錄當前播放位置。</li>
                     <li><strong>時間微調</strong>：使用 +/- 按鈕進行毫秒級微調，步進大小可在設定中調整。</li>
@@ -296,7 +297,7 @@ const i18n = {
             'video_file_too_large': '⚠️ Video files may be large, decoding might take time.',
 
             // Feature Sections
-            'feature_split_title': '✂️ Audio Splitter',
+            'feature_split_title': '✂️ Audio Splitter ★ Flagship',
             'feature_merge_title': '🔗 Audio Merger',
             'feature_converter_title': '🎞️ Video Converter',
             'feature_audio_converter_title': '🎵 Audio Converter',
@@ -310,8 +311,9 @@ const i18n = {
             // Manual
             'manual_title': '📖 User Manual',
             'manual_content': `
-                <h3>1. Audio Splitter</h3>
+                <h3>1. Audio Splitter ⭐ Flagship Feature</h3>
                 <ul>
+                    <li><strong>Main Feature</strong>: This is the core of our tool, offering millisecond-precision audio marking and segmenting.</li>
                     <li><strong>Load Audio</strong>: Drag and drop MP3/WAV files to start.</li>
                     <li><strong>Precise Editing</strong>: Use "Mark Start" with the waveform for millisecond precision.</li>
                     <li><strong>Time Fine-tuning</strong>: Use +/- buttons (Step size adjustable in Settings).</li>
