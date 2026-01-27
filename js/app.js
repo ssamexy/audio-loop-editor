@@ -1358,46 +1358,43 @@ class AppController {
      * Setup Sidebar Navigation
      */
     setupSidebarNav() {
-        // Sticky/Smooth scroll behavior
-        document.querySelectorAll('.side-nav a.nav-item').forEach(anchor => {
+        const navItems = document.querySelectorAll('.side-nav a.nav-item');
+        const featureBlocks = document.querySelectorAll('.feature-block');
+
+        const switchSection = (targetId) => {
+            // Update nav active state
+            navItems.forEach(a => {
+                a.classList.remove('active');
+                if (a.getAttribute('href') === '#' + targetId) {
+                    a.classList.add('active');
+                }
+            });
+
+            // Update blocks visibility
+            featureBlocks.forEach(block => {
+                if (block.id === targetId) {
+                    block.classList.add('active');
+                } else {
+                    block.classList.remove('active');
+                }
+            });
+
+            // Scroll to top of content for SPA feel
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        navItems.forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
-
-                // Update active state
-                document.querySelectorAll('.side-nav a.nav-item').forEach(a => a.classList.remove('active'));
-                this.classList.add('active');
-
                 const targetId = this.getAttribute('href').substring(1);
-                const targetElement = document.getElementById(targetId);
-
-                if (targetElement) {
-                    window.scrollTo({
-                        top: targetElement.offsetTop - 100, // Offset for header
-                        behavior: 'smooth'
-                    });
-                }
+                switchSection(targetId);
             });
         });
 
-        // Update active state on scroll
-        window.addEventListener('scroll', () => {
-            const scrollPos = window.scrollY + 150; // Offset
-
-            document.querySelectorAll('.feature-block').forEach(block => {
-                const id = block.getAttribute('id');
-                if (!id) return;
-
-                if (block.offsetTop <= scrollPos && (block.offsetTop + block.offsetHeight) > scrollPos) {
-                    document.querySelectorAll('.side-nav a.nav-item').forEach(a => {
-                        a.classList.remove('active');
-                        if (a.getAttribute('href') === '#' + id) {
-                            a.classList.add('active');
-                        }
-                    });
-                }
-            });
-        });
-
+        // Initialize with Spliter (First section)
+        if (featureBlocks.length > 0) {
+            switchSection(featureBlocks[0].id);
+        }
     }
 
     /**
