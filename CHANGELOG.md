@@ -3,6 +3,11 @@
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
 
+## [v1.7.5] - 2026-01-27
+
+### Fixed
+- **Player UI (Mobile)**: Perfectly aligned the playback controls to the left and settings to the right on a single horizontal row for better usability.
+
 ## [v1.7.4] - 2026-01-27
 
 ### Fixed

@@ -1309,22 +1309,22 @@ body.player-active {
 
 @media (max-width: 768px) {
     .floating-player-bar {
-        flex-direction: column !important;
-        padding: 5px 8px 10px;
+        flex-direction: row !important;
+        flex-wrap: wrap;
+        padding: 5px 10px 10px;
         gap: 5px;
+        justify-content: space-between;
     }
 
-    /* Wrap Row 2 correctly */
-    .floating-player-bar>* {
-        width: 100%;
-    }
-
-    /* Row 1: Seekbar */
+    /* Seekbar Row 1 */
     .floating-player-seekbar {
+        order: 1;
+        width: 100% !important;
+        flex: none;
         flex-direction: row !important;
         align-items: center;
         gap: 10px;
-        margin-bottom: 2px;
+        margin-bottom: 5px;
     }
 
     .floating-player-seekbar .seek-bar {
@@ -1336,69 +1336,37 @@ body.player-active {
         font-size: 0.75rem;
     }
 
-    /* Row 2: Controls + Settings Side-by-Side */
-    .floating-player-controls,
-    .floating-settings-row {
-        width: auto !important;
-    }
-
-    /* Flex container for Row 2 components */
-    .floating-player-bar {
-        display: grid !important;
-        grid-template-columns: 1fr;
-    }
-
-    /* Re-ordering for mobile simplified grid */
-    .floating-player-seekbar {
-        order: 1;
-    }
-
-    /* Container for everything else on Row 2 */
-    .floating-player-bar::after {
-        content: "";
-        display: none;
-    }
-
-    /* Actual Row 2 implementation using a wrapper-less approach */
-    .floating-player-bar {
-        flex-direction: column !important;
-        display: flex !important;
-    }
-
-    /* Hack to make Row 2 items side-by-side without a wrapper */
-    /* Since we flattened HTML, we need to handle the sibling alignment */
+    /* Controls and Settings Row 2 */
     .floating-player-controls {
         order: 2;
-        display: inline-flex;
-        width: auto !important;
-        float: left;
+        flex: 0 1 auto;
+        gap: 4px;
     }
 
     .floating-settings-row {
-        order: 2;
-        display: inline-flex;
-        width: auto !important;
-        float: right;
+        order: 3;
+        flex: 0 1 auto;
+        gap: 5px;
         justify-content: flex-end;
-        margin-left: auto;
     }
 
     /* Adjust sizing for Row 2 side-by-side compact fit */
     .floating-player-controls .btn-player {
-        width: 32px;
-        height: 32px;
-        font-size: 0.85rem;
+        width: 34px;
+        height: 34px;
+        font-size: 0.9rem;
     }
 
     .speed-select {
-        height: 28px;
+        height: 30px;
         font-size: 0.75rem !important;
         padding: 0 4px !important;
-        max-width: 45px;
+        max-width: 48px;
     }
 
     .floating-player-mode .floating-checkbox-label {
-        font-size: 0.7rem;
+        font-size: 0.75rem;
+        gap: 3px;
     }
 
     .floating-player-info {
@@ -1406,7 +1374,7 @@ body.player-active {
     }
 
     body.player-active {
-        padding-bottom: 95px;
+        padding-bottom: 100px;
     }
 }
 
