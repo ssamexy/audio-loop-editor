@@ -1398,21 +1398,6 @@ class AppController {
             });
         });
 
-        // Side Help Button
-        const btnSideHelp = document.getElementById('btnSideHelp');
-        if (btnSideHelp) {
-            btnSideHelp.addEventListener('click', () => {
-                // Manually trigger modal open similar to main help button
-                const modal = document.getElementById('manualModal');
-                const content = document.getElementById('manualContent');
-
-                content.innerHTML = typeof i18n !== 'undefined' ? i18n.t('manual_content') : 'Loading...';
-                const titleEl = document.createElement('h2');
-                titleEl.textContent = typeof i18n !== 'undefined' ? i18n.t('manual_title') : 'User Manual';
-                content.prepend(titleEl);
-                modal.style.display = 'block';
-            });
-        }
     }
 
     /**
@@ -1668,23 +1653,23 @@ class AppController {
      * Setup Help Listeners
      */
     setupHelpListeners() {
-        const btnHelp = document.getElementById('btnHelp');
         const modal = document.getElementById('manualModal');
         const content = document.getElementById('manualContent');
-        if (!btnHelp || !modal || !content) return;
+        if (!modal || !content) return;
 
+        const btnHelpHeader = document.getElementById('btnHelp'); // May be missing
+        const btnSideHelp = document.getElementById('btnSideHelp');
         const closeBtn = modal.querySelector('.close-modal');
 
         const openModal = () => {
             content.innerHTML = typeof i18n !== 'undefined' ? i18n.t('manual_content') : 'Loading...';
-            // Also set title
-            const titleEl = document.createElement('h2');
-            titleEl.textContent = typeof i18n !== 'undefined' ? i18n.t('manual_title') : 'User Manual';
-            content.prepend(titleEl);
+            // Title is usually already in translation, but we can prepend it if it's missing in some contexts
+            // In our current i18n, manual_content contains the body.
             modal.style.display = 'block';
         };
 
-        btnHelp.addEventListener('click', openModal);
+        if (btnHelpHeader) btnHelpHeader.addEventListener('click', openModal);
+        if (btnSideHelp) btnSideHelp.addEventListener('click', openModal);
 
         if (closeBtn) {
             closeBtn.addEventListener('click', () => {

@@ -78,22 +78,35 @@ const i18n = {
             // Manual
             'manual_title': '📖 使用說明',
             'manual_content': `
-                <h3>1. 音樂分段剪輯</h3>
+                <h3>1. 音樂分段剪輯 (Audio Splitter)</h3>
                 <ul>
-                    <li>利用波形圖與 "標註開始/結束" 功能進行精確剪輯。</li>
-                    <li>支援自動切分與子段落功能。</li>
+                    <li><strong>載入音訊</strong>：點擊或拖曳 MP3/WAV 檔案至上傳區。</li>
+                    <li><strong>精確剪輯</strong>：使用波形圖下方的「標註開始」按鈕記錄當前播放位置。</li>
+                    <li><strong>時間微調</strong>：使用 +/- 按鈕進行毫秒級微調，步進大小可在設定中調整。</li>
+                    <li><strong>自動切分</strong>：支援將音訊等分為 2-6 段，或點擊「其他」自訂數量。</li>
+                    <li><strong>子段落</strong>：點擊「+子」按鈕，可依播放位置或時間單位快速建立階層式段落。</li>
                 </ul>
-                <h3>2. 音樂合併工具</h3>
+                <h3>2. 音樂合併工具 (Audio Merger)</h3>
                 <ul>
-                    <li>將多個音訊檔案拖曳到合併區塊，調整順序後合併匯出。</li>
+                    <li><strong>批次上傳</strong>：一次選擇多個檔案，或逐一拖入合併區。</li>
+                    <li><strong>調整順序</strong>：直接在列表中<strong>拖曳排序</strong>，預覽合併後的動線。</li>
+                    <li><strong>試聽片段</strong>：點擊「▶」可單獨試聽該片段，確認無誤後再合併。</li>
+                    <li><strong>自訂檔名</strong>：輸入匯出名稱，點擊「合併並匯出」即可完成。</li>
                 </ul>
-                <h3>3. 影片轉音訊</h3>
+                <h3>3. 影片轉音訊 (Video to Audio)</h3>
                 <ul>
-                    <li>載入影片檔 (支援 MP4/MOV 等)，直接轉換為 WAV/MP3。</li>
+                    <li><strong>影片支援</strong>：支援 MP4, MOV, WEBM 等常見影片格式。</li>
+                    <li><strong>快速轉換</strong>：載入影片後，選擇輸出為 MP3 或 WAV，直接提取音軌。</li>
                 </ul>
-                <h3>4. 音訊格式轉換</h3>
+                <h3>4. 音訊格式轉換 (Audio Converter)</h3>
                 <ul>
-                    <li>將各種音訊格式 (AAC, OGG, M4A) 轉為通用的 MP3 或 WAV。</li>
+                    <li><strong>格式支援</strong>：支援 M4A, OGG, FLAC, AAC 等多種音訊格式。</li>
+                    <li><strong>通用輸出</strong>：快速將不常見格式轉換為通用的 MP3 或 WAV 格式以便練習。</li>
+                </ul>
+                <h3>💡 操作小秘訣</h3>
+                <ul>
+                    <li><strong>快捷鍵</strong>：空白鍵 (播放/暫停)、左右方向鍵 (快進/退)。</li>
+                    <li><strong>循環練習</strong>：開啟「🔁 循環播放」與「僅段落」模式，可反覆練習特定難點。</li>
                 </ul>
             `,
 
@@ -186,6 +199,7 @@ const i18n = {
             'select_video': '🎬 Select Video File',
             'upload_prompt': 'Click or drag audio file here',
             'video_upload_prompt': 'Click or drag video file here (MP4, WEBM...)',
+            'audio_convert_upload_prompt': 'Click or drag audio file here (MP3, WAV, OGG, M4A...)',
             'upload_hint': 'Supports MP3, WAV, OGG, M4A formats',
             'drop_json_hint': 'Drag JSON settings file here to import',
             'drop_json_to_import': 'Drop to import settings',
@@ -298,20 +312,32 @@ const i18n = {
             'manual_content': `
                 <h3>1. Audio Splitter</h3>
                 <ul>
-                    <li>Precise editing with waveform and segment tools.</li>
-                    <li>Supports auto-split and sub-segments.</li>
+                    <li><strong>Load Audio</strong>: Drag and drop MP3/WAV files to start.</li>
+                    <li><strong>Precise Editing</strong>: Use "Mark Start" with the waveform for millisecond precision.</li>
+                    <li><strong>Time Fine-tuning</strong>: Use +/- buttons (Step size adjustable in Settings).</li>
+                    <li><strong>Auto Split</strong>: Divide audio into 2-6 parts or custom amounts.</li>
+                    <li><strong>Sub-segments</strong>: Create hierarchical sections via current position or time units.</li>
                 </ul>
                 <h3>2. Audio Merger</h3>
                 <ul>
-                    <li>Combine multiple audio files into one track.</li>
+                    <li><strong>Batch Upload</strong>: Load multiple files at once.</li>
+                    <li><strong>Reorder</strong>: Use <strong>drag & drop</strong> to sort segments.</li>
+                    <li><strong>Preview</strong>: Click "▶" to preview individual files before merging.</li>
+                    <li><strong>Custom Filename</strong>: Name your project before exporting.</li>
                 </ul>
-                <h3>3. Video Converter</h3>
+                <h3>3. Video to Audio</h3>
                 <ul>
-                    <li>Extract audio (WAV/MP3) from video files directly.</li>
+                    <li><strong>Formats</strong>: Supports MP4, MOV, WEBM, etc.</li>
+                    <li><strong>One-click</strong>: Extract high-quality WAV/MP3 from any video file.</li>
                 </ul>
                 <h3>4. Audio Converter</h3>
                 <ul>
-                    <li>Convert various audio formats to universal MP3/WAV.</li>
+                    <li><strong>Cross-format</strong>: Convert M4A, OGG, FLAC to standard MP3/WAV.</li>
+                </ul>
+                <h3>💡 Pro Tips</h3>
+                <ul>
+                    <li><strong>Shortcuts</strong>: Space (Play/Pause), Left/Right Arrows (Seek).</li>
+                    <li><strong>Loop Practice</strong>: Enable "🔁 Loop" and "Segment Only" to master difficult parts.</li>
                 </ul>
             `,
 

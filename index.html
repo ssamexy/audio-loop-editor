@@ -16,7 +16,11 @@
         <header class="header">
             <h1 data-i18n="app_title">🎵 Audio Loop Editor</h1>
             <p class="subtitle" data-i18n="app_subtitle">音訊分段剪輯與循環練習工具 - 支援毫秒精度、多段剪輯、試播放</p>
-            <div class="version">v1.6.0</div>
+            <div class="version">v1.7.0</div>
+            <div class="lang-switcher section-lang-switcher">
+                <button class="lang-btn" onclick="i18n.setLang('zh-TW')">中文</button>
+                <button class="lang-btn" onclick="i18n.setLang('en')">EN</button>
+            </div>
         </header>
 
         <!-- Main Content -->
@@ -60,10 +64,6 @@
                                 data-i18n-title="play_main" title="播放主音訊" style="display: none;">
                                 ▶ 播放
                             </button>
-                            <div class="lang-switcher">
-                                <button class="lang-btn" onclick="i18n.setLang('zh-TW')">中文</button>
-                                <button class="lang-btn" onclick="i18n.setLang('en')">EN</button>
-                            </div>
                         </div>
                         <div class="upload-area" id="uploadArea">
                             <input type="file" id="fileInput" accept="audio/*" hidden>
@@ -182,7 +182,6 @@
                             <div class="progress-text" id="progressText" data-i18n="preparing">準備中...</div>
                         </div>
                     </section>
-                    </section>
                 </div>
 
                 <!-- Feature 2: Merge -->
@@ -211,7 +210,6 @@
                                     合併並匯出</button>
                             </div>
                         </div>
-                    </section>
                     </section>
                 </div>
 
@@ -256,64 +254,65 @@
                         </div>
                     </section>
                 </div>
-                </section>
-        </div>
 
-        <!-- Feature 4: Audio Converter (New) -->
-        <div id="audio-converter" class="feature-block">
-            <h2 class="feature-title" data-i18n="feature_audio_converter_title">🎵 音訊格式轉換工具</h2>
-            <section class="section audio-convert-section">
-                <h2 data-i18n="audio_convert_title">🎵 音訊格式轉換</h2>
-                <div class="upload-area" id="audioConvertUploadArea">
-                    <input type="file" id="audioConvertFileInput" accept="audio/*" hidden>
-                    <div class="upload-prompt">
-                        <svg class="upload-icon" viewBox="0 0 24 24" width="48" height="48">
-                            <path fill="currentColor"
-                                d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z" />
-                        </svg>
-                        <p data-i18n="audio_convert_upload_prompt">點擊或拖曳音訊檔案到此處</p>
-                        <p class="upload-hint" data-i18n="upload_hint">支援 MP3, WAV, OGG, M4A 等格式</p>
-                    </div>
-                    <div class="file-info" id="audioConvertFileInfo" style="display: none;">
-                        <div class="file-name" id="audioConvertFileName"></div>
-                        <div class="file-details" id="audioConvertFileDetails"></div>
-                    </div>
-                </div>
-
-                <div class="audio-convert-controls" id="audioConvertControls" style="display: none; margin-top: 20px;">
-                    <div class="export-options">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="audioConvertExportMp3" checked>
-                            <span data-i18n="export_mp3">輸出為 MP3</span>
-                        </label>
-                    </div>
-                    <button class="btn btn-primary btn-large" id="btnAudioConvertProcess" data-i18n="convert_process">🔄
-                        開始轉換</button>
-                    <div class="progress-container" id="audioConvertProgressContainer"
-                        style="display: none; margin-top: 15px;">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="audioConvertProgressFill"></div>
+                <!-- Feature 4: Audio Converter (New) -->
+                <div id="audio-converter" class="feature-block">
+                    <h2 class="feature-title" data-i18n="feature_audio_converter_title">🎵 音訊格式轉換工具</h2>
+                    <section class="section audio-convert-section">
+                        <h2 data-i18n="audio_convert_title">🎵 音訊格式轉換</h2>
+                        <div class="upload-area" id="audioConvertUploadArea">
+                            <input type="file" id="audioConvertFileInput" accept="audio/*" hidden>
+                            <div class="upload-prompt">
+                                <svg class="upload-icon" viewBox="0 0 24 24" width="48" height="48">
+                                    <path fill="currentColor"
+                                        d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z" />
+                                </svg>
+                                <p data-i18n="audio_convert_upload_prompt">點擊或拖曳音訊檔案到此處</p>
+                                <p class="upload-hint" data-i18n="upload_hint">支援 MP3, WAV, OGG, M4A 等格式</p>
+                            </div>
+                            <div class="file-info" id="audioConvertFileInfo" style="display: none;">
+                                <div class="file-name" id="audioConvertFileName"></div>
+                                <div class="file-details" id="audioConvertFileDetails"></div>
+                            </div>
                         </div>
-                        <div class="progress-text" id="audioConvertProgressText" data-i18n="preparing">準備中...</div>
-                    </div>
-                </div>
-            </section>
-        </div>
-        </main>
-    </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <p>
-            🎵 <strong>Audio Loop Editor</strong> - <span data-i18n="footer_desc">專為音樂練習設計的分段剪輯工具</span>
-        </p>
-        <p>
-            <a href="https://github.com/ssamexy/audio-loop-editor" target="_blank">GitHub</a> |
-            <a href="./DISCLAIMER.md" target="_blank" data-i18n="disclaimer">免責聲明</a> |
-            <span data-i18n="footer_privacy">所有處理都在您的瀏覽器中完成，不會上傳任何檔案</span>
-        </p>
-        <p>&copy; 2026 ssamexy | MIT License</p>
-    </footer>
+                        <div class="audio-convert-controls" id="audioConvertControls"
+                            style="display: none; margin-top: 20px;">
+                            <div class="export-options">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="audioConvertExportMp3" checked>
+                                    <span data-i18n="export_mp3">輸出為 MP3</span>
+                                </label>
+                            </div>
+                            <button class="btn btn-primary btn-large" id="btnAudioConvertProcess"
+                                data-i18n="convert_process">🔄
+                                開始轉換</button>
+                            <div class="progress-container" id="audioConvertProgressContainer"
+                                style="display: none; margin-top: 15px;">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="audioConvertProgressFill"></div>
+                                </div>
+                                <div class="progress-text" id="audioConvertProgressText" data-i18n="preparing">準備中...
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>
+                🎵 <strong>Audio Loop Editor</strong> - <span data-i18n="footer_desc">專為音樂練習設計的分段剪輯工具</span>
+            </p>
+            <p>
+                <a href="https://github.com/ssamexy/audio-loop-editor" target="_blank">GitHub</a> |
+                <a href="./DISCLAIMER.md" target="_blank" data-i18n="disclaimer">免責聲明</a> |
+                <span data-i18n="footer_privacy">所有處理都在您的瀏覽器中完成，不會上傳任何檔案</span>
+            </p>
+            <p>&copy; 2026 ssamexy | MIT License</p>
+        </footer>
     </div>
 
     <!-- User Manual Modal -->
