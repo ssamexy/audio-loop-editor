@@ -1180,12 +1180,20 @@ body {
     right: 0;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     color: white;
-    padding: 12px 20px;
+    padding: 8px 20px;
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 20px;
     z-index: 9999;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Desktop horizontal wrapper */
+.floating-player-contents {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 2;
 }
 
 .floating-player-controls {
@@ -1299,8 +1307,20 @@ body.player-active {
 @media (max-width: 768px) {
     .floating-player-bar {
         flex-direction: column !important;
-        padding: 4px 8px 6px;
+        padding: 5px 8px 8px;
         gap: 2px;
+    }
+
+    /* Wrap contents to allow 2-row layout */
+    .floating-player-contents {
+        display: flex;
+        flex-direction: row;
+        /* Horizontal on row 2 */
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        gap: 5px;
+        flex-wrap: nowrap;
     }
 
     /* Row 1: Seekbar and Time */
@@ -1309,73 +1329,61 @@ body.player-active {
         align-items: center;
         gap: 8px;
         width: 100%;
-        margin-bottom: 0px;
+        margin-bottom: 2px;
     }
 
     .floating-player-seekbar .seek-bar {
         flex: 1;
+        height: 6px;
     }
 
-    /* Row 2: Controls and Loop */
+    .floating-player-time {
+        min-width: 65px;
+        font-size: 0.75rem;
+    }
+
+    /* Row 2: Left Side (Controls) */
     .floating-player-controls {
-        display: flex;
-        align-items: center;
-        width: 100%;
         gap: 4px;
-        justify-content: space-between;
+        flex: 0 1 auto;
     }
 
     .floating-player-controls .btn-player {
-        width: 32px;
-        height: 32px;
+        width: 34px;
+        height: 34px;
         font-size: 0.9rem;
     }
 
-    /* Row 3: Settings (Step, Speed, Switch) */
-    .floating-player-speed,
-    .floating-player-mode {
-        display: flex;
-        align-items: center;
+    /* Row 2: Center/Right (Settings) */
+    .floating-settings-row {
         gap: 5px;
         flex: 1;
-    }
-
-    /* Group settings in a row */
-    .floating-settings-row {
-        display: flex !important;
-        align-items: center;
-        gap: 4px;
         justify-content: flex-end;
-        margin-top: 0;
     }
 
-    .speed-select,
-    .mode-select {
-        height: 28px;
-        padding: 0 2px !important;
-        font-size: 0.75rem !important;
-        flex: 1;
-        min-width: 0;
-        max-width: 55px;
+    .floating-player-speed {
+        gap: 4px;
+    }
+
+    .speed-select {
+        height: 30px;
+        padding: 0 4px !important;
+        font-size: 0.8rem !important;
+        max-width: 50px;
+        border-radius: 4px;
     }
 
     .floating-player-mode .floating-checkbox-label {
-        font-size: 0.7rem;
-        white-space: nowrap;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 2px;
+        font-size: 0.75rem;
+        gap: 3px;
     }
 
     .floating-player-info {
         display: none !important;
-        /* Hide file info on mobile to save space */
     }
 
     body.player-active {
-        padding-bottom: 95px;
-        /* Reduced since player is slimmer */
+        padding-bottom: 90px;
     }
 }
 

@@ -3,6 +3,12 @@
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
 
+## [v1.7.3] - 2026-01-27
+
+### Fixed
+- **Player UI**: Restored the desktop audio player bar to its original single horizontal row layout. Condensed the mobile player bar into an ultra-compact 2-row layout.
+- **Documentation**: Updated README with latest feature set and versioning.
+
 ## [v1.7.2] - 2026-01-27
 
 ### Fixed
