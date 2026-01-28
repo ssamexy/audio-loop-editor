@@ -266,6 +266,27 @@ class UIController {
             this.segmentManager.updateSegment(segment.id, { endMs: newMs });
         });
 
+        // 時長顯示
+        const durationDisplay = document.createElement('div');
+        durationDisplay.className = 'segment-duration';
+        durationDisplay.style.marginLeft = '10px';
+        durationDisplay.style.minWidth = '60px'; // Ensure alignment
+        durationDisplay.style.color = 'var(--text-secondary)';
+        durationDisplay.style.fontSize = '0.9em';
+
+        const updateDuration = () => {
+            const duration = (segment.endMs - segment.startMs) / 1000;
+            durationDisplay.textContent = duration.toFixed(1) + 's';
+        };
+        updateDuration();
+
+        // Listen to updates? 
+        // Since we re-render on change, this initial calculation is fine.
+        // But if we want live update during input change without re-render (which we do for inputs),
+        // we might want to attach this to the onChange callbacks of inputs above if they update the DOM directly?
+        // UIController.createTimeInputGroup calls onChange -> segmentManager.updateSegment -> notifies -> renderSegments.
+        // So re-render happens. The display will update.
+
         // 操作按鈕
         const actions = document.createElement('div');
         actions.className = 'segment-actions';
@@ -312,6 +333,7 @@ class UIController {
         row.appendChild(nameInput);
         row.appendChild(startTimeGroup);
         row.appendChild(endTimeGroup);
+        row.appendChild(durationDisplay);
         row.appendChild(actions);
 
         return row;

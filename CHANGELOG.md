@@ -3,7 +3,15 @@
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
 
-## [v1.8.0] - 2026-01-27
+## [v1.8.0] - 2026-01-28
+
+### Added (Web/GUI)
+- **連續標註 (Continuous Marking)**：改進標註流程，新增「繼續」與「結束」按鈕。
+    - 點擊「標註開始」後，可連續點擊「繼續」來產生多個連續段落。
+    - 點擊「結束」完成最後一段並重置標註狀態。
+- **時長顯示 (Duration Display)**：在段落列表的每個段落顯示其時間長度 (如 `5.0s`)，方便確認。
+
+## [v1.7.7] - 2026-01-27
 
 ### Added (Web/GUI)
 - **ID 鎖定功能 (ID Lock)**：新增編號鎖定開關，預設為唯讀以防止誤改，並在鎖定時作為拖曳排序手把。

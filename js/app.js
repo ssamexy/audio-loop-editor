@@ -620,54 +620,89 @@ class AppController {
         });
 
         // Mark Segment Start/End
-        document.getElementById('btnMarkSegment').addEventListener('click', () => {
+        const btnMarkSegment = document.getElementById('btnMarkSegment');
+        const btnMarkContinue = document.getElementById('btnMarkContinue'); // New Button
+        const btnMarkFinish = document.getElementById('btnMarkFinish');     // New Button
+        const info = document.getElementById('markInfo');
+
+        // Helper: Reset Mark UI
+        const resetMarkUI = () => {
+            this.state.isMarkingStart = false;
+
+            btnMarkSegment.style.display = 'inline-block';
+            btnMarkContinue.style.display = 'none';
+            btnMarkFinish.style.display = 'none';
+
+            info.style.display = 'none';
+        };
+
+        // 1. Mark Start
+        btnMarkSegment.addEventListener('click', () => {
             if (!this.audioProcessor.audioBuffer) return alert(typeof i18n !== 'undefined' ? i18n.t('no_audio') : '請先載入音訊');
 
-            const btn = document.getElementById('btnMarkSegment');
-            const info = document.getElementById('markInfo');
             const currentMs = document.getElementById('audioPlayer').currentTime * 1000;
 
-            if (!this.state.isMarkingStart) {
-                // Start Marking
-                this.state.isMarkingStart = true;
-                this.state.markStartTime = currentMs;
+            // Start Marking
+            this.state.isMarkingStart = true;
+            this.state.markStartTime = currentMs;
 
-                const markEndText = typeof i18n !== 'undefined' ? i18n.t('mark_end') : '標註結束';
-                btn.innerHTML = markEndText;
-                btn.classList.add('btn-danger');
-                btn.classList.remove('btn-secondary');
+            // UI Changes: Hide Start, Show Continue/Finish
+            btnMarkSegment.style.display = 'none';
+            btnMarkContinue.style.display = 'inline-block';
+            btnMarkFinish.style.display = 'inline-block';
 
-                info.style.display = 'block';
-                const infoText = typeof i18n !== 'undefined' ? i18n.t('marking_start_time') : '已標註開始: {time}';
-                info.textContent = infoText.replace('{time}', TimeUtils.formatTime(currentMs));
+            info.style.display = 'block';
+            const infoText = typeof i18n !== 'undefined' ? i18n.t('marking_start_time') : '已標註開始: {time}';
+            info.textContent = infoText.replace('{time}', TimeUtils.formatTime(currentMs));
+        });
 
-                // Marker visual disabled per request
-                // this.uiController.addMarker(...) 
-            } else {
-                // End Marking
+        // 2. Mark Continue (Add segment, keep marking)
+        if (btnMarkContinue) {
+            btnMarkContinue.addEventListener('click', () => {
+                const currentMs = document.getElementById('audioPlayer').currentTime * 1000;
+
                 if (currentMs <= this.state.markStartTime) {
                     alert('結束時間必須大於開始時間');
                     return;
                 }
 
+                // Add Segment
                 this.segmentManager.addSegment({
                     name: `Segment ${this.segmentManager.getCount() + 1}`,
                     startMs: Math.floor(this.state.markStartTime),
                     endMs: Math.floor(currentMs)
                 });
 
-                // Reset State
-                this.state.isMarkingStart = false;
-                const markStartText = typeof i18n !== 'undefined' ? i18n.t('mark_start') : '標註開始';
-                btn.innerHTML = markStartText;
-                btn.classList.remove('btn-danger');
-                btn.classList.add('btn-secondary');
-                info.style.display = 'none';
+                // Update Start Time to Current Time
+                this.state.markStartTime = currentMs;
 
-                // Marker visual disabled per request
-                // this.uiController.clearMarkers();
-            }
-        });
+                // Update Info
+                const infoText = typeof i18n !== 'undefined' ? i18n.t('marking_start_time') : '已標註開始: {time}';
+                info.textContent = infoText.replace('{time}', TimeUtils.formatTime(currentMs));
+            });
+        }
+
+        // 3. Mark Finish (Add segment, stop marking)
+        if (btnMarkFinish) {
+            btnMarkFinish.addEventListener('click', () => {
+                const currentMs = document.getElementById('audioPlayer').currentTime * 1000;
+
+                if (currentMs <= this.state.markStartTime) {
+                    alert('結束時間必須大於開始時間');
+                    return;
+                }
+
+                // Add Segment
+                this.segmentManager.addSegment({
+                    name: `Segment ${this.segmentManager.getCount() + 1}`,
+                    startMs: Math.floor(this.state.markStartTime),
+                    endMs: Math.floor(currentMs)
+                });
+
+                // Reset
+                resetMarkUI();
+            });
+        }
     }
 
     /**
