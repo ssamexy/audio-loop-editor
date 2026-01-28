@@ -673,7 +673,7 @@ class AppController {
                     endMs: Math.floor(currentMs)
                 });
 
-                // Update Start Time to Current Time
+                // Update Start Time for NEXT segment to be exactly the current end time
                 this.state.markStartTime = currentMs;
 
                 // Update Info
