@@ -3,8 +3,13 @@
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
 
-## [v1.8.1] - 2026-01-28
+## [v1.8.2] - 2026-01-28
 
+### Fixed (Web/GUI)
+- **標註按鈕顯示 (Marking Buttons)**：修復「繼續/結束」按鈕文字顯示不完整與多語系缺失 (`mark_...`) 的問題。
+- **標註邏輯 (Marking Logic)**：修復「結束時間必須大於開始時間」的誤判問題，增加邏輯檢查的容錯 (Tolerance)。
+
+## [v1.8.1] - 2026-01-28
 ### Fixed (Web/GUI)
 - **版本號更新**: 版本號更新至 v1.8.1。
 

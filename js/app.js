@@ -661,8 +661,9 @@ class AppController {
             btnMarkContinue.addEventListener('click', () => {
                 const currentMs = document.getElementById('audioPlayer').currentTime * 1000;
 
-                if (currentMs <= this.state.markStartTime) {
-                    alert('結束時間必須大於開始時間');
+                if (currentMs <= this.state.markStartTime + 10) { // 10ms tolerance
+                    const msg = typeof i18n !== 'undefined' ? i18n.t('error_time_order') : '結束時間必須大於開始時間';
+                    alert(`${msg}\n(Current: ${TimeUtils.formatTime(currentMs)} <= Start: ${TimeUtils.formatTime(this.state.markStartTime)})`);
                     return;
                 }
 
@@ -687,8 +688,9 @@ class AppController {
             btnMarkFinish.addEventListener('click', () => {
                 const currentMs = document.getElementById('audioPlayer').currentTime * 1000;
 
-                if (currentMs <= this.state.markStartTime) {
-                    alert('結束時間必須大於開始時間');
+                if (currentMs <= this.state.markStartTime + 10) { // 10ms tolerance
+                    const msg = typeof i18n !== 'undefined' ? i18n.t('error_time_order') : '結束時間必須大於開始時間';
+                    alert(`${msg}\n(Current: ${TimeUtils.formatTime(currentMs)} <= Start: ${TimeUtils.formatTime(this.state.markStartTime)})`);
                     return;
                 }
 
