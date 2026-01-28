@@ -3,6 +3,17 @@
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
 
+## [v1.8.4] - 2026-01-28
+### Improved (Web/GUI)
+- **UI 佈局 (UI Layout)**：移除段落列表中的長時間欄位，改為滑鼠懸停 (Hover) 時以 Tooltip 顯示，節省空間。
+- **標註邏輯 (Marking Logic)**：
+    - 優化「繼續」按鈕邏輯：點擊時會結束當前段落，並同時以當前時間作為下一段落的開始，確保無縫銜接。
+    - 靜音確效：若連續點擊過快 (產生 <10ms 段落)，系統將靜默忽略而不顯示錯誤視窗。
+
+## [v1.8.3] - 2026-01-28
+### Fixed (Web/GUI)
+- **錯誤修復**: 修復 v1.8.2 部署問題與 UI 微調。
+
 ## [v1.8.2] - 2026-01-28
 
 ### Fixed (Web/GUI)
