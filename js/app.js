@@ -662,8 +662,7 @@ class AppController {
                 const currentMs = document.getElementById('audioPlayer').currentTime * 1000;
 
                 if (currentMs <= this.state.markStartTime + 10) { // 10ms tolerance
-                    const msg = typeof i18n !== 'undefined' ? i18n.t('error_time_order') : '結束時間必須大於開始時間';
-                    alert(`${msg}\n(Current: ${TimeUtils.formatTime(currentMs)} <= Start: ${TimeUtils.formatTime(this.state.markStartTime)})`);
+                    // Silent return
                     return;
                 }
 
@@ -689,8 +688,7 @@ class AppController {
                 const currentMs = document.getElementById('audioPlayer').currentTime * 1000;
 
                 if (currentMs <= this.state.markStartTime + 10) { // 10ms tolerance
-                    const msg = typeof i18n !== 'undefined' ? i18n.t('error_time_order') : '結束時間必須大於開始時間';
-                    alert(`${msg}\n(Current: ${TimeUtils.formatTime(currentMs)} <= Start: ${TimeUtils.formatTime(this.state.markStartTime)})`);
+                    // Silent return
                     return;
                 }
 
