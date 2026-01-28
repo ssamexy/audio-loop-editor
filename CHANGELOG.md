@@ -3,6 +3,11 @@
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
 
+## [v1.8.1] - 2026-01-28
+
+### Fixed (Web/GUI)
+- **版本號更新**: 版本號更新至 v1.8.1。
+
 ## [v1.8.0] - 2026-01-28
 
 ### Added (Web/GUI)
