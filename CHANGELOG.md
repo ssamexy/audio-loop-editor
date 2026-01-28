@@ -3,6 +3,14 @@
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
 
+## [v1.8.9] - 2026-01-28
+### Improved (Web)
+- **UI Clarification**: 按鈕名稱優化。「繼續」->「繼續標註」，「結束」->「結束標註」。同步更新使用手冊。
+
+## [v1.8.8] - 2026-01-28
+### Removed (Web)
+- **UI Simplification**: 移除「主音樂二分 (Split Main Audio)」按鈕，簡化操作介面。現在「標註開始 (Mark Start)」為主要工具。
+
 ## [v1.8.7] - 2026-01-28
 ### Improved (Web/GUI)
 - **Marking Workflow**: 優化「結束 (Finish)」按鈕邏輯。現在點擊後必定結束標註模式，且僅在結束時間大於開始時間時才儲存最後一段。

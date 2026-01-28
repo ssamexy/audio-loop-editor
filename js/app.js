@@ -600,24 +600,7 @@ class AppController {
             }
         });
 
-        // Split Main at Cursor
-        document.getElementById('btnSplitMainAtCursor').addEventListener('click', () => {
-            if (!this.audioProcessor.audioBuffer) return alert(typeof i18n !== 'undefined' ? i18n.t('no_audio') : '請先載入音訊');
 
-            if (this.segmentManager.getCount() > 0) {
-                const warning = typeof i18n !== 'undefined' ? i18n.t('overwrite_warning') : '確定要覆蓋嗎？';
-                if (!confirm(warning)) return;
-            }
-
-            const duration = (this.audioProcessor.audioBuffer ? this.audioProcessor.audioBuffer.duration : document.getElementById('audioPlayer').duration) * 1000;
-            const current = document.getElementById('audioPlayer').currentTime * 1000;
-
-            if (isNaN(duration) || current <= 100 || current >= duration - 100) return;
-
-            this.segmentManager.clearAll();
-            this.segmentManager.addSegment({ name: 'Part 1', startMs: 0, endMs: Math.floor(current) });
-            this.segmentManager.addSegment({ name: 'Part 2', startMs: Math.floor(current), endMs: Math.floor(duration) });
-        });
 
         // Mark Segment Start/End
         const btnMarkSegment = document.getElementById('btnMarkSegment');

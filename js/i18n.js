@@ -36,8 +36,8 @@ const i18n = {
             'main_tools': '主音樂工具:',
             'split_main_cursor': '📍 主音樂二分',
             'mark_start': '🚩 標註開始',
-            'mark_continue': '⏩ 繼續',
-            'mark_finish': '🏁 結束',
+            'mark_continue': '⏩ 繼續標註',
+            'mark_finish': '🏁 結束標註',
             'mark_end': '🏁 標註結束',
             'error_time_order': '結束時間必須大於開始時間',
             'overwrite_warning': '這將會清除所有現有段落並重新切分，確定嗎？',
@@ -86,7 +86,7 @@ const i18n = {
                 <ul>
                     <li><strong>核心功能</strong>：這是本工具最精華的部分，提供毫秒級的音訊標註與分段。</li>
                     <li><strong>載入音訊</strong>：點擊或拖曳 MP3/WAV 檔案至上傳區。</li>
-                    <li><strong>精確剪輯</strong>：使用「標註開始」記錄起點，接著點擊「繼續」可連續標註多段，最後點擊「結束」完成。</li>
+                    <li><strong>精確剪輯</strong>：使用「標註開始」記錄起點，接著點擊「繼續標註」可連續標註多段，最後點擊「結束標註」完成。</li>
                     <li><strong>時間微調</strong>：使用 +/- 按鈕進行毫秒級微調，步進大小可在設定中調整。</li>
                     <li><strong>自動切分</strong>：支援將音訊等分為 2-6 段，或點擊「其他」自訂數量。</li>
                     <li><strong>子段落</strong>：點擊「+子」按鈕，可依播放位置或時間單位快速建立階層式段落。</li>
@@ -280,8 +280,8 @@ const i18n = {
             'main_tools': 'Main Audio Tools:',
             'split_main_cursor': '📍 Split Main Audio Here',
             'mark_start': '🚩 Mark Start',
-            'mark_continue': '⏩ Cont.',
-            'mark_finish': '🏁 Finish',
+            'mark_continue': '⏩ Cont. Marking',
+            'mark_finish': '🏁 End Marking',
             'mark_end': '🏁 Mark End',
             'error_time_order': 'End time must be greater than start time',
             'overwrite_warning': 'This will clear all segments and split. Confirm?',
@@ -329,7 +329,7 @@ const i18n = {
                 <ul>
                     <li><strong>Main Feature</strong>: This is the core of our tool, offering millisecond-precision audio marking and segmenting.</li>
                     <li><strong>Load Audio</strong>: Drag and drop MP3/WAV files to start.</li>
-                    <li><strong>Precise Editing</strong>: Use "Mark Start" to begin, "Continue" to mark consecutive segments, and "Finish" to end.</li>
+                    <li><strong>Precise Editing</strong>：Use "Mark Start" to begin, "Continue Marking" to mark consecutive segments, and "End Marking" to end.</li>
                     <li><strong>Time Fine-tuning</strong>: Use +/- buttons (Step size adjustable in Settings).</li>
                     <li><strong>Auto Split</strong>: Divide audio into 2-6 parts or custom amounts.</li>
                     <li><strong>Sub-segments</strong>: Create hierarchical sections via current position or time units.</li>
