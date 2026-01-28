@@ -13,8 +13,9 @@
 
 ### ✨ 功能特色
 
-- 🎯 **毫秒精度剪輯** - 精確到毫秒的時間控制 (`MM:SS.mmm`)
+- 🎯 **毫秒精度剪輯** - 精確到毫秒的時間控制 (`MM:SS.mmm`)，支援連續快速標註 (`Start -> Continue -> Finish`)
 - 📋 **多段落管理** - 支援多段落同時編輯與階層式子段落
+- ⏱️ **長度提示** - 滑鼠懸停於段落名稱可查看精確時長
 - ▶️ **即時試播放** - 點擊播放按鈕即可預覽每個片段
 - ⚡ **自動切分** - 一鍵將音訊平均分割成多段
 - 📥 **JSON 匯入/匯出** - 儲存與載入分段設定
@@ -33,7 +34,7 @@
 ### 📖 使用方式
 
 1. **上傳音訊** - 點擊或拖曳 MP3/WAV/OGG 等音訊檔案
-2. **設定分段** - 手動新增或使用自動切分功能
+2. **設定分段** - 使用「標註開始/繼續/結束」進行連續剪輯，或使用自動切分功能
 3. **調整時間** - 使用 +/- 按鈕微調或直接輸入時間
 4. **試播放** - 點擊 ▶ 按鈕預覽每個段落
 5. **匯出** - 點擊「開始剪輯」下載所有段落
@@ -63,8 +64,9 @@
 
 ### ✨ Features
 
-- 🎯 **Millisecond Precision** - Accurate time control down to milliseconds (`MM:SS.mmm`)
+- 🎯 **Millisecond Precision** - Accurate time control (`MM:SS.mmm`) with continuous marking flow (`Start -> Continue -> Finish`)
 - 📋 **Multi-segment Management** - Edit multiple segments with hierarchical sub-segments
+- ⏱️ **Duration Tooltip** - Hover over segment name to view precise duration
 - ▶️ **Instant Preview** - Click play to preview each segment
 - ⚡ **Auto Split** - One-click split audio into equal parts
 - 📥 **JSON Import/Export** - Save and load segment settings
@@ -83,7 +85,7 @@ Visit: **[https://ssamexy.github.io/audio-loop-editor/](https://ssamexy.github.i
 ### 📖 How to Use
 
 1. **Upload Audio** - Click or drag MP3/WAV/OGG files
-2. **Create Segments** - Add manually or use auto-split
+2. **Create Segments** - Use "Mark Start/Continue/Finish" for continuous editing, or auto-split
 3. **Adjust Time** - Use +/- buttons or type time directly
 4. **Preview** - Click ▶ to preview each segment
 5. **Export** - Click "Start Processing" to download all segments

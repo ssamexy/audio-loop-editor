@@ -7,6 +7,9 @@ All notable changes to the "Audio Loop Editor" project will be documented in thi
 ### Fixed (Web)
 - **Marking Bug**: 修復「結束 (Finish)」按鈕在快速點擊或雙擊時會產生重複段落的錯誤。
 
+### Documentation
+- Updated README and in-app User Manual to reflect new marking workflow and tooltip features.
+
 ## [v1.8.5] - 2026-01-28
 ### Fixed (Web)
 - **Runtime Error**: 修復 `createSegmentRow` 中 `currentLevel` 未定義導致列表無法渲染的嚴重錯誤。(v1.8.4 regression)
