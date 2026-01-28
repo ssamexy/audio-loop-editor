@@ -175,6 +175,7 @@ class UIController {
             }
         });
 
+        const currentLevel = String(segment.id).split('-').length;
         if (currentLevel === 2) {
             row.classList.add('sub-segment');
         } else if (currentLevel >= 3) {
