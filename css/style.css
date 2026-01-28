@@ -273,6 +273,15 @@ body {
     /* Distribute space evenly */
 }
 
+/* Fix for marking buttons text overflow */
+#btnMarkSegment,
+#btnMarkContinue,
+#btnMarkFinish {
+    font-size: 0.9rem;
+    padding: 6px 4px;
+    min-width: 0;
+}
+
 /* Remove spinner from step size input */
 #stepSize::-webkit-inner-spin-button,
 #stepSize::-webkit-outer-spin-button {

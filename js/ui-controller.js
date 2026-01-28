@@ -331,9 +331,9 @@ class UIController {
         // 組裝列
         row.appendChild(idContainer); // Use idContainer instead of direct input
         row.appendChild(nameInput);
+        row.appendChild(durationDisplay); // Duration moved after name
         row.appendChild(startTimeGroup);
         row.appendChild(endTimeGroup);
-        row.appendChild(durationDisplay);
         row.appendChild(actions);
 
         return row;
