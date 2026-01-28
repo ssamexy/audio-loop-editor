@@ -633,7 +633,10 @@ class AppController {
             btnMarkContinue.style.display = 'none';
             btnMarkFinish.style.display = 'none';
 
+            btnMarkFinish.style.display = 'none';
+
             info.style.display = 'none';
+            this.state.markStartTime = null; // Clear start time
         };
 
         // 1. Mark Start
@@ -659,6 +662,7 @@ class AppController {
         // 2. Mark Continue (Add segment, keep marking)
         if (btnMarkContinue) {
             btnMarkContinue.addEventListener('click', () => {
+                if (!this.state.isMarkingStart) return;
                 const currentMs = document.getElementById('audioPlayer').currentTime * 1000;
 
                 if (currentMs <= this.state.markStartTime + 10) { // 10ms tolerance
@@ -685,6 +689,7 @@ class AppController {
         // 3. Mark Finish (Add segment, stop marking)
         if (btnMarkFinish) {
             btnMarkFinish.addEventListener('click', () => {
+                if (!this.state.isMarkingStart) return;
                 const currentMs = document.getElementById('audioPlayer').currentTime * 1000;
 
                 if (currentMs <= this.state.markStartTime + 10) { // 10ms tolerance
