@@ -3,6 +3,10 @@
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
 
+## [v1.8.7] - 2026-01-28
+### Improved (Web/GUI)
+- **Marking Workflow**: 優化「結束 (Finish)」按鈕邏輯。現在點擊後必定結束標註模式，且僅在結束時間大於開始時間時才儲存最後一段。
+
 ## [v1.8.6] - 2026-01-28
 ### Fixed (Web)
 - **Marking Bug**: 修復「結束 (Finish)」按鈕在快速點擊或雙擊時會產生重複段落的錯誤。

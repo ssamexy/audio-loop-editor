@@ -692,19 +692,16 @@ class AppController {
                 if (!this.state.isMarkingStart) return;
                 const currentMs = document.getElementById('audioPlayer').currentTime * 1000;
 
-                if (currentMs <= this.state.markStartTime + 10) { // 10ms tolerance
-                    // Silent return
-                    return;
+                if (currentMs > this.state.markStartTime + 10) { // 10ms tolerance
+                    // Add Segment
+                    this.segmentManager.addSegment({
+                        name: `Segment ${this.segmentManager.getCount() + 1}`,
+                        startMs: Math.floor(this.state.markStartTime),
+                        endMs: Math.floor(currentMs)
+                    });
                 }
 
-                // Add Segment
-                this.segmentManager.addSegment({
-                    name: `Segment ${this.segmentManager.getCount() + 1}`,
-                    startMs: Math.floor(this.state.markStartTime),
-                    endMs: Math.floor(currentMs)
-                });
-
-                // Reset
+                // Always Reset
                 resetMarkUI();
             });
         }
