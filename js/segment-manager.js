@@ -216,32 +216,94 @@ class SegmentManager {
     }
 
     /**
-     * 從 JSON 匯入
+     * 偵測 JSON 格式類型
+     * @param {Object} data - 已解析的 JSON 物件
+     * @returns {'audio_loop_editor'|'youtube_looper'|'unknown'}
+     */
+    _detectFormat(data) {
+        if (data && Array.isArray(data.loops)) {
+            return 'youtube_looper';
+        }
+        if (data && Array.isArray(data.segments)) {
+            return 'audio_loop_editor';
+        }
+        return 'unknown';
+    }
+
+    /**
+     * 將 YouTube Looper 格式轉換為內部段落格式
+     *
+     * YouTube Looper schema:
+     * {
+     *   "loops": [
+     *     { "id": "<uid>", "startTime": <sec>, "endTime": <sec>,
+     *       "label": "<label>", "source": "youtube:<VIDEO_ID>", "readonly": <bool> }
+     *   ],
+     *   "sourceId": "youtube:<VIDEO_ID>"
+     * }
+     *
+     * 轉換規則:
+     *   startTime / endTime (秒, 浮點) → startMs / endMs (毫秒, 四捨五入)
+     *   label → id 與 name 前綴 ("Segment {label}")
+     *   sourceId → 保留為參考資訊 (不強制載入音檔)
+     *
+     * @param {Object} data - YouTube Looper JSON 物件
+     * @returns {{ segments: Array, sourceId: string }}
+     */
+    _fromYouTubeLooper(data) {
+        const sourceId = data.sourceId || '';
+        const segments = (data.loops || []).map(loop => ({
+            id: String(loop.label ?? loop.id),
+            name: `Segment ${loop.label ?? loop.id}`,
+            startMs: Math.round(parseFloat(loop.startTime || 0) * 1000),
+            endMs: Math.round(parseFloat(loop.endTime || 0) * 1000),
+        }));
+        return { segments, sourceId };
+    }
+
+    /**
+     * 從 JSON 匯入 (自動偵測格式)
+     *
+     * 支援:
+     *  - Audio Loop Editor 格式 (segments[]/start_ms/end_ms)
+     *  - YouTube Looper 格式    (loops[]/startTime/endTime/label)
      */
     importJSON(jsonData) {
         try {
             const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+            const fmt = this._detectFormat(data);
 
-            if (!data.segments || !Array.isArray(data.segments)) {
-                throw new Error('無效的 JSON 格式');
+            if (fmt === 'unknown') {
+                throw new Error('無法識別的 JSON 格式（既不是 Audio Loop Editor 也不是 YouTube Looper）');
             }
 
             this.clearAll();
 
-            data.segments.forEach(s => {
-                this.addSegment({
+            let segmentsToLoad = [];
+
+            if (fmt === 'youtube_looper') {
+                const converted = this._fromYouTubeLooper(data);
+                segmentsToLoad = converted.segments;
+                // sourceId 僅供參考，不自動載入音檔（Web 版無本地檔案路徑概念）
+            } else {
+                // audio_loop_editor
+                segmentsToLoad = (data.segments || []).map(s => ({
                     id: s.id,
                     name: s.name,
                     startMs: s.start_ms,
-                    endMs: s.end_ms
-                });
-            });
+                    endMs: s.end_ms,
+                }));
+            }
 
+            segmentsToLoad.forEach(s => this.addSegment(s));
+
+            const count = segmentsToLoad.length;
+            const formatLabel = fmt === 'youtube_looper' ? ' (YouTube Looper)' : '';
             const successMsg = typeof i18n !== 'undefined'
-                ? i18n.t('import_success', { count: data.segments.length })
-                : `成功匯入 ${data.segments.length} 個段落`;
+                ? i18n.t('import_success', { count })
+                : `成功匯入 ${count} 個段落${formatLabel}`;
 
-            return { success: true, message: successMsg };
+            return { success: true, message: successMsg, format: fmt };
         } catch (error) {
             const errorMsg = typeof i18n !== 'undefined'
                 ? i18n.t('import_failed', { error: error.message })
