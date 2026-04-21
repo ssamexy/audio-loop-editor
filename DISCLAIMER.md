@@ -57,4 +57,4 @@ Users are responsible for ensuring they have the right to edit and process any a
 **By using this software, you agree to these terms.**
 **使用本軟體即表示您同意上述條款。**
 
-*Last Updated: 2026-01-20*
+*Last Updated: 2026-04-21*

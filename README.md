@@ -18,7 +18,7 @@
 - ⏱️ **長度提示** - 滑鼠懸停於段落名稱可查看精確時長
 - ▶️ **即時試播放** - 點擊播放按鈕即可預覽每個片段
 - ⚡ **自動切分** - 一鍵將音訊平均分割成多段
-- 📥 **JSON 匯入/匯出** - 儲存與載入分段設定
+- 📥 **JSON 匯入/匯出** - 儲存與載入分段設定，支援匯入 YouTube Looper 插件格式
 - 💾 **批次匯出** - 一次下載所有剪輯片段 (WAV/MP3)
 - 🔗 **音訊合併** - 將多個音訊檔案合併為一個檔案
 - 🎞️ **影片轉音訊** - 直接將影片 (MP4/MOV) 轉為 WAV/MP3 音訊
@@ -69,7 +69,7 @@
 - ⏱️ **Duration Tooltip** - Hover over segment name to view precise duration
 - ▶️ **Instant Preview** - Click play to preview each segment
 - ⚡ **Auto Split** - One-click split audio into equal parts
-- 📥 **JSON Import/Export** - Save and load segment settings
+- 📥 **JSON Import/Export** - Save and load segment settings, supports YouTube Looper format
 - 💾 **Batch Export** - Download all segments at once (WAV/MP3)
 - 🔗 **Audio Merging** - Combine multiple audio files into one
 - 🎞️ **Video to Audio** - Convert video files (MP4/MOV) to WAV/MP3 audio directly
@@ -143,7 +143,7 @@ MIT License - Free to use and modify
 ## 🔗 Links
 
 - [Live Demo](https://ssamexy.github.io/audio-loop-editor/)
-- [Changelog](./CHANGELOG.md)
+- [Changelog](./changelog.md)
 - [Report Issues](https://github.com/ssamexy/audio-loop-editor/issues)
 
 ---

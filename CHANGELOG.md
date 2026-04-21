@@ -2,6 +2,13 @@
 
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
+## [v2.0.0] - 2026-04-21
+### Added (Web)
+- **YouTube Looper Support**: Transparently support importing JSON files exported from the "YouTube Looper" Chrome extension. Automatically converts seconds to milliseconds.
+- **Architectural Overhaul**: Modularized codebase into `src/styles/`, `src/utils/`, and `src/services/` for better maintainability and scalability.
+- **Path Resolution**: Fixed issues with web worker and resource loading caused by relative path ambiguity.
+
+
 
 ## [v1.8.9] - 2026-01-28
 ### Improved (Web)
