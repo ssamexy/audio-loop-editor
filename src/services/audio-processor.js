@@ -236,7 +236,7 @@ class AudioProcessor {
             const left = convertToInt16(buffer.getChannelData(0));
             const right = channels > 1 ? convertToInt16(buffer.getChannelData(1)) : null;
 
-            const worker = new Worker('js/mp3-worker.js');
+            const worker = new Worker('src/services/mp3-worker.js');
 
             worker.onmessage = (e) => {
                 const data = e.data;
