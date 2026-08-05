@@ -257,8 +257,40 @@ class SegmentManager {
             name: `Segment ${loop.label ?? loop.id}`,
             startMs: Math.round(parseFloat(loop.startTime || 0) * 1000),
             endMs: Math.round(parseFloat(loop.endTime || 0) * 1000),
-        }));
+        })).sort((first, second) => this._compareSegmentIds(first.id, second.id));
         return { segments, sourceId };
+    }
+
+    /**
+     * 依階層編號自然排序，例如 1, 1-1, 1-2, 2, 2-1, 10。
+     * YouTube Looper 匯出的 loops 不保證依畫面階層順序排列。
+     */
+    _compareSegmentIds(firstId, secondId) {
+        const firstParts = String(firstId).split('-');
+        const secondParts = String(secondId).split('-');
+        const partCount = Math.max(firstParts.length, secondParts.length);
+
+        for (let index = 0; index < partCount; index++) {
+            const firstPart = firstParts[index];
+            const secondPart = secondParts[index];
+
+            if (firstPart === undefined) return -1;
+            if (secondPart === undefined) return 1;
+
+            const firstNumber = Number(firstPart);
+            const secondNumber = Number(secondPart);
+            const bothNumeric = Number.isFinite(firstNumber) && Number.isFinite(secondNumber);
+
+            if (bothNumeric && firstNumber !== secondNumber) {
+                return firstNumber - secondNumber;
+            }
+
+            if (!bothNumeric && firstPart !== secondPart) {
+                return firstPart.localeCompare(secondPart, undefined, { numeric: true });
+            }
+        }
+
+        return 0;
     }
 
     /**

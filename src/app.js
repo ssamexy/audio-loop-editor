@@ -120,7 +120,7 @@ class AppController {
 
                 // Update time display
                 const totalTimeEl = document.getElementById('totalTime');
-                const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
+                const segmentOnlyMode = this.isSegmentOnlyMode();
 
                 if (segmentOnlyMode) {
                     const segmentDuration = currentSegment.endMs - currentSegment.startMs;
@@ -224,7 +224,7 @@ class AppController {
     playSegmentInPlayer(segment) {
         const audioPlayer = document.getElementById('audioPlayer');
         const btnPlayPause = document.getElementById('btnPlayPause');
-        const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
+        const segmentOnlyMode = this.isSegmentOnlyMode();
         const seekBar = document.getElementById('seekBar');
         const totalTimeEl = document.getElementById('totalTime');
 
@@ -459,7 +459,7 @@ class AppController {
         // Seekbar Input (Dragging)
         seekBar.addEventListener('input', () => {
             this.state.isSeeking = true;
-            const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
+            const segmentOnlyMode = this.isSegmentOnlyMode();
 
             if (this.state.currentSegmentRange && segmentOnlyMode) {
                 // Segment Mode
@@ -475,7 +475,7 @@ class AppController {
 
         // Seekbar Change (Drop)
         seekBar.addEventListener('change', () => {
-            const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
+            const segmentOnlyMode = this.isSegmentOnlyMode();
 
             if (this.state.currentSegmentRange && segmentOnlyMode) {
                 const segmentDuration = this.state.currentSegmentRange.endMs - this.state.currentSegmentRange.startMs;
@@ -492,15 +492,21 @@ class AppController {
         // Time Update
         audioPlayer.addEventListener('timeupdate', () => {
             if (!this.state.isSeeking && audioPlayer.duration) {
-                const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
+                const segmentOnlyMode = this.isSegmentOnlyMode();
 
                 if (this.state.currentSegmentRange && segmentOnlyMode) {
                     // Segment Mode Progress
                     const segmentDuration = this.state.currentSegmentRange.endMs - this.state.currentSegmentRange.startMs;
-                    const currentPosInSegment = (audioPlayer.currentTime * 1000) - this.state.currentSegmentRange.startMs;
+                    const currentPosInSegment = Math.max(
+                        0,
+                        Math.min(
+                            segmentDuration,
+                            (audioPlayer.currentTime * 1000) - this.state.currentSegmentRange.startMs
+                        )
+                    );
                     const progress = Math.max(0, Math.min(100, (currentPosInSegment / segmentDuration) * 100));
                     seekBar.value = progress;
-                    currentTimeEl.textContent = TimeUtils.formatTimeSeconds(Math.max(0, currentPosInSegment));
+                    currentTimeEl.textContent = TimeUtils.formatTimeSeconds(currentPosInSegment);
                 } else {
                     // Full File Progress
                     const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
@@ -517,10 +523,18 @@ class AppController {
                         } else {
                             audioPlayer.pause();
                             btnPlayPause.textContent = '▶';
-                            this.state.currentSegmentRange = null; // Exit segment mode on finish (non-loop)
-                            // Restore full time display
-                            if (audioPlayer.duration) {
-                                totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
+                            if (segmentOnlyMode) {
+                                // Keep the segment-only timeline visible after playback finishes.
+                                seekBar.value = 100;
+                                currentTimeEl.textContent = TimeUtils.formatTimeSeconds(
+                                    this.state.currentSegmentRange.endMs - this.state.currentSegmentRange.startMs
+                                );
+                            } else {
+                                this.state.currentSegmentRange = null;
+                                // Restore full time display when segment-only mode is disabled.
+                                if (audioPlayer.duration) {
+                                    totalTimeEl.textContent = TimeUtils.formatTimeSeconds(audioPlayer.duration * 1000);
+                                }
                             }
                         }
                     }
@@ -541,7 +555,7 @@ class AppController {
         });
 
         // Segment Only Mode Checkbox Change
-        const segmentOnlyCheckbox = document.getElementById('segmentOnlyMode');
+        const segmentOnlyCheckbox = this.getSegmentOnlyCheckbox();
         if (segmentOnlyCheckbox) {
             segmentOnlyCheckbox.addEventListener('change', () => {
                 const audioPlayer = document.getElementById('audioPlayer');
@@ -1012,7 +1026,7 @@ class AppController {
         if (!audioPlayer.duration) return;
 
         let newTime = audioPlayer.currentTime + seconds;
-        const segmentOnlyMode = document.getElementById('segmentOnlyMode')?.checked ?? true;
+        const segmentOnlyMode = this.isSegmentOnlyMode();
 
         if (this.state.currentSegmentRange && segmentOnlyMode) {
             const startSec = this.state.currentSegmentRange.startMs / 1000;
@@ -1028,6 +1042,19 @@ class AppController {
         }
 
         audioPlayer.currentTime = newTime;
+    }
+
+    /**
+     * 取得「僅播放段落」checkbox。
+     * chkSegmentOnly 是目前 HTML 使用的 ID，保留舊 ID 以相容外部嵌入頁面。
+     */
+    getSegmentOnlyCheckbox() {
+        return document.getElementById('chkSegmentOnly')
+            || document.getElementById('segmentOnlyMode');
+    }
+
+    isSegmentOnlyMode() {
+        return this.getSegmentOnlyCheckbox()?.checked ?? true;
     }
 
     /**
