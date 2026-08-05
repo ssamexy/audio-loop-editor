@@ -34,6 +34,7 @@ class SegmentManager {
             startMs: segmentData.startMs,
             endMs: segmentData.endMs
         };
+        this._copyOptionalFields(subSegment, segmentData);
 
         // 插入到父段落後面
         const parentIndex = this.segments.findIndex(s => s.id === parentId);
@@ -146,6 +147,9 @@ class SegmentManager {
                     const newId = `${currentMainId}-${subCounters[currentMainId]}`;
                     segment.id = newId;
                 }
+                if (segment.parentId !== undefined || level > 1) {
+                    segment.parentId = currentMainId;
+                }
             }
 
             //Update Name if it was default name? No, keep user name.
@@ -204,15 +208,52 @@ class SegmentManager {
      */
     exportJSON(sourceFileName = '') {
         return {
-            version: '1.1',
+            version: '1.2',
             source_file: sourceFileName,
-            segments: this.segments.map(s => ({
-                id: s.id,
-                name: s.name,
-                start_ms: s.startMs,
-                end_ms: s.endMs
-            }))
+            segments: this.segments.map(segment => this._toJSONSegment(segment))
         };
+    }
+
+    _toJSONSegment(segment) {
+        const result = {
+            id: segment.id,
+            name: segment.name,
+            start_ms: segment.startMs,
+            end_ms: segment.endMs
+        };
+        this._copyOptionalFields(result, segment);
+        return result;
+    }
+
+    _fromJSONSegment(segment) {
+        const result = {
+            id: segment.id,
+            name: segment.name,
+            startMs: segment.start_ms ?? segment.startMs,
+            endMs: segment.end_ms ?? segment.endMs
+        };
+        this._copyOptionalFields(result, {
+            parentId: segment.parentId ?? segment.parent_id,
+            source: segment.source,
+            cutReason: segment.cutReason ?? segment.cut_reason,
+            confidence: segment.confidence
+        });
+        return result;
+    }
+
+    _copyOptionalFields(target, source) {
+        if (source.parentId !== undefined && source.parentId !== null) {
+            target.parentId = source.parentId;
+        }
+        if (source.source !== undefined && source.source !== null) {
+            target.source = source.source;
+        }
+        if (source.cutReason !== undefined && source.cutReason !== null) {
+            target.cutReason = source.cutReason;
+        }
+        if (source.confidence !== undefined && source.confidence !== null) {
+            target.confidence = source.confidence;
+        }
     }
 
     /**
@@ -257,6 +298,7 @@ class SegmentManager {
             name: `Segment ${loop.label ?? loop.id}`,
             startMs: Math.round(parseFloat(loop.startTime || 0) * 1000),
             endMs: Math.round(parseFloat(loop.endTime || 0) * 1000),
+            source: loop.source || sourceId || undefined,
         })).sort((first, second) => this._compareSegmentIds(first.id, second.id));
         return { segments, sourceId };
     }
@@ -319,12 +361,7 @@ class SegmentManager {
                 // sourceId 僅供參考，不自動載入音檔（Web 版無本地檔案路徑概念）
             } else {
                 // audio_loop_editor
-                segmentsToLoad = (data.segments || []).map(s => ({
-                    id: s.id,
-                    name: s.name,
-                    startMs: s.start_ms,
-                    endMs: s.end_ms,
-                }));
+                segmentsToLoad = (data.segments || []).map(s => this._fromJSONSegment(s));
             }
 
             segmentsToLoad.forEach(s => this.addSegment(s));
@@ -349,9 +386,13 @@ class SegmentManager {
      * 驗證所有段落
      */
     validateAll(maxDurationMs) {
+        return this.validateSegments(this.segments, maxDurationMs);
+    }
+
+    validateSegments(segments, maxDurationMs) {
         const errors = [];
 
-        this.segments.forEach((segment, index) => {
+        segments.forEach((segment, index) => {
             if (!segment.id || !segment.name) {
                 errors.push(`段落 ${index + 1}: 缺少編號或名稱`);
             }
@@ -368,8 +409,22 @@ class SegmentManager {
     /**
      * 檢查是否為子段落
      */
-    isSubSegment(id) {
-        return String(id).includes('-');
+    isSubSegment(segmentOrId) {
+        if (segmentOrId && typeof segmentOrId === 'object') {
+            if (segmentOrId.parentId !== undefined && segmentOrId.parentId !== null) {
+                return true;
+            }
+            return String(segmentOrId.id).includes('-');
+        }
+        return String(segmentOrId).includes('-');
+    }
+
+    getParentSegments() {
+        return this.segments.filter(segment => !this.isSubSegment(segment));
+    }
+
+    getChildSegments() {
+        return this.segments.filter(segment => this.isSubSegment(segment));
     }
 
     /**

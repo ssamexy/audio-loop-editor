@@ -5,6 +5,8 @@ All notable changes to the "Audio Loop Editor" project will be documented in thi
 ## [v2.1.0] - 2026-08-05
 ### Added (Web)
 - **Smart Practice Splitting**: Create practice-ready parent and child segments using audio energy analysis.
+- Generates approximately 90-second parent segments and 30-second child segments with configurable 22-38 second child bounds.
+- Adds parent/child download scopes, categorized ZIP folders, optional segment metadata, and 128/192/256/320 kbps MP3 export with 192 kbps as default.
 
 ## [v2.0.0] - 2026-04-21
 ### Added (Web)

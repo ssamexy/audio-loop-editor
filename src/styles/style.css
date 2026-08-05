@@ -562,6 +562,33 @@ body {
     margin-bottom: 10px;
 }
 
+.practice-split-item .export-option-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.practice-split-item .export-option-group label {
+    display: block;
+    min-width: 115px;
+    margin-bottom: 0;
+}
+
+.practice-split-item .export-option-group input[type="number"] {
+    width: 90px;
+    margin-bottom: 0;
+}
+
+.practice-split-item .btn {
+    margin-top: 5px;
+}
+
+.practice-split-item .mp3-hint {
+    display: block;
+    margin-top: 10px;
+}
+
 /* Video Converter Controls */
 .video-controls {
     display: flex;

@@ -9,6 +9,7 @@ class AppController {
         this.segmentManager = null;
         this.audioProcessor = null;
         this.videoProcessor = null;
+        this.practiceSplitter = null;
         this.uiController = null;
 
         // Application State
@@ -85,6 +86,7 @@ class AppController {
         this.segmentManager = new SegmentManager();
         this.audioProcessor = new AudioProcessor();
         this.videoProcessor = new AudioProcessor();
+        this.practiceSplitter = new PracticeSplitter();
 
         // UIController receives callbacks to communicate back to AppController
         this.uiController = new UIController(
@@ -311,6 +313,7 @@ class AppController {
         document.getElementById('btnImportJSON').addEventListener('click', () => this.importJSON());
         document.getElementById('btnExportJSON').addEventListener('click', () => this.exportJSON());
         document.getElementById('btnClearAll').addEventListener('click', () => this.clearAllSegments());
+        document.getElementById('btnSmartPracticeSplit').addEventListener('click', () => this.createSmartPracticeSegments());
     }
 
     /**
@@ -762,6 +765,56 @@ class AppController {
     /**
      * Auto Split Logic
      */
+    async createSmartPracticeSegments() {
+        if (!this.audioProcessor.audioBuffer) {
+            alert(typeof i18n !== 'undefined' ? i18n.t('no_audio') : '請先載入音訊檔案');
+            return;
+        }
+
+        if (this.segmentManager.getCount() > 0) {
+            const message = typeof i18n !== 'undefined'
+                ? i18n.t('overwrite_warning')
+                : '這將會清除所有現有段落並重新切分，確定嗎？';
+            if (!confirm(message)) return;
+        }
+
+        const button = document.getElementById('btnSmartPracticeSplit');
+        button.disabled = true;
+
+        try {
+            const generated = this.practiceSplitter.split(
+                this.audioProcessor.audioBuffer,
+                this.getPracticeSplitOptions()
+            );
+            this.segmentManager.clearAll();
+            generated.forEach(segment => this.segmentManager.addSegment(segment));
+
+            const parents = this.segmentManager.getParentSegments().length;
+            const children = this.segmentManager.getChildSegments().length;
+            const successMessage = typeof i18n !== 'undefined'
+                ? i18n.t('smart_practice_success', { parents, children })
+                : `已建立 ${parents} 個主段落與 ${children} 個練習子段落。`;
+            alert(successMessage);
+        } catch (error) {
+            const errorMessage = typeof i18n !== 'undefined'
+                ? i18n.t('smart_practice_error', { error: error.message })
+                : `智慧練習切分失敗: ${error.message}`;
+            alert(errorMessage);
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    getPracticeSplitOptions() {
+        const readNumber = id => parseFloat(document.getElementById(id).value);
+        return {
+            parentTargetSec: readNumber('practiceParentTarget'),
+            childTargetSec: readNumber('practiceChildTarget'),
+            childMinSec: readNumber('practiceChildMin'),
+            childMaxSec: readNumber('practiceChildMax')
+        };
+    }
+
     autoSplit(numSegments) {
         if (!this.audioProcessor.audioBuffer) {
             alert(typeof i18n !== 'undefined' ? i18n.t('no_audio') : '請先載入音訊檔案');
@@ -882,21 +935,28 @@ class AppController {
     /**
      * Process Audio (Trim & Export)
      */
+    getExportSegments() {
+        const scope = document.getElementById('downloadScope')?.value || 'all';
+        if (scope === 'parents') return this.segmentManager.getParentSegments();
+        if (scope === 'children') return this.segmentManager.getChildSegments();
+        return this.segmentManager.getSegments();
+    }
+
     async processAudio() {
         if (!this.audioProcessor.audioBuffer) {
             alert('請先載入音訊檔案');
             return;
         }
 
-        const segments = this.segmentManager.getSegments();
+        const segments = this.getExportSegments();
         if (segments.length === 0) {
-            alert(typeof i18n !== 'undefined' ? i18n.t('no_segments') : '請新增至少一個段落');
+            alert(typeof i18n !== 'undefined' ? i18n.t('no_export') : '沒有符合下載範圍的段落');
             return;
         }
 
         // Validate
         const info = this.audioProcessor.getInfo();
-        const validation = this.segmentManager.validateAll(info.durationMs);
+        const validation = this.segmentManager.validateSegments(segments, info.durationMs);
         if (!validation.valid) {
             const errorPrefix = typeof i18n !== 'undefined' ? i18n.t('segment_error') : '段落設定有誤:\n';
             alert(errorPrefix + validation.errors.join('\n'));
@@ -934,10 +994,11 @@ class AppController {
             try {
                 const useMp3 = document.getElementById('exportMp3')?.checked || false;
                 const format = useMp3 ? 'mp3' : 'wav';
+                const bitrate = parseInt(document.getElementById('exportMp3Bitrate')?.value || '192', 10);
 
                 const results = await this.audioProcessor.processSegments(segments, (current, total, status) => {
                     this.uiController.updateProgress(current, total, status);
-                }, format);
+                }, format, bitrate);
 
                 const useZip = document.getElementById('downloadZip')?.checked || false;
                 const baseFilename = this.state.currentFile.name.replace(/\.[^/.]+$/, '');
@@ -950,7 +1011,10 @@ class AppController {
                         if (result.success) {
                             const ext = result.format || 'wav';
                             const safeName = result.segment.name.replace(/[^a-z0-9_\u4e00-\u9fa5]/gi, '_');
-                            zip.file(`${result.segment.name}.${ext}`, result.blob);
+                            const folder = this.segmentManager.isSubSegment(result.segment)
+                                ? 'practice-segments'
+                                : 'parent-segments';
+                            zip.file(`${folder}/${safeName}.${ext}`, result.blob);
                         }
                     });
 
@@ -979,7 +1043,8 @@ class AppController {
                             const url = URL.createObjectURL(result.blob);
                             const a = document.createElement('a');
                             a.href = url;
-                            a.download = `${baseFilename}_${result.segment.name}.${ext}`;
+                            const safeName = result.segment.name.replace(/[^a-z0-9_\u4e00-\u9fa5]/gi, '_');
+                            a.download = `${baseFilename}_${safeName}.${ext}`;
                             a.click();
                             // Small delay to prevent browser block
                             await new Promise(r => setTimeout(r, 200));
@@ -1347,6 +1412,7 @@ class AppController {
             } else {
                 // Export
                 const isMp3 = document.getElementById('mergeExportMp3').checked;
+                const bitrate = parseInt(document.getElementById('mergeMp3Bitrate')?.value || '192', 10);
                 const filenameInput = document.getElementById('mergeFilename');
                 let outputFilename = filenameInput && filenameInput.value.trim() ? filenameInput.value.trim() : 'merged_audio';
 
@@ -1356,7 +1422,7 @@ class AppController {
                 if (isMp3) {
                     const mp3Blob = await this.audioProcessor.audioBufferToMp3Async(mergedBuffer, (progress) => {
                         btn.textContent = `${typeof i18n !== 'undefined' ? i18n.t('processing_wait') : '處理中...'} (${progress}%)`;
-                    });
+                    }, bitrate);
                     this.downloadBlob(mp3Blob, `${outputFilename}.mp3`);
                 } else {
                     const wavBlob = this.audioProcessor.audioBufferToWav(mergedBuffer);
@@ -1523,6 +1589,7 @@ class AppController {
             if (progressContainer) progressBar.style.width = '30%';
 
             const isMp3 = document.getElementById('videoExportMp3').checked;
+            const bitrate = parseInt(document.getElementById('videoMp3Bitrate')?.value || '192', 10);
             const fileNameEl = document.getElementById('videoFileName');
             let filename = fileNameEl.textContent || 'video_audio';
             filename = filename.replace(/\.[^/.]+$/, ""); // Remove extension
@@ -1537,7 +1604,7 @@ class AppController {
                         progressBar.style.width = `${30 + (progress * 0.7)}%`;
                         progressText.textContent = `Encoding MP3 (${progress}%)...`;
                     }
-                });
+                }, bitrate);
                 this.downloadBlob(blob, `${filename}.mp3`);
             } else {
                 if (progressContainer) progressText.textContent = "Encoding WAV...";
@@ -1662,6 +1729,7 @@ class AppController {
             if (progressContainer) progressBar.style.width = '30%';
 
             const isMp3 = document.getElementById('audioConvertExportMp3').checked;
+            const bitrate = parseInt(document.getElementById('audioConvertMp3Bitrate')?.value || '192', 10);
             const fileNameEl = document.getElementById('audioConvertFileName');
             let filename = fileNameEl.textContent || 'converted_audio';
             filename = filename.replace(/\.[^/.]+$/, ""); // Remove extension
@@ -1676,7 +1744,7 @@ class AppController {
                         progressBar.style.width = `${30 + (progress * 0.7)}%`;
                         progressText.textContent = `Encoding MP3 (${progress}%)...`;
                     }
-                });
+                }, bitrate);
                 this.downloadBlob(blob, `${filename}.mp3`);
             } else {
                 if (progressContainer) progressText.textContent = "Encoding WAV...";
