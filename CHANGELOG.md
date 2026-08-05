@@ -2,6 +2,10 @@
 
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
+## [v2.1.0] - 2026-08-05
+### Added (Web)
+- **Smart Practice Splitting**: Create practice-ready parent and child segments using audio energy analysis.
+
 ## [v2.0.0] - 2026-04-21
 ### Added (Web)
 - **YouTube Looper Support**: Transparently support importing JSON files exported from the "YouTube Looper" Chrome extension. Automatically converts seconds to milliseconds.
