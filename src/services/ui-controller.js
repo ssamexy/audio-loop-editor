@@ -43,6 +43,7 @@ class UIController {
 
         // Alternatively, I'll add a method `setupIdLockToggle` to be called once.
 
+        this.ensureLockToggle();
         const segments = this.segmentManager.getSegments();
 
         try {
@@ -60,7 +61,6 @@ class UIController {
         if (count > 0) {
             document.getElementById('segmentsSection').style.display = 'block';
             document.getElementById('exportSection').style.display = 'block';
-            this.ensureLockToggle(); // Ensure button exists
         }
     }
 
@@ -124,23 +124,45 @@ class UIController {
             }
         });
 
-        const containers = document.querySelectorAll('.segment-id-container');
-        containers.forEach(container => {
+        const handles = document.querySelectorAll('.segment-drag-handle');
+        handles.forEach(handle => {
             if (locked) {
-                container.classList.add('draggable-handle');
-                container.draggable = true;
-                container.title = typeof i18n !== 'undefined' ? i18n.t('drag_to_reorder') : '拖曳以排序';
+                handle.classList.add('draggable-handle');
+                handle.draggable = true;
+                handle.title = typeof i18n !== 'undefined' ? i18n.t('drag_to_reorder') : '拖曳以排序';
             } else {
-                container.classList.remove('draggable-handle');
-                container.draggable = false;
-                container.title = '';
+                handle.classList.remove('draggable-handle');
+                handle.draggable = false;
+                handle.title = '';
             }
         });
     }
 
-    /**
-     * 建立段落列
-     */
+    getSegmentDepth(segment) {
+        if (segment.parentId === undefined || segment.parentId === null) {
+            return Math.max(0, String(segment.id).split('-').length - 1);
+        }
+
+        const segmentsById = new Map(
+            this.segmentManager.getSegments().map(item => [String(item.id), item])
+        );
+        let depth = 1;
+        let parentId = String(segment.parentId);
+        const visited = new Set();
+
+        while (parentId && !visited.has(parentId)) {
+            visited.add(parentId);
+            const parent = segmentsById.get(parentId);
+            if (!parent || parent.parentId === undefined || parent.parentId === null) {
+                break;
+            }
+            depth += 1;
+            parentId = String(parent.parentId);
+        }
+
+        return depth;
+    }
+
     /**
      * 建立段落列
      */
@@ -150,12 +172,8 @@ class UIController {
         row.dataset.segmentId = segment.id;
         row.dataset.index = index;
 
-        // 移除整列拖曳功能，因為我們只在 ID 上觸發
+        // The row accepts drops, but only the dedicated handle starts a drag.
         row.draggable = false;
-
-        // Drag 相關事件改為 "若源自 ID handle 則允許"
-        // 這裡我們直接在 ID container 上實作 dragstart
-        // 但 drop target 仍是 row (以便插入)
 
         row.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -175,10 +193,10 @@ class UIController {
             }
         });
 
-        const currentLevel = String(segment.id).split('-').length;
-        if (currentLevel === 2) {
+        const hierarchyLevel = this.getSegmentDepth(segment);
+        if (hierarchyLevel === 1) {
             row.classList.add('sub-segment');
-        } else if (currentLevel >= 3) {
+        } else if (hierarchyLevel >= 2) {
             row.classList.add('level-3');
         }
 
@@ -192,6 +210,12 @@ class UIController {
         idContainer.style.display = 'flex';
         idContainer.style.alignItems = 'center';
         idContainer.style.marginRight = '5px';
+        idContainer.draggable = false;
+
+        const dragHandle = document.createElement('span');
+        dragHandle.className = 'segment-drag-handle';
+        dragHandle.textContent = '↕';
+        dragHandle.setAttribute('aria-label', typeof i18n !== 'undefined' ? i18n.t('drag_to_reorder') : '拖曳以排序');
 
         // ID 輸入 (加入鎖定邏輯)
         const idInput = document.createElement('input');
@@ -204,14 +228,14 @@ class UIController {
         idInput.readOnly = isLocked;
         if (isLocked) {
             idInput.classList.add('locked');
-            idContainer.classList.add('draggable-handle');
-            idContainer.draggable = true; // 僅在鎖定時可拖曳
-            idContainer.title = typeof i18n !== 'undefined' ? i18n.t('drag_to_reorder') : '拖曳以排序';
+            dragHandle.classList.add('draggable-handle');
+            dragHandle.draggable = true;
+            dragHandle.title = typeof i18n !== 'undefined' ? i18n.t('drag_to_reorder') : '拖曳以排序';
         } else {
             idInput.classList.remove('locked');
-            idContainer.classList.remove('draggable-handle');
-            idContainer.draggable = false;
-            idContainer.title = '';
+            dragHandle.classList.remove('draggable-handle');
+            dragHandle.draggable = false;
+            dragHandle.title = '';
         }
 
         // ID Update Logic
@@ -235,9 +259,9 @@ class UIController {
             row.dataset.segmentId = newId;
         });
 
-        // Drag Events specifically for ID Container
-        idContainer.addEventListener('dragstart', (e) => {
-            if (!idInput.readOnly) {
+        // Drag Events specifically for the dedicated handle
+        dragHandle.addEventListener('dragstart', (e) => {
+            if (!dragHandle.draggable) {
                 e.preventDefault();
                 return;
             }
@@ -245,10 +269,11 @@ class UIController {
             e.dataTransfer.setData('text/plain', index);
             e.dataTransfer.effectAllowed = 'move';
         });
-        idContainer.addEventListener('dragend', () => {
+        dragHandle.addEventListener('dragend', () => {
             row.classList.remove('dragging');
         });
 
+        idContainer.appendChild(dragHandle);
         idContainer.appendChild(idInput);
 
         // 名稱輸入

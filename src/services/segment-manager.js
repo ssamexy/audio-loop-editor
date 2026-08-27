@@ -15,6 +15,8 @@ class SegmentManager {
     addSegment(segment) {
         if (!segment.id) {
             segment.id = String(this.nextId++);
+        } else if (/^\d+$/.test(String(segment.id))) {
+            this.nextId = Math.max(this.nextId, Number(segment.id) + 1);
         }
         this.segments.push(segment);
         this._notifyChange();
@@ -52,7 +54,11 @@ class SegmentManager {
     _findLastSubSegmentIndex(parentId) {
         let lastIndex = -1;
         for (let i = 0; i < this.segments.length; i++) {
-            if (this.segments[i].id.startsWith(`${parentId}-`)) {
+            const segment = this.segments[i];
+            if (
+                segment.parentId === parentId
+                || String(segment.id).startsWith(`${parentId}-`)
+            ) {
                 lastIndex = i;
             }
         }
@@ -90,9 +96,9 @@ class SegmentManager {
 
     /**
      * 重新排序段落
-     */
-    /**
-     * 重新排序段落
+     *
+     * IDs and parent relationships are stable identifiers, so moving a row
+     * must not renumber or flatten the imported hierarchy.
      */
     reorderSegment(fromIndex, toIndex) {
         if (fromIndex < 0 || fromIndex >= this.segments.length) return;
@@ -101,7 +107,6 @@ class SegmentManager {
         const [removed] = this.segments.splice(fromIndex, 1);
         this.segments.splice(toIndex, 0, removed);
 
-        this.renumberAll();
         this._notifyChange();
     }
 
@@ -221,7 +226,18 @@ class SegmentManager {
             start_ms: segment.startMs,
             end_ms: segment.endMs
         };
-        this._copyOptionalFields(result, segment);
+        if (segment.parentId !== undefined && segment.parentId !== null) {
+            result.parent_id = segment.parentId;
+        }
+        if (segment.source !== undefined && segment.source !== null) {
+            result.source = segment.source;
+        }
+        if (segment.cutReason !== undefined && segment.cutReason !== null) {
+            result.cut_reason = segment.cutReason;
+        }
+        if (segment.confidence !== undefined && segment.confidence !== null) {
+            result.confidence = segment.confidence;
+        }
         return result;
     }
 
@@ -254,6 +270,88 @@ class SegmentManager {
         if (source.confidence !== undefined && source.confidence !== null) {
             target.confidence = source.confidence;
         }
+    }
+
+    orderByTimeline(segments) {
+        const indexed = segments.map((segment, index) => ({ segment, index }));
+        const children = new Map(indexed.map(({ index }) => [index, []]));
+        const parents = new Map();
+
+        const isValidInterval = segment => (
+            Number.isFinite(segment.startMs)
+            && Number.isFinite(segment.endMs)
+            && segment.endMs > segment.startMs
+        );
+
+        const contains = (parent, child) => (
+            isValidInterval(parent)
+            && isValidInterval(child)
+            && parent.startMs <= child.startMs
+            && child.endMs <= parent.endMs
+            && (parent.startMs < child.startMs || child.endMs < parent.endMs)
+        );
+
+        for (const { segment: child, index: childIndex } of indexed) {
+            const candidates = indexed.filter(({ segment: parent, index: parentIndex }) => (
+                parentIndex !== childIndex && contains(parent, child)
+            ));
+
+            if (candidates.length > 0) {
+                candidates.sort((left, right) => {
+                    const leftDuration = left.segment.endMs - left.segment.startMs;
+                    const rightDuration = right.segment.endMs - right.segment.startMs;
+                    return leftDuration - rightDuration
+                        || left.segment.startMs - right.segment.startMs
+                        || left.segment.endMs - right.segment.endMs
+                        || left.index - right.index;
+                });
+                parents.set(childIndex, candidates[0].index);
+            }
+        }
+
+        for (const [childIndex, parentIndex] of parents) {
+            children.get(parentIndex).push(childIndex);
+        }
+
+        const timelineCompare = (leftIndex, rightIndex) => {
+            const left = segments[leftIndex];
+            const right = segments[rightIndex];
+            return left.startMs - right.startMs
+                || left.endMs - right.endMs
+                || leftIndex - rightIndex;
+        };
+
+        for (const childIndexes of children.values()) {
+            childIndexes.sort(timelineCompare);
+        }
+
+        const roots = indexed
+            .filter(({ index }) => !parents.has(index))
+            .map(({ index }) => index)
+            .sort(timelineCompare);
+
+        const ordered = [];
+        const visit = (index, parentId, position) => {
+            const original = segments[index];
+            const id = parentId === null ? String(position) : `${parentId}-${position}`;
+            const segment = { ...original, id };
+            if (parentId === null) {
+                delete segment.parentId;
+            } else {
+                segment.parentId = parentId;
+            }
+            ordered.push(segment);
+
+            children.get(index).forEach((childIndex, childPosition) => {
+                visit(childIndex, id, childPosition + 1);
+            });
+        };
+
+        roots.forEach((rootIndex, rootPosition) => {
+            visit(rootIndex, null, rootPosition + 1);
+        });
+
+        return ordered;
     }
 
     /**
@@ -293,19 +391,20 @@ class SegmentManager {
      */
     _fromYouTubeLooper(data) {
         const sourceId = data.sourceId || '';
-        const segments = (data.loops || []).map(loop => ({
+        const rawSegments = (data.loops || []).map(loop => ({
             id: String(loop.label ?? loop.id),
             name: `Segment ${loop.label ?? loop.id}`,
             startMs: Math.round(parseFloat(loop.startTime || 0) * 1000),
             endMs: Math.round(parseFloat(loop.endTime || 0) * 1000),
             source: loop.source || sourceId || undefined,
-        })).sort((first, second) => this._compareSegmentIds(first.id, second.id));
+        }));
+        const segments = this.orderByTimeline(rawSegments);
         return { segments, sourceId };
     }
 
     /**
-     * 依階層編號自然排序，例如 1, 1-1, 1-2, 2, 2-1, 10。
-     * YouTube Looper 匯出的 loops 不保證依畫面階層順序排列。
+     * This comparator remains available for legacy callers. YouTube Looper
+     * import uses orderByTimeline() to infer hierarchy from time intervals.
      */
     _compareSegmentIds(firstId, secondId) {
         const firstParts = String(firstId).split('-');
@@ -351,7 +450,8 @@ class SegmentManager {
                 throw new Error('無法識別的 JSON 格式（既不是 Audio Loop Editor 也不是 YouTube Looper）');
             }
 
-            this.clearAll();
+            this.segments = [];
+            this.nextId = 1;
 
             let segmentsToLoad = [];
 
@@ -364,7 +464,13 @@ class SegmentManager {
                 segmentsToLoad = (data.segments || []).map(s => this._fromJSONSegment(s));
             }
 
-            segmentsToLoad.forEach(s => this.addSegment(s));
+            this.segments = segmentsToLoad;
+            segmentsToLoad.forEach(segment => {
+                if (/^\d+$/.test(String(segment.id))) {
+                    this.nextId = Math.max(this.nextId, Number(segment.id) + 1);
+                }
+            });
+            this._notifyChange();
 
             const count = segmentsToLoad.length;
             const formatLabel = fmt === 'youtube_looper' ? ' (YouTube Looper)' : '';

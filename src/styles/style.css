@@ -1434,12 +1434,28 @@ body.player-active {
 
 /* ===== Drag and Drop Styles ===== */
 .segment-row {
+    cursor: default;
+}
+
+.segment-drag-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    min-width: 24px;
+    margin-right: 4px;
+    color: var(--primary-color);
     cursor: grab;
+    user-select: none;
+    font-weight: bold;
+}
+
+.segment-drag-handle:active {
+    cursor: grabbing;
 }
 
 .segment-row.dragging {
     opacity: 0.5;
-    cursor: grabbing;
 }
 
 .segment-row.drag-over {
