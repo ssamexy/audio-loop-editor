@@ -2,6 +2,18 @@
 
 All notable changes to the "Audio Loop Editor" project will be documented in this file.
 
+## [v2.1.1] - 2026-08-27
+### Fixed (Web)
+- Import YouTube Looper loops by timeline containment instead of label order, preserving parent/child hierarchy even when labels are unordered or duplicated.
+- Preserve hierarchy during drag reordering and export parent_id for JSON round-trip compatibility with the desktop editor.
+- Limit drag-start to a dedicated ↕ handle so segment ID inputs remain editable without accidentally dragging the row.
+
+## [v2.1.0] - 2026-08-05
+### Added (Web)
+- **Smart Practice Splitting**: Create practice-ready parent and child segments using audio energy analysis.
+- Generates approximately 90-second parent segments and 30-second child segments with configurable 22-38 second child bounds.
+- Adds parent/child download scopes, categorized ZIP folders, optional segment metadata, and 128/192/256/320 kbps MP3 export with 192 kbps as default.
+
 ## [v2.0.0] - 2026-04-21
 ### Added (Web)
 - **YouTube Looper Support**: Transparently support importing JSON files exported from the "YouTube Looper" Chrome extension. Automatically converts seconds to milliseconds.

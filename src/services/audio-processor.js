@@ -218,11 +218,11 @@ class AudioProcessor {
     /**
      * 將 AudioBuffer 轉換為 MP3 Blob (非同步，使用 Web Worker)
      */
-    audioBufferToMp3Async(buffer, onProgress) {
+    audioBufferToMp3Async(buffer, onProgress, bitrate = 192) {
         return new Promise((resolve, reject) => {
             const channels = buffer.numberOfChannels;
             const sampleRate = buffer.sampleRate;
-            const kbps = 128;
+            const kbps = this._normalizeMp3Bitrate(bitrate);
 
             const convertToInt16 = (float32Array) => {
                 const int16Array = new Int16Array(float32Array.length);
@@ -270,11 +270,11 @@ class AudioProcessor {
     /**
      * 將 AudioBuffer 轉換為 MP3 Blob (同步版本，備用)
      */
-    audioBufferToMp3(buffer) {
+    audioBufferToMp3(buffer, bitrate = 192) {
         // ... existing sync code, keep as fallback but we will prefer async ...
         const channels = buffer.numberOfChannels;
         const sampleRate = buffer.sampleRate;
-        const kbps = 128;
+        const kbps = this._normalizeMp3Bitrate(bitrate);
         const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, kbps);
         const mp3Data = [];
 
@@ -304,7 +304,12 @@ class AudioProcessor {
     /**
      * 批次處理多個片段
      */
-    async processSegments(segments, onProgress, format = 'wav') {
+    _normalizeMp3Bitrate(bitrate) {
+        const value = Number(bitrate);
+        return [128, 192, 256, 320].includes(value) ? value : 192;
+    }
+
+    async processSegments(segments, onProgress, format = 'wav', bitrate = 192) {
         const results = [];
 
         for (let i = 0; i < segments.length; i++) {
@@ -328,7 +333,7 @@ class AudioProcessor {
                                 : `處理段落 ${segment.id} (MP3 壓縮: ${progress}%)...`;
                             onProgress(i + 1, segments.length, msg);
                         }
-                    });
+                    }, bitrate);
                 } else {
                     blob = this.audioBufferToWav(trimmedBuffer);
                 }

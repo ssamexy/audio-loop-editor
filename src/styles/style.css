@@ -562,6 +562,33 @@ body {
     margin-bottom: 10px;
 }
 
+.practice-split-item .export-option-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.practice-split-item .export-option-group label {
+    display: block;
+    min-width: 115px;
+    margin-bottom: 0;
+}
+
+.practice-split-item .export-option-group input[type="number"] {
+    width: 90px;
+    margin-bottom: 0;
+}
+
+.practice-split-item .btn {
+    margin-top: 5px;
+}
+
+.practice-split-item .mp3-hint {
+    display: block;
+    margin-top: 10px;
+}
+
 /* Video Converter Controls */
 .video-controls {
     display: flex;
@@ -1407,12 +1434,28 @@ body.player-active {
 
 /* ===== Drag and Drop Styles ===== */
 .segment-row {
+    cursor: default;
+}
+
+.segment-drag-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    min-width: 24px;
+    margin-right: 4px;
+    color: var(--primary-color);
     cursor: grab;
+    user-select: none;
+    font-weight: bold;
+}
+
+.segment-drag-handle:active {
+    cursor: grabbing;
 }
 
 .segment-row.dragging {
     opacity: 0.5;
-    cursor: grabbing;
 }
 
 .segment-row.drag-over {
