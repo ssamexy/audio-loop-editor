@@ -52,17 +52,13 @@ class SegmentManager {
      * 找出父段落的最後一個子段落索引
      */
     _findLastSubSegmentIndex(parentId) {
-        let lastIndex = -1;
-        for (let i = 0; i < this.segments.length; i++) {
-            const segment = this.segments[i];
-            if (
-                segment.parentId === parentId
-                || String(segment.id).startsWith(`${parentId}-`)
-            ) {
-                lastIndex = i;
-            }
-        }
-        return lastIndex;
+        const parentIndex = this.segments.findIndex(
+            segment => String(segment.id) === String(parentId)
+        );
+        if (parentIndex < 0) return -1;
+
+        const subtreeIndexes = this._getSubtreeIndexes(parentIndex);
+        return subtreeIndexes[subtreeIndexes.length - 1] ?? parentIndex;
     }
 
     /**
@@ -77,19 +73,149 @@ class SegmentManager {
     }
 
     /**
+     * Find a segment and every descendant using explicit parent IDs, with
+     * the legacy ID prefix as a fallback for older JSON files.
+     */
+    _getSubtreeIndexes(sourceIndex, segments = this.segments) {
+        if (sourceIndex < 0 || sourceIndex >= segments.length) return [];
+
+        const selectedIndexes = new Set([sourceIndex]);
+        const selectedIds = new Set([String(segments[sourceIndex].id)]);
+        let changed = true;
+
+        while (changed) {
+            changed = false;
+            segments.forEach((segment, index) => {
+                if (selectedIndexes.has(index)) return;
+
+                const segmentId = String(segment.id);
+                const hasExplicitParent = segment.parentId !== undefined && segment.parentId !== null;
+                const isChild = hasExplicitParent
+                    ? selectedIds.has(String(segment.parentId))
+                    : Array.from(selectedIds).some(parentId => segmentId.startsWith(`${parentId}-`));
+
+                if (isChild) {
+                    selectedIndexes.add(index);
+                    selectedIds.add(segmentId);
+                    changed = true;
+                }
+            });
+        }
+
+        return Array.from(selectedIndexes).sort((a, b) => a - b);
+    }
+
+    _getDirectParentId(segment) {
+        if (segment.parentId !== undefined && segment.parentId !== null) {
+            return String(segment.parentId);
+        }
+
+        const segmentId = String(segment.id);
+        const separatorIndex = segmentId.lastIndexOf('-');
+        return separatorIndex >= 0 ? segmentId.slice(0, separatorIndex) : null;
+    }
+
+    /**
+     * Build a row order that moves a complete subtree while preserving the
+     * existing flat-row drag semantics for non-hierarchical segments.
+     */
+    _getReorderedIndexes(fromIndex, toIndex) {
+        if (fromIndex < 0 || fromIndex >= this.segments.length) return null;
+        if (toIndex < 0 || toIndex >= this.segments.length) return null;
+
+        const sourceIndexes = this._getSubtreeIndexes(fromIndex);
+        const sourceSet = new Set(sourceIndexes);
+        const targetIndexes = this._getSubtreeIndexes(toIndex);
+        if (sourceSet.has(toIndex) || targetIndexes.includes(fromIndex)) return null;
+
+        const sourceParentId = this._getDirectParentId(this.segments[fromIndex]);
+        const targetParentId = this._getDirectParentId(this.segments[toIndex]);
+        if (sourceParentId !== null && sourceParentId !== targetParentId) return null;
+
+        const remainingIndexes = [];
+        for (let index = 0; index < this.segments.length; index++) {
+            if (!sourceSet.has(index)) remainingIndexes.push(index);
+        }
+
+        let insertionIndex;
+        if (fromIndex < toIndex) {
+            const targetAnchor = targetIndexes[targetIndexes.length - 1];
+            insertionIndex = remainingIndexes.indexOf(targetAnchor) + 1;
+        } else {
+            insertionIndex = remainingIndexes.indexOf(toIndex);
+        }
+
+        return [
+            ...remainingIndexes.slice(0, insertionIndex),
+            ...sourceIndexes,
+            ...remainingIndexes.slice(insertionIndex)
+        ];
+    }
+
+    /**
+     * Rename a segment and update direct child references so the hierarchy
+     * remains valid after an unlocked ID edit.
+     */
+    renameSegment(id, newId) {
+        const oldId = String(id);
+        const nextId = newId === undefined || newId === null ? '' : String(newId).trim();
+        const segmentIndex = this.segments.findIndex(segment => String(segment.id) === oldId);
+
+        if (segmentIndex < 0 || !nextId) return false;
+        if (this.segments.some((segment, index) => index !== segmentIndex && String(segment.id) === nextId)) {
+            return false;
+        }
+
+        const target = this.segments[segmentIndex];
+        const previousParentId = target.parentId !== undefined && target.parentId !== null
+            ? String(target.parentId)
+            : (oldId.includes('-') ? oldId.slice(0, oldId.lastIndexOf('-')) : null);
+        target.id = nextId;
+        if (
+            (target.parentId === undefined || target.parentId === null)
+            && previousParentId !== null
+        ) {
+            target.parentId = previousParentId;
+        }
+
+        this.segments.forEach(segment => {
+            if (segment === target) return;
+
+            if (
+                segment.parentId !== undefined
+                && segment.parentId !== null
+                && String(segment.parentId) === oldId
+            ) {
+                segment.parentId = nextId;
+                return;
+            }
+
+            const segmentId = String(segment.id);
+            const legacyParentId = segmentId.includes('-')
+                ? segmentId.slice(0, segmentId.lastIndexOf('-'))
+                : null;
+            if (
+                (segment.parentId === undefined || segment.parentId === null)
+                && legacyParentId === oldId
+            ) {
+                segment.parentId = nextId;
+            }
+        });
+
+        this._notifyChange();
+        return true;
+    }
+
+    /**
      * 刪除段落
      */
     deleteSegment(id) {
         const targetId = String(id);
         const index = this.segments.findIndex(s => String(s.id) === targetId);
         if (index >= 0) {
-            // 如果是主段落 (不含 "-")，也要刪除所有子段落
-            if (!targetId.includes('-')) {
-                const prefix = `${targetId}-`;
-                this.segments = this.segments.filter(s => !String(s.id).startsWith(prefix) && String(s.id) !== targetId);
-            } else {
-                this.segments.splice(index, 1);
-            }
+            // Remove the selected segment and every descendant.
+            const subtreeIndexes = new Set(this._getSubtreeIndexes(index));
+            this.segments = this.segments.filter((segment, segmentIndex) => !subtreeIndexes.has(segmentIndex));
             this._notifyChange();
         }
     }
@@ -101,11 +227,10 @@ class SegmentManager {
      * must not renumber or flatten the imported hierarchy.
      */
     reorderSegment(fromIndex, toIndex) {
-        if (fromIndex < 0 || fromIndex >= this.segments.length) return;
-        if (toIndex < 0 || toIndex >= this.segments.length) return;
+        const reorderedIndexes = this._getReorderedIndexes(fromIndex, toIndex);
+        if (!reorderedIndexes) return;
 
-        const [removed] = this.segments.splice(fromIndex, 1);
-        this.segments.splice(toIndex, 0, removed);
+        this.segments = reorderedIndexes.map(index => this.segments[index]);
 
         this._notifyChange();
     }

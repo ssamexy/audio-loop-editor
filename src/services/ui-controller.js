@@ -254,7 +254,13 @@ class UIController {
                 idInput.value = segment.id;
                 return;
             }
-            this.segmentManager.updateSegment(segment.id, { id: newId });
+            const renameResult = typeof this.segmentManager.renameSegment === 'function'
+                ? this.segmentManager.renameSegment(segment.id, newId)
+                : (this.segmentManager.updateSegment(segment.id, { id: newId }), true);
+            if (renameResult === false) {
+                idInput.value = segment.id;
+                return;
+            }
             // re-render handled by update? No, usually fine, but data-id update needed
             row.dataset.segmentId = newId;
         });

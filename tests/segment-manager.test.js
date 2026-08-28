@@ -60,6 +60,129 @@ test('editor JSON preserves parent_id across export and import', async () => {
     );
 });
 
+function makeSegment(id, parentId) {
+    return {
+        id,
+        name: id,
+        startMs: 0,
+        endMs: 1000,
+        ...(parentId === undefined ? {} : { parentId })
+    };
+}
+
+test('deleting a nested parent removes all explicit descendants', async () => {
+    const SegmentManager = await loadSegmentManager();
+    const manager = new SegmentManager();
+    manager.segments = [
+        makeSegment('root'),
+        makeSegment('child', 'root'),
+        makeSegment('grandchild', 'child'),
+        makeSegment('sibling')
+    ];
+
+    manager.deleteSegment('child');
+
+    assert.deepEqual(
+        Array.from(manager.getSegments(), segment => segment.id),
+        ['root', 'sibling']
+    );
+});
+
+test('reordering a parent moves its complete subtree together', async () => {
+    const SegmentManager = await loadSegmentManager();
+    const manager = new SegmentManager();
+    manager.segments = [
+        makeSegment('1'),
+        makeSegment('first-child', '1'),
+        makeSegment('2'),
+        makeSegment('second-child', '2')
+    ];
+
+    manager.reorderSegment(0, 2);
+
+    assert.deepEqual(
+        Array.from(manager.getSegments(), segment => segment.id),
+        ['2', 'second-child', '1', 'first-child']
+    );
+});
+
+test('reordering a child across a parent boundary leaves the hierarchy intact', async () => {
+    const SegmentManager = await loadSegmentManager();
+    const manager = new SegmentManager();
+    manager.segments = [
+        makeSegment('1'),
+        makeSegment('first-child', '1'),
+        makeSegment('2'),
+        makeSegment('second-child', '2')
+    ];
+
+    manager.reorderSegment(1, 2);
+
+    assert.deepEqual(
+        Array.from(manager.getSegments(), segment => segment.id),
+        ['1', 'first-child', '2', 'second-child']
+    );
+});
+
+test('adding a child is placed after all explicit descendants', async () => {
+    const SegmentManager = await loadSegmentManager();
+    const manager = new SegmentManager();
+    manager.segments = [
+        makeSegment('root'),
+        makeSegment('child', 'root'),
+        makeSegment('grandchild', 'child')
+    ];
+
+    manager.addSubSegment('root', makeSegment('new-child', 'root'));
+
+    assert.deepEqual(
+        Array.from(manager.getSegments(), segment => segment.id),
+        ['root', 'child', 'grandchild', 'new-child']
+    );
+});
+
+test('renaming a parent updates explicit child references', async () => {
+    const SegmentManager = await loadSegmentManager();
+    const manager = new SegmentManager();
+    manager.segments = [
+        makeSegment('root'),
+        makeSegment('child', 'root'),
+        makeSegment('grandchild', 'child')
+    ];
+
+    assert.equal(manager.renameSegment('root', 'renamed-root'), true);
+
+    assert.deepEqual(
+        Array.from(manager.getSegments(), segment => [segment.id, segment.parentId]),
+        [
+            ['renamed-root', undefined],
+            ['child', 'renamed-root'],
+            ['grandchild', 'child']
+        ]
+    );
+});
+
+test('renaming a legacy nested parent preserves its parent and descendants', async () => {
+    const SegmentManager = await loadSegmentManager();
+    const manager = new SegmentManager();
+    manager.segments = [
+        makeSegment('1'),
+        makeSegment('1-1'),
+        makeSegment('1-1-1')
+    ];
+
+    assert.equal(manager.renameSegment('1-1', 'renamed'), true);
+
+    assert.deepEqual(
+        Array.from(manager.getSegments(), segment => [segment.id, segment.parentId]),
+        [
+            ['1', undefined],
+            ['renamed', '1'],
+            ['1-1-1', 'renamed']
+        ]
+    );
+});
+
 class FakeElement {
     constructor(tagName) {
         this.tagName = tagName;
